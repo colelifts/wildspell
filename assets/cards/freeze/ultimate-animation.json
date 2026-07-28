@@ -1,0 +1,31 @@
+{
+  "id": "freeze-ultimate",
+  "source": "freeze-master.png",
+  "rulesContract": {
+    "numericValue": null,
+    "effect": "Opponent skips their next turn",
+    "oneVsOneResult": "The player who cast Freeze immediately takes another turn"
+  },
+  "loopDurationMs": 3984,
+  "frameCount": 48,
+  "frameWidth": 384,
+  "frameHeight": 576,
+  "sheetColumns": 8,
+  "sheetRows": 6,
+  "effects": [
+    "crystal-energy-travel",
+    "frozen-victim-shiver",
+    "three-depth-snow",
+    "cold-ground-mist",
+    "refracted-foil-sweep",
+    "pulsing-border-frost",
+    "spell-seal-heartbeat",
+    "title-glint",
+    "art-camera-push"
+  ],
+  "runtimeAsset": "freeze-ultimate-sheet.webp",
+  "previewAssets": [
+    "freeze-ultimate-loop.webp",
+    "freeze-ultimate-preview.gif"
+  ]
+}

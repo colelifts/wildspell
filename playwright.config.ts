@@ -7,11 +7,14 @@ export default defineConfig({
   use: {
     baseURL: "http://127.0.0.1:4173",
     channel: "chrome",
-    viewport: { width: 1280, height: 720 },
     trace: "retain-on-failure"
   },
+  projects: [
+    { name: "desktop", use: { viewport: { width: 1280, height: 720 } } },
+    { name: "mobile", use: { viewport: { width: 390, height: 844 } } }
+  ],
   webServer: {
-    command: "npm run serve:baseline",
+    command: "npm run dev -- --host 127.0.0.1 --port 4173",
     url: "http://127.0.0.1:4173",
     reuseExistingServer: true,
     timeout: 30_000

@@ -1,32 +1,48 @@
-# WildSpell Production Beta
+# WildSpell: The Final Draw
 
-This is the first feature-complete production beta.
+WildSpell is a cinematic fantasy card duel rebuilt with Vite, TypeScript, and Phaser 3. The current branch contains a playable solo arena, deterministic Wild and Classic rules, animated LPC characters, spell cutscenes, four AI levels, three Final Card challenges, responsive desktop/mobile layouts, and replaceable audio hooks.
 
-## Included
-- Bright pixel-art tournament arena
-- Full number deck and standard spells
-- Arsonist, Whirlwind Swap, Stormcall, Frostbite, Mirror Trick, Cleanse
-- Burn, Frost-lock, Stormcall, stacking +2/+4
-- Final Card call and three minigames
-- Easy, Normal, Hard, Nightmare AI
-- Online private rooms and Quick Match
-- Actual LPC idle, cast, slash, thrust, hurt, and emote sheets
-- Card flight, special-card loops, full-screen spell effects, particles, screen shake
-- Loading, menu, lobby, game, settings, rules, credits, round and match screens
-- PWA/offline caching for local assets
-- Drop-in folders for music, SFX, and voice files
+## Run locally
 
-## Upload
-Upload every file and folder in this project to the root of the GitHub repository.
+```bash
+npm install
+npm run dev
+```
 
-## Audio
-Add the exact filenames listed in:
-- assets/music/README.txt
-- assets/sfx/README.txt
-- assets/voices/README.txt
+Useful checks:
 
-Missing audio files are ignored safely.
+```bash
+npm run typecheck
+npm test
+npm run build
+npm run test:e2e
+```
 
-## Security
-The included Firebase rules are suitable for testing but not cheat-proof ranked competition.
-A fully authoritative ranked server would require server-side move validation.
+## Gameplay in this milestone
+
+- Number, Skip, Reverse, +2, +4, Prism, Arsonist, Freeze, Whirlwind, Stormcall, Frostbite, Mirror, and Cleanse cards
+- +2/+4 draw-stack handling, burn and frost locks, forced Stormcall color, and persistent status indicators
+- Easy, Normal, Hard, and Nightmare seeded AI policies
+- Animated Cole and Skeleton LPC sheets using inspected frame counts
+- Card dealing, hover/play feedback, ambient particles, character actions, and spell-specific full-screen cinematics
+- Three real timed Final Card challenges: Rune Memory, Spell Timing, and Arcane Clash
+- Landscape and portrait arena compositions with reduced-motion and audio settings
+
+## Optional audio
+
+The game safely runs without media files. Add files using the exact names listed in `assets/music/README.txt`, `assets/sfx/README.txt`, and `assets/voices/README.txt`; the audio manager preloads available tracks and ignores missing optional hooks.
+
+## Firebase online beta
+
+Copy `.env.example` to `.env.local` and add the public browser configuration for your Firebase project. Private-room creation, invite-code joining, anonymous authentication, matchmaking queue entries, presence heartbeats, and reconnect-ready room subscriptions are implemented.
+
+Authoritative synchronized turns and hardened production database rules are not complete in this milestone. The checked-in `firebase-rules.json` remains suitable only for isolated development. Do not use it for ranked or untrusted public play.
+
+## Evidence and architecture
+
+- Rebuild progress: `docs/PROGRESS.md`
+- Architecture: `docs/ARCHITECTURE.md`
+- Asset audit: `docs/ASSET_MANIFEST.md`
+- Desktop/mobile screenshots: `artifacts/rebuild/`
+
+Vite emits the deployable site to `dist/` with `npm run build`.

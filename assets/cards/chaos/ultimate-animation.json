@@ -1,0 +1,34 @@
+{
+  "id": "chaos-plus-four-ultimate",
+  "source": "chaos-plus-four-master.png",
+  "rulesContract": {
+    "numericValue": null,
+    "stackValue": 4,
+    "effect": "Choose the next color and add 4 to the active draw stack",
+    "resolution": "If the next player does not stack an allowed draw card, draw the full stack and lose the turn"
+  },
+  "loopDurationMs": 3984,
+  "frameCount": 48,
+  "frameWidth": 384,
+  "frameHeight": 576,
+  "sheetColumns": 8,
+  "sheetRows": 6,
+  "effects": [
+    "four-orbiting-chaos-cards",
+    "sequential-four-seal-pulse",
+    "demon-throne-breathing",
+    "blood-aura-heartbeat",
+    "blood-lightning",
+    "three-depth-embers",
+    "black-smoke",
+    "eye-glow",
+    "crimson-foil-sweep",
+    "title-glint",
+    "art-camera-push"
+  ],
+  "runtimeAsset": "chaos-plus-four-ultimate-sheet.webp",
+  "previewAssets": [
+    "chaos-plus-four-ultimate-loop.webp",
+    "chaos-plus-four-ultimate-preview.gif"
+  ]
+}

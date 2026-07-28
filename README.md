@@ -1,15 +1,18 @@
-# WildSpell 2.0
+# WildSpell v3
 
-Pixel-art online card game prototype.
+Upload everything in this folder to the root of your GitHub repository.
 
-## Deploy
-Upload all files and folders to the root of the existing GitHub repository. Vercel deploys it as a static site.
+Features:
+- Solo Skeleton AI
+- Online private rooms
+- Animated LPC characters
+- Arsonist/Burn
+- Freeze
+- Whirlwind Swap
+- +2 and +4 stacking
+- Animated special card faces
+- Smart turn guidance
 
-## Important
-Firebase is currently configured for the existing WildSpell Realtime Database. Apply secure rules before broad public release.
-
-## Audio
-Local instant-loading chiptune/SFX are included. A future studio voice pack can replace the browser speech system without changing game logic.
-
-## Credits
-See each character folder for original Universal LPC attribution and license details.
+Audio:
+Add your selected `menu.ogg` and `battle.ogg` under `assets/music`.
+Add optional voice files under `assets/voices`.

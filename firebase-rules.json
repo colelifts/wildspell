@@ -3,15 +3,8 @@
     "rooms": {
       "$room": {
         ".read": true,
-        ".write": true,
-        ".indexOn": [
-          "created"
-        ]
+        ".write": true
       }
-    },
-    "matchmaking": {
-      ".read": true,
-      ".write": true
     },
     ".read": false,
     ".write": false

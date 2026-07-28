@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import { CharacterAnimator, } from "../animation/CharacterAnimator";
 import { CARD_BACK_KEY, createPremiumCardAnimations, preloadPremiumCards, premiumCardTexture } from "../animation/CardVisuals";
+import { PremiumPlayerDirector, preloadPremiumPlayer, type PremiumPlayerPose } from "../animation/PremiumPlayerDirector";
 import { ReactiveArena } from "../animation/ReactiveArena";
 import { SpellCinematics } from "../animation/SpellCinematics";
 import { ChallengeDirector, type ChallengeType } from "../challenges/ChallengeDirector";
@@ -44,8 +45,9 @@ export class MatchScene extends Phaser.Scene {
   private characterAnimator!: CharacterAnimator;
   private cinematics!: SpellCinematics;
   private arena!: ReactiveArena;
+  private playerDirector!: PremiumPlayerDirector;
   private challenges!: ChallengeDirector;
-  private playerSprite!: Phaser.GameObjects.Sprite;
+  private playerSprite!: Phaser.GameObjects.Image;
   private opponentSprite!: Phaser.GameObjects.Sprite;
   private dynamicObjects: Phaser.GameObjects.GameObject[] = [];
   private busy = false;
@@ -65,6 +67,7 @@ export class MatchScene extends Phaser.Scene {
   preload(): void {
     this.load.image("arena-premium", "/backgrounds/arena-premium.png");
     preloadPremiumCards(this);
+    preloadPremiumPlayer(this);
     this.characterAnimator = new CharacterAnimator(this);
     this.characterAnimator.preload();
   }
@@ -83,9 +86,9 @@ export class MatchScene extends Phaser.Scene {
 
     this.characterAnimator.createAnimations();
     createPremiumCardAnimations(this);
-    this.playerSprite = this.add.sprite(this.portrait ? 95 : 125, this.portrait ? 650 : 425, "you:idle", 0).setOrigin(0.5, 1).setScale(this.portrait ? 3.2 : 3.6).setDepth(18);
+    this.playerDirector = new PremiumPlayerDirector(this);
+    this.playerSprite = this.playerDirector.create(this.portrait ? 102 : 142, this.portrait ? 650 : 392, this.portrait ? 390 : 430);
     this.opponentSprite = this.add.sprite(this.portrait ? 481 : 850, this.portrait ? 620 : 405, "skeleton:idle", 0).setOrigin(0.5, 1).setScale(this.portrait ? 3.15 : 3.55).setFlipX(true).setDepth(18);
-    this.characterAnimator.play(this.playerSprite, "you", "idle", "right");
     this.characterAnimator.play(this.opponentSprite, "skeleton", "idle", "left");
     this.cinematics = new SpellCinematics(this);
     this.challenges = new ChallengeDirector(this);
@@ -124,6 +127,7 @@ export class MatchScene extends Phaser.Scene {
     this.addPlayerHand(initial);
     this.addStatusAuras();
     this.arena.sync(this.state);
+    this.playerDirector.setPersistentPose(this.state.statuses[0].burn ? "burn" : "turn-ready");
     emitGameState(this.state);
     if (this.state.phase === "challenge" && !this.finalChallengeRunning) void this.runChallenge();
     else if (this.state.turn === 1 && this.state.phase === "playing" && !this.busy) this.time.delayedCall(900, () => void this.runAi());
@@ -315,14 +319,19 @@ export class MatchScene extends Phaser.Scene {
     }
     const spell = this.state.events.find((event): event is Extract<GameEvent, { type: "spell" }> => event.type === "spell");
     const played = this.state.events.find((event): event is Extract<GameEvent, { type: "card-played" }> => event.type === "card-played");
+    const finalCard = this.state.events.find((event): event is Extract<GameEvent, { type: "final-card" }> => event.type === "final-card");
+    const roundWon = this.state.events.find((event): event is Extract<GameEvent, { type: "round-won" }> => event.type === "round-won");
     if (played) {
       audioManager.playSfx("play");
       this.playCharacter(command.player, spell ? "spellcast" : "slash");
     }
+    if (finalCard?.actor === 0 && finalCard.success) this.playerDirector.play("final-card", 1350);
+    if (roundWon) this.playerDirector.play(roundWon.actor === 0 ? "victory" : "defeat");
     this.renderState();
     if (spell) {
       this.busy = true;
       this.arena.react(spell.spell, to, this.state.drawStack.amount);
+      if (spell.target === 0) this.playPlayerReaction(spell.spell);
       audioManager.duck(1200);
       audioManager.playSfx(spell.spell === "arsonist" ? "fire" : spell.spell === "whirlwind" ? "wind" : spell.spell === "stormcall" ? "lightning" : spell.spell === "freeze" || spell.spell === "frostbite" ? "freeze" : "special");
       void this.cinematics.play(spell.spell, from, to).then(async () => {
@@ -362,10 +371,24 @@ export class MatchScene extends Phaser.Scene {
   }
 
   private playCharacter(player: number, action: "spellcast" | "slash" | "hurt" | "emote"): void {
-    const sprite = player === 0 ? this.playerSprite : this.opponentSprite;
-    const character = player === 0 ? "you" : "skeleton";
-    this.characterAnimator.play(sprite, character, action, player === 0 ? "right" : "left");
-    this.time.delayedCall(action === "hurt" ? 730 : 900, () => this.characterAnimator.play(sprite, character, "idle", player === 0 ? "right" : "left"));
+    if (player === 0) {
+      const pose: PremiumPlayerPose = action === "spellcast" ? "heavy-cast" : action === "slash" ? "card-play" : action === "hurt" ? "hurt" : "final-card";
+      this.playerDirector.play(pose, action === "spellcast" ? 1250 : 900);
+      return;
+    }
+    this.characterAnimator.play(this.opponentSprite, "skeleton", action, "left");
+    this.time.delayedCall(action === "hurt" ? 730 : 900, () => this.characterAnimator.play(this.opponentSprite, "skeleton", "idle", "left"));
+  }
+
+  private playPlayerReaction(spell: CardKind): void {
+    const pose: PremiumPlayerPose = spell === "freeze" || spell === "frostbite"
+      ? "frozen"
+      : spell === "arsonist"
+        ? "burn"
+        : spell === "whirlwind"
+          ? "wind"
+          : "hurt";
+    this.playerDirector.play(pose, pose === "burn" ? 1450 : 1100);
   }
 
   private async runChallenge(): Promise<void> {
@@ -379,6 +402,8 @@ export class MatchScene extends Phaser.Scene {
     const [low, high] = ranges[this.state.difficulty];
     const aiScore = Math.round(low + ((this.state.rngSeed % 1000) / 1000) * (high - low));
     this.state = resolveChallenge(this.state, result.score, aiScore);
+    const finalResult = this.state.events.find((event): event is Extract<GameEvent, { type: "final-card" }> => event.type === "final-card");
+    if (finalResult?.actor === 0) this.playerDirector.play(finalResult.success ? "victory" : "defeat", finalResult.success ? 1300 : 1500);
     gameBus.dispatchEvent(new CustomEvent("toast", { detail: `${CARD_NAMES.prism}: You ${result.score} • Rival ${aiScore}` }));
     this.finalChallengeRunning = false;
     this.busy = false;

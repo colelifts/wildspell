@@ -46,3 +46,12 @@ The first visual gate is captured in `artifacts/rebuild/` for desktop and mobile
 - [x] Verify the updated menu and a live solo match in Chromium with no browser errors.
 - [ ] Replace the remaining LPC player and opponent sprites with approved high-detail character animation packs.
 - [ ] Replace legacy special-card faces only if those spells remain in the final deck.
+
+## Premium character pass
+
+- [x] Lock the supplied player-character identity, costume, weapon, proportions, and animation style.
+- [x] Create transparent turn-ready, card-play, light-cast, heavy-cast, hurt, frozen, Burn, Whirlwind, Final Card, victory, and defeat poses.
+- [x] Add entrance, breathing, anticipation, impact, recovery, persistent Burn, reaction, victory, and defeat direction in Phaser.
+- [x] Replace the LPC player sprite in the live match without changing the supplied legacy files.
+- [x] Validate player scale, transparency, placement, and browser console in a live Chromium match.
+- [ ] Receive and build the premium opponent character pack.

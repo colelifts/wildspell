@@ -17,7 +17,7 @@ export class WildSpellGame {
       height,
       backgroundColor: "#07112c",
       scene: MatchScene,
-      render: { antialias: false, pixelArt: true, roundPixels: true },
+      render: { antialias: true, pixelArt: false, roundPixels: false },
       scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH, width, height }
     });
     this.game.scene.start("MatchScene", config);

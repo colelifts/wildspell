@@ -1,5 +1,7 @@
 import Phaser from "phaser";
 import { CharacterAnimator, } from "../animation/CharacterAnimator";
+import { CARD_BACK_KEY, createPremiumCardAnimations, preloadPremiumCards, premiumCardTexture } from "../animation/CardVisuals";
+import { ReactiveArena } from "../animation/ReactiveArena";
 import { SpellCinematics } from "../animation/SpellCinematics";
 import { ChallengeDirector, type ChallengeType } from "../challenges/ChallengeDirector";
 import { audioManager } from "../audio/AudioManager";
@@ -41,6 +43,7 @@ export class MatchScene extends Phaser.Scene {
   private state!: GameState;
   private characterAnimator!: CharacterAnimator;
   private cinematics!: SpellCinematics;
+  private arena!: ReactiveArena;
   private challenges!: ChallengeDirector;
   private playerSprite!: Phaser.GameObjects.Sprite;
   private opponentSprite!: Phaser.GameObjects.Sprite;
@@ -60,7 +63,8 @@ export class MatchScene extends Phaser.Scene {
   }
 
   preload(): void {
-    this.load.image("arena-rebuild", "/backgrounds/arena-rebuild.png");
+    this.load.image("arena-premium", "/backgrounds/arena-premium.png");
+    preloadPremiumCards(this);
     this.characterAnimator = new CharacterAnimator(this);
     this.characterAnimator.preload();
   }
@@ -72,14 +76,13 @@ export class MatchScene extends Phaser.Scene {
     const height = this.scale.height;
     this.cameras.main.setViewport(0, 0, width, height).setZoom(this.portrait ? 1 : 0.64).centerOn(width / 2, this.portrait ? height / 2 : 360);
     this.cameras.main.setBackgroundColor(0x07112c);
-    const background = this.add.image(width / 2, height / 2, "arena-rebuild").setDisplaySize(this.portrait ? 1820 : 1600, this.portrait ? 1024 : 900).setDepth(-20);
-    this.tweens.add({ targets: background, scaleX: 1.016, scaleY: 1.016, duration: 7000, yoyo: true, repeat: -1, ease: "Sine.InOut" });
-    this.add.rectangle(width / 2, height / 2, width, height, 0x07112c, 0.05).setDepth(-19);
+    this.arena = new ReactiveArena(this, this.portrait);
+    this.arena.create("arena-premium");
     this.add.rectangle(width / 2, height - 50, width, 100, 0x061020, 0.62).setDepth(5);
     this.add.rectangle(width / 2, this.portrait ? 74 : 38, width, this.portrait ? 148 : 76, 0x061020, 0.72).setDepth(5);
 
-    this.createAmbientMagic();
     this.characterAnimator.createAnimations();
+    createPremiumCardAnimations(this);
     this.playerSprite = this.add.sprite(this.portrait ? 95 : 125, this.portrait ? 650 : 425, "you:idle", 0).setOrigin(0.5, 1).setScale(this.portrait ? 3.2 : 3.6).setDepth(18);
     this.opponentSprite = this.add.sprite(this.portrait ? 481 : 850, this.portrait ? 620 : 405, "skeleton:idle", 0).setOrigin(0.5, 1).setScale(this.portrait ? 3.15 : 3.55).setFlipX(true).setDepth(18);
     this.characterAnimator.play(this.playerSprite, "you", "idle", "right");
@@ -108,24 +111,6 @@ export class MatchScene extends Phaser.Scene {
     on("emote", () => this.playCharacter(0, "emote"));
   }
 
-  private createAmbientMagic(): void {
-    const spark = this.add.graphics();
-    spark.fillStyle(0xffffff, 1).fillCircle(4, 4, 4).generateTexture("magic-spark", 8, 8).destroy();
-    const particles = this.add.particles(this.scale.width / 2, this.portrait ? 470 : 265, "magic-spark", {
-      x: { min: this.portrait ? -250 : -450, max: this.portrait ? 250 : 450 },
-      y: { min: this.portrait ? -380 : -190, max: this.portrait ? 380 : 185 },
-      lifespan: { min: 2300, max: 4800 },
-      speedY: { min: -18, max: -7 },
-      speedX: { min: -6, max: 6 },
-      scale: { start: 0.75, end: 0 },
-      alpha: { start: 0.72, end: 0 },
-      tint: [0x83eaff, 0xd385ff, 0xffd86a],
-      frequency: 110,
-      blendMode: "ADD"
-    }).setDepth(2);
-    particles.setAlpha(0.72);
-  }
-
   private renderState(initial = false): void {
     for (const object of this.dynamicObjects) object.destroy();
     this.dynamicObjects = [];
@@ -138,6 +123,7 @@ export class MatchScene extends Phaser.Scene {
     this.addCard(top, this.portrait ? 345 : 512, this.portrait ? 420 : 285, false, false, 0, this.portrait ? 1 : 0.87);
     this.addPlayerHand(initial);
     this.addStatusAuras();
+    this.arena.sync(this.state);
     emitGameState(this.state);
     if (this.state.phase === "challenge" && !this.finalChallengeRunning) void this.runChallenge();
     else if (this.state.turn === 1 && this.state.phase === "playing" && !this.busy) this.time.delayedCall(900, () => void this.runAi());
@@ -196,53 +182,90 @@ export class MatchScene extends Phaser.Scene {
       const x = this.scale.width / 2 + offset * spacing;
       const y = (this.portrait ? 700 : 480) + Math.abs(offset) * 2.4;
       const angle = offset * 2.2;
+      const cardScale = this.portrait ? 0.78 : 0.76;
       const playable = isLegalCard(this.state, card, 0);
-      const view = this.addCard(card, x, initial ? (this.portrait ? 860 : 580) : y, false, playable, angle, this.portrait ? 0.78 : 0.76);
+      const view = this.addCard(card, x, initial ? (this.portrait ? 860 : 580) : y, false, playable, angle, cardScale);
       view.container.setDepth(80 + index);
       if (initial) this.tweens.add({ targets: view.container, y, duration: 480, delay: index * 65, ease: "Back.Out" });
       view.container.setInteractive(new Phaser.Geom.Rectangle(-55, -80, 110, 160), Phaser.Geom.Rectangle.Contains);
       view.container.on("pointerover", () => {
-        this.tweens.add({ targets: view.container, y: y - 28, scale: 1.03, angle: 0, duration: 130, ease: "Sine.Out" });
+        this.tweens.add({ targets: view.container, y: y - 28, scale: cardScale * 1.12, angle: 0, duration: 130, ease: "Sine.Out" });
         audioManager.playSfx("hover");
       });
-      view.container.on("pointerout", () => this.tweens.add({ targets: view.container, y, scale: 0.92, angle, duration: 150 }));
+      view.container.on("pointerout", () => this.tweens.add({ targets: view.container, y, scale: cardScale, angle, duration: 150 }));
       view.container.on("pointerdown", () => this.onCardSelected(view));
     });
   }
 
   private addCard(card: Card, x: number, y: number, back: boolean, playable: boolean, angle: number, scale: number): CardView {
     const container = this.add.container(x, y).setAngle(angle).setScale(scale);
-    const shadow = this.add.rectangle(7, 9, 110, 160, 0x02040d, 0.62).setRounded(14);
-    const frame = this.add.rectangle(0, 0, 110, 160, back ? 0x261354 : CARD_COLORS[card.color], 1).setRounded(14).setStrokeStyle(playable ? 5 : 3, playable ? 0xffee88 : 0xf7d98b, playable ? 1 : 0.86);
-    const inset = this.add.rectangle(0, 0, 91, 140, back ? 0x3c1d78 : 0x0b1530, back ? 0.82 : 0.24).setRounded(36).setAngle(-12);
-    container.add([shadow, frame, inset]);
+    const shadow = this.add.rectangle(7, 10, 112, 164, 0x01030a, 0.74).setRounded(12);
+    const frame = this.add.rectangle(0, 0, 110, 164, 0xffffff, 0.001).setRounded(12);
+    container.add(shadow);
     if (back) {
-      const rune = this.add.text(0, 0, "✦", { fontFamily: "Georgia", fontSize: "52px", color: "#ffe379", stroke: "#7e3dd1", strokeThickness: 7 }).setOrigin(0.5);
-      container.add(rune);
+      const face = this.add.image(0, 0, CARD_BACK_KEY).setDisplaySize(110, 165);
+      const sheen = this.add.rectangle(-26, -6, 18, 145, 0xffffff, 0.08).setAngle(24).setBlendMode(Phaser.BlendModes.ADD);
+      container.add([face, sheen]);
+      this.tweens.add({ targets: sheen, x: 36, alpha: { from: 0.02, to: 0.14 }, duration: 2400, yoyo: true, repeat: -1, ease: "Sine.InOut" });
     } else {
-      const symbol = card.kind === "number" ? String(card.value) : CARD_GLYPHS[card.kind];
-      const icon = this.add.text(0, -13, symbol, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: card.kind === "number" ? "64px" : "46px", fontStyle: "bold", color: "#ffffff", stroke: "#10172d", strokeThickness: 8 }).setOrigin(0.5);
-      const title = this.add.text(0, 56, card.kind === "number" ? "" : CARD_NAMES[card.kind].toUpperCase(), { fontFamily: '"Trebuchet MS", sans-serif', fontSize: "10px", fontStyle: "bold", color: "#fff4cf", align: "center", wordWrap: { width: 90 } }).setOrigin(0.5);
-      const corner = this.add.text(-44, -70, symbol, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: "17px", fontStyle: "bold", color: "#ffffff" }).setOrigin(0, 0);
-      container.add([icon, title, corner]);
-      if (SPELL_COLORS[card.kind]) {
-        const aura = this.add.circle(0, -13, 38, SPELL_COLORS[card.kind]!, 0.18).setBlendMode(Phaser.BlendModes.ADD);
-        container.addAt(aura, 3);
-        this.tweens.add({ targets: aura, scale: 1.25, alpha: 0.05, duration: 620, yoyo: true, repeat: -1 });
+      const premium = premiumCardTexture(card.kind);
+      if (premium) {
+        const face = this.add.sprite(0, 0, premium.texture, Phaser.Math.Between(0, 47)).setDisplaySize(110, 165);
+        face.play({ key: premium.animation, startFrame: Phaser.Math.Between(0, 47) });
+        container.add(face);
+      } else if (card.kind === "number") {
+        this.addNumberCardFace(container, card);
+      } else {
+        this.addFallbackSpecialFace(container, card);
       }
       if (this.state?.statuses[0].burnedCardIds.includes(card.id)) {
-        const burn = this.add.text(28, -56, "♨", { fontSize: "28px", color: "#ff8c4d", stroke: "#7a1608", strokeThickness: 5 }).setOrigin(0.5);
+        const burn = this.add.text(33, -58, "♨", { fontSize: "27px", color: "#ff9d54", stroke: "#641006", strokeThickness: 5 }).setOrigin(0.5);
         container.add(burn);
         this.tweens.add({ targets: burn, y: -65, alpha: 0.55, duration: 360, yoyo: true, repeat: -1 });
       }
       if (this.state?.statuses[0].frozenCardIds.includes(card.id)) {
-        frame.setFillStyle(0x5baed9, 0.88);
-        const frost = this.add.text(0, 0, "❄", { fontSize: "62px", color: "#d9fbff", stroke: "#387ca9", strokeThickness: 6 }).setOrigin(0.5).setAlpha(0.82);
-        container.add(frost);
+        const frostWash = this.add.rectangle(0, 0, 106, 159, 0x65d7ff, 0.33).setRounded(10).setBlendMode(Phaser.BlendModes.SCREEN);
+        const frost = this.add.text(0, 0, "❄", { fontSize: "62px", color: "#e4fdff", stroke: "#26618d", strokeThickness: 6 }).setOrigin(0.5).setAlpha(0.86);
+        container.add([frostWash, frost]);
       }
+    }
+    container.add(frame);
+    if (playable) {
+      const glow = this.add.rectangle(0, 0, 114, 169, 0xffe580, 0.04).setRounded(13).setStrokeStyle(4, 0xffec85, 0.96).setBlendMode(Phaser.BlendModes.ADD);
+      container.add(glow);
+      this.tweens.add({ targets: glow, alpha: { from: 0.16, to: 0.58 }, scale: { from: 1, to: 1.035 }, duration: 680, yoyo: true, repeat: -1 });
     }
     this.dynamicObjects.push(container);
     return { card, container, frame };
+  }
+
+  private addNumberCardFace(container: Phaser.GameObjects.Container, card: Card): void {
+    const color = CARD_COLORS[card.color];
+    const outer = this.add.rectangle(0, 0, 110, 164, 0x090b16, 1).setRounded(12).setStrokeStyle(2, 0xd7c18b, 0.9);
+    const panel = this.add.rectangle(0, 0, 96, 150, color, 0.96).setRounded(10).setStrokeStyle(2, 0xffffff, 0.4);
+    const inner = this.add.circle(0, 0, 45, 0x050816, 0.2).setStrokeStyle(2, 0xffffff, 0.25);
+    const ring = this.add.circle(0, 0, 34, 0xffffff, 0.04).setStrokeStyle(2, 0xffe5aa, 0.52);
+    const value = String(card.value);
+    const center = this.add.text(0, -1, value, {
+      fontFamily: "Georgia, serif", fontSize: "68px", fontStyle: "bold", color: "#fffaf0", stroke: "#11131d", strokeThickness: 8
+    }).setOrigin(0.5);
+    const cornerStyle = { fontFamily: "Georgia, serif", fontSize: "19px", fontStyle: "bold", color: "#fffaf0", stroke: "#17131b", strokeThickness: 4 };
+    const top = this.add.text(-44, -72, value, cornerStyle).setOrigin(0, 0);
+    const bottom = this.add.text(44, 72, value, cornerStyle).setOrigin(0, 0).setAngle(180);
+    const gloss = this.add.polygon(-9, -12, [-40, -70, -7, -70, 34, 54, 11, 72], 0xffffff, 0.07);
+    container.add([outer, panel, inner, ring, gloss, center, top, bottom]);
+  }
+
+  private addFallbackSpecialFace(container: Phaser.GameObjects.Container, card: Card): void {
+    const color = SPELL_COLORS[card.kind] ?? CARD_COLORS[card.color];
+    const symbol = CARD_GLYPHS[card.kind];
+    const outer = this.add.rectangle(0, 0, 110, 164, 0x080812, 1).setRounded(12).setStrokeStyle(3, color, 0.9);
+    const panel = this.add.rectangle(0, 0, 98, 152, color, 0.18).setRounded(10);
+    const aura = this.add.circle(0, -18, 38, color, 0.22).setBlendMode(Phaser.BlendModes.ADD);
+    const icon = this.add.text(0, -18, symbol, { fontFamily: "Georgia, serif", fontSize: "45px", fontStyle: "bold", color: "#ffffff", stroke: "#090b15", strokeThickness: 7 }).setOrigin(0.5);
+    const title = this.add.text(0, 54, CARD_NAMES[card.kind].toUpperCase(), { fontFamily: '"Trebuchet MS", sans-serif', fontSize: "10px", fontStyle: "bold", color: "#fff4cf", align: "center", wordWrap: { width: 86 } }).setOrigin(0.5);
+    container.add([outer, panel, aura, icon, title]);
+    this.tweens.add({ targets: aura, scale: 1.25, alpha: 0.05, duration: 620, yoyo: true, repeat: -1 });
   }
 
   private addStatusAuras(): void {
@@ -299,6 +322,7 @@ export class MatchScene extends Phaser.Scene {
     this.renderState();
     if (spell) {
       this.busy = true;
+      this.arena.react(spell.spell, to, this.state.drawStack.amount);
       audioManager.duck(1200);
       audioManager.playSfx(spell.spell === "arsonist" ? "fire" : spell.spell === "whirlwind" ? "wind" : spell.spell === "stormcall" ? "lightning" : spell.spell === "freeze" || spell.spell === "frostbite" ? "freeze" : "special");
       void this.cinematics.play(spell.spell, from, to).then(async () => {

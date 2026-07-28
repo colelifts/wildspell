@@ -50,7 +50,7 @@ button {
   overflow: auto;
   background:
     linear-gradient(180deg, #06102b22 0, #06102bcc 75%, #040817 100%),
-    url("/backgrounds/arena-rebuild.png") center/cover no-repeat;
+    url("/backgrounds/arena-premium.png") center/cover no-repeat;
 }
 .menu-screen:before {
   content: "";
@@ -406,7 +406,7 @@ select:focus {
   color: #9dffc1;
 }
 .game-screen {
-  background: #05091a url("/backgrounds/arena-rebuild.png") center/cover
+  background: #05091a url("/backgrounds/arena-premium.png") center/cover
     no-repeat;
 }
 .game-screen canvas {

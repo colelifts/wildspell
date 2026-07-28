@@ -33,3 +33,16 @@ Updated: 2026-07-28
 ## Visual gate
 
 The first visual gate is captured in `artifacts/rebuild/` for desktop and mobile. The next gate should exercise every spell cinematic, all three challenges, and a two-client Firebase match before production merge.
+
+## Premium visual pass
+
+- [x] Switch Phaser from pixel rendering to antialiased high-detail rendering.
+- [x] Integrate the 48-frame Arsonist, Freeze, Whirlwind, Arcane +2, and Chaos +4 card loops into live hands and the discard pile.
+- [x] Create and integrate the definitive WildSpell card back.
+- [x] Replace the pixel arena plate with an original high-detail supernatural-anime arena.
+- [x] Add continuous arena parallax, drifting mist, rune rotation, and magical motes.
+- [x] Add map-scale Freeze, Arsonist, Whirlwind, Arcane +2, and Chaos +4 reactions.
+- [x] Rebuild number cards as clean antialiased premium faces with readable corner values.
+- [x] Verify the updated menu and a live solo match in Chromium with no browser errors.
+- [ ] Replace the remaining LPC player and opponent sprites with approved high-detail character animation packs.
+- [ ] Replace legacy special-card faces only if those spells remain in the final deck.

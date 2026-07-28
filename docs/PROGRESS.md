@@ -16,7 +16,7 @@ Updated: 2026-07-28
 - [x] Add baseline Playwright configuration and smoke test.
 - [x] Run baseline Playwright test (`1 passed`) and retain `artifacts/baseline/menu-desktop.png`.
 - [x] Commit audit milestone (`d7c0423`).
-- [ ] Push audit milestone branch.
+- [x] Push audit milestone branch to `origin/codex/wildspell-rebuild`.
 
 ## Milestones
 

@@ -1,0 +1,28 @@
+{
+  "id": "arsonist-ultimate",
+  "source": "user-supplied master card",
+  "loopDurationMs": 3984,
+  "frameCount": 48,
+  "frameWidth": 384,
+  "frameHeight": 576,
+  "sheetColumns": 8,
+  "sheetRows": 6,
+  "effects": [
+    "interpolated-head-fire",
+    "rotating-molten-orb",
+    "character-breathing",
+    "floating-hand",
+    "scarf-ripple",
+    "eye-blink",
+    "heat-shimmer",
+    "reactive-firelight",
+    "three-depth-embers",
+    "border-glint",
+    "art-camera-push"
+  ],
+  "runtimeAsset": "arsonist-ultimate-sheet.webp",
+  "previewAssets": [
+    "arsonist-ultimate-loop.webp",
+    "arsonist-ultimate-preview.gif"
+  ]
+}

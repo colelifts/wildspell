@@ -1,0 +1,9 @@
+{
+  "name": "WildSpell \u2014 The Final Draw",
+  "short_name": "WildSpell",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#0a1020",
+  "theme_color": "#14243e",
+  "icons": []
+}

@@ -1,0 +1,37 @@
+{
+  "music": {
+    "menu": "assets/music/menu.ogg",
+    "battle": "assets/music/battle.ogg",
+    "challenge": "assets/music/challenge.ogg",
+    "victory": "assets/music/victory.ogg"
+  },
+  "sfx": {
+    "hover": "assets/sfx/hover.ogg",
+    "click": "assets/sfx/click.ogg",
+    "deal": "assets/sfx/deal.ogg",
+    "draw": "assets/sfx/draw.ogg",
+    "play": "assets/sfx/play.ogg",
+    "invalid": "assets/sfx/invalid.ogg",
+    "freeze": "assets/sfx/freeze.ogg",
+    "fire": "assets/sfx/fire.ogg",
+    "wind": "assets/sfx/wind.ogg",
+    "lightning": "assets/sfx/lightning.ogg",
+    "stack": "assets/sfx/stack.ogg",
+    "wild": "assets/sfx/wild.ogg",
+    "challenge": "assets/sfx/challenge.ogg",
+    "win": "assets/sfx/win.ogg",
+    "lose": "assets/sfx/lose.ogg"
+  },
+  "voices": {
+    "turn": "assets/voices/turn.ogg",
+    "draw": "assets/voices/draw.ogg",
+    "freeze": "assets/voices/freeze.ogg",
+    "arsonist": "assets/voices/arsonist.ogg",
+    "whirlwind": "assets/voices/whirlwind.ogg",
+    "stormcall": "assets/voices/stormcall.ogg",
+    "stack": "assets/voices/stack.ogg",
+    "final": "assets/voices/final-card.ogg",
+    "victory": "assets/voices/victory.ogg",
+    "defeat": "assets/voices/defeat.ogg"
+  }
+}

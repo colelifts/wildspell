@@ -1,6 +1,14 @@
 {
   "id": "arsonist-ultimate",
-  "source": "user-supplied master card",
+  "source": "arsonist-master-corrected.png",
+  "rulesContract": {
+    "numericValue": null,
+    "roundPoints": 35,
+    "onPlay": "Apply Burn 1 to the opponent",
+    "redResponse": "Reduce Burn by 1",
+    "otherResponse": "Draw cards equal to Burn, then increase Burn by 1",
+    "maximumBurn": 2
+  },
   "loopDurationMs": 3984,
   "frameCount": 48,
   "frameWidth": 384,

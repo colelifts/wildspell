@@ -1,0 +1,19 @@
+{
+  "rules": {
+    "rooms": {
+      "$room": {
+        ".read": true,
+        ".write": true,
+        ".indexOn": [
+          "created"
+        ]
+      }
+    },
+    "matchmaking": {
+      ".read": true,
+      ".write": true
+    },
+    ".read": false,
+    ".write": false
+  }
+}

@@ -1,0 +1,149 @@
+body/bodies/male/spellcast.png
+	- Note: see details at https://opengameart.org/content/lpc-character-bases; 'Thick' Male Revised Run/Climb by JaidynReiman (based on ElizaWy's LPC Revised)
+	- Licenses:
+		- OGA-BY 3.0
+		- CC-BY-SA 3.0
+		- GPL 3.0
+	- Authors:
+		- bluecarrot16
+		- JaidynReiman
+		- Benjamin K. Smith (BenCreating)
+		- Evert
+		- Eliza Wyatt (ElizaWy)
+		- TheraHedwig
+		- MuffinElZangano
+		- Durrani
+		- Johannes Sjölund (wulax)
+		- Stephen Challener (Redshrike)
+	- Links:
+		- https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles
+		- https://opengameart.org/content/lpc-medieval-fantasy-character-sprites
+		- https://opengameart.org/content/lpc-male-jumping-animation-by-durrani
+		- https://opengameart.org/content/lpc-runcycle-and-diagonal-walkcycle
+		- https://opengameart.org/content/lpc-revised-character-basics
+		- https://opengameart.org/content/lpc-be-seated
+		- https://opengameart.org/content/lpc-runcycle-for-male-muscular-and-pregnant-character-bases-with-modular-heads
+		- https://opengameart.org/content/lpc-jump-expanded
+		- https://opengameart.org/content/lpc-character-bases
+
+head/heads/human/male/spellcast.png
+	- Note: original head by Redshrike, tweaks by BenCreating, modular version by bluecarrot16
+	- Licenses:
+		- OGA-BY 3.0
+		- CC-BY-SA 3.0
+		- GPL 3.0
+	- Authors:
+		- bluecarrot16
+		- Benjamin K. Smith (BenCreating)
+		- Stephen Challener (Redshrike)
+	- Links:
+		- https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles
+		- https://opengameart.org/content/lpc-character-bases
+
+head/faces/male/neutral/spellcast.png
+	- Note: Original by Redshrike, Expressions by ElizaWy, mapped to all frames by JaidynReiman
+	- Licenses:
+		- OGA-BY 3.0
+	- Authors:
+		- JaidynReiman
+		- ElizaWy
+		- Stephen Challener (Redshrike)
+	- Links:
+		- https://github.com/ElizaWy/LPC/tree/main/Characters/Head
+		- https://opengameart.org/content/ulpc-expanded-expressions
+
+body/wings/bat/lizard/adult/fg/spellcast.png
+	- Note: Original by ElizaWy, added to most remaining frames by JaidynReiman
+	- Licenses:
+		- OGA-BY 3.0
+	- Authors:
+		- ElizaWy
+		- JaidynReiman
+	- Links:
+		- https://opengameart.org/content/lpc-wings-new-animations
+
+beards/beard/5oclock_shadow/spellcast.png
+	- Note: Original by Pennomi, repositioning by JaidynReiman.
+	- Licenses:
+		- CC-BY-SA 3.0
+		- GPL 3.0
+	- Authors:
+		- JaidynReiman
+		- Thane Brimhall (pennomi)
+		- laetissima
+	- Links:
+		- https://opengameart.org/content/lpc-base-character-expressions
+
+hair/spiked2/adult/spellcast.png
+	- Licenses:
+		- CC-BY-SA 3.0
+	- Authors:
+		- Fabzy
+		- bluecarrot16
+	- Links:
+		- https://opengameart.org/content/the-revolution-hair
+		- https://opengameart.org/content/lpc-hair
+
+torso/jacket/santa/male/spellcast/yellow.png
+	- Licenses:
+		- OGA-BY 3.0
+		- GPL 3.0
+	- Authors:
+		- bluecarrot16
+	- Links:
+		- https://opengameart.org/content/lpc-gentleman
+		- https://opengameart.org/content/lpc-santa
+
+arms/wrists/cuffs/male/spellcast.png
+	- Note: Original by bluecarrot16, climb/jump/sit/emote/run by JaidynReiman
+	- Licenses:
+		- OGA-BY 3.0
+	- Authors:
+		- bluecarrot16
+		- JaidynReiman
+	- Links:
+		- https://opengameart.org/content/lpc-pirates
+
+legs/cuffed/male/spellcast.png
+	- Note: Original bases by Redshrike, thrust/shoot bases by Wulax, original overalls by ElizaWy, base animations adapted from v3 overalls by bluecarrot16, pants by JaidynReiman
+	- Licenses:
+		- OGA-BY 3.0
+		- GPL 3.0
+	- Authors:
+		- JaidynReiman
+		- ElizaWy
+		- Bluecarrot16
+		- Johannes Sjölund (wulax)
+		- Stephen Challener (Redshrike)
+	- Links:
+		- https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing
+		- https://opengameart.org/content/lpc-expanded-sit-run-jump-more
+		- https://opengameart.org/content/lpc-expanded-pants
+
+feet/boots/revised/male/spellcast.png
+	- Note: original overalls and boots by ElizaWy, base animations adapted from v3 overalls by bluecarrot16, boots by JaidynReiman
+	- Licenses:
+		- OGA-BY 3.0
+		- GPL 3.0
+	- Authors:
+		- JaidynReiman
+		- ElizaWy
+		- Bluecarrot16
+		- Stephen Challener (Redshrike)
+		- Johannes Sjölund (wulax)
+	- Links:
+		- https://github.com/ElizaWy/LPC/tree/main/Characters/Clothing
+		- https://opengameart.org/content/lpc-expanded-socks-shoes
+
+weapon/polearm/trident/foreground/walk/spellcast/bronze.png
+	- Note: original "trident" by daneeklu and gr3yh47; adapted to opposite hand and split into layers by bluecarrot16
+	- Licenses:
+		- CC-BY-SA 3.0
+	- Authors:
+		- Daniel Eddeland (daneeklu)
+		- gr3yh47
+		- Johannes Sjölund (wulax)
+	- Links:
+		- https://opengameart.org/content/lpc-weapons-two-bows-a-spear-and-a-trident
+		- https://opengameart.org/content/lpc-extended-weapon-animations
+

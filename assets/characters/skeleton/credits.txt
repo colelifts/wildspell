@@ -1,0 +1,47 @@
+body/bodies/skeleton/spellcast/skeleton.png
+	- Licenses:
+		- OGA-BY 3.0
+		- CC-BY-SA 3.0
+		- GPL 3.0
+	- Authors:
+		- bluecarrot16
+		- Johannes Sjölund (wulax)
+		- Stephen Challener (Redshrike)
+	- Links:
+		- https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles
+		- https://opengameart.org/content/lpc-medieval-fantasy-character-sprites
+		- https://opengameart.org/content/lpc-skeleton
+		- https://opengameart.org/content/lpc-character-bases
+
+head/heads/skeleton/adult/spellcast/skeleton.png
+	- Licenses:
+		- OGA-BY 3.0
+		- CC-BY-SA 3.0
+		- GPL 3.0
+	- Authors:
+		- bluecarrot16
+		- Johannes Sjölund (wulax)
+		- Stephen Challener (Redshrike)
+	- Links:
+		- https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles
+		- https://opengameart.org/content/lpc-medieval-fantasy-character-sprites
+		- https://opengameart.org/content/lpc-skeleton
+		- https://opengameart.org/content/lpc-character-bases
+
+weapon/polearm/scythe/spellcast/scythe.png
+	- Licenses:
+		- CC-BY-SA 3.0
+	- Authors:
+		- bluecarrot16
+	- Links:
+		- https://opengameart.org/content/lpc-extended-weapon-animations
+
+facial/patches/eyepatch2/left/adult/spellcast/black.png
+	- Licenses:
+		- OGA-BY 3.0
+	- Authors:
+		- ElizaWy
+	- Links:
+		- https://github.com/ElizaWy/LPC/tree/main/Characters/Head%20Accessories
+		- https://opengameart.org/content/lpc-expanded-sit-run-jump-more
+

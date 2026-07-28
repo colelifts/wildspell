@@ -1,0 +1,158 @@
+body/bodies/female/walk.png
+	- Note: see details at https://opengameart.org/content/lpc-character-bases
+	- Licenses:
+		- OGA-BY 3.0
+		- CC-BY-SA 3.0
+		- GPL 3.0
+	- Authors:
+		- Benjamin K. Smith (BenCreating)
+		- bluecarrot16
+		- TheraHedwig
+		- Evert
+		- MuffinElZangano
+		- Durrani
+		- Pierre Vigier (pvigier)
+		- ElizaWy
+		- Matthew Krohn (makrohn)
+		- Johannes Sjölund (wulax)
+		- Stephen Challener (Redshrike)
+	- Links:
+		- https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles
+		- https://opengameart.org/content/lpc-medieval-fantasy-character-sprites
+		- https://opengameart.org/content/lpc-ladies
+		- https://opengameart.org/content/lpc-7-womens-shirts
+		- https://opengameart.org/content/lpc-jump-expanded
+		- https://opengameart.org/content/lpc-be-seated
+		- https://opengameart.org/content/lpc-revised-character-basics
+		- https://gitlab.com/vagabondgame/lpc-characters
+		- https://opengameart.org/content/lpc-male-jumping-animation-by-durrani
+		- https://opengameart.org/content/lpc-runcycle-and-diagonal-walkcycle
+
+head/faces/female/closing/walk.png
+	- Note: Original by Redshrike, Expressions by ElizaWy, mapped to all frames by JaidynReiman
+	- Licenses:
+		- OGA-BY 3.0
+	- Authors:
+		- JaidynReiman
+		- ElizaWy
+		- Stephen Challener (Redshrike)
+	- Links:
+		- https://github.com/ElizaWy/LPC/tree/main/Characters/Head
+		- https://opengameart.org/content/ulpc-expanded-expressions
+
+head/heads/human/female/walk.png
+	- Note: original head by Redshrike, tweaks by BenCreating, modular version by bluecarrot16
+	- Licenses:
+		- OGA-BY 3.0
+		- CC-BY-SA 3.0
+		- GPL 3.0
+	- Authors:
+		- bluecarrot16
+		- Benjamin K. Smith (BenCreating)
+		- Stephen Challener (Redshrike)
+	- Links:
+		- https://opengameart.org/content/
+		- https://opengameart.org/content/lpc-character-bases
+
+eyes/eyebrows/thin/adult/walk.png
+	- Licenses:
+		- OGA-BY 3.0
+	- Authors:
+		- ElizaWy
+	- Links:
+		- https://github.com/ElizaWy/LPC/tree/main/Characters/Hair
+		- https://opengameart.org/content/lpc-expanded-sit-run-jump-more
+
+hair/long_messy2/adult/walk.png
+	- Note: (shura)
+	- Licenses:
+		- CC-BY-SA 3.0
+		- GPL 3.0
+	- Authors:
+		- Yamilian
+		- bluecarrot16
+	- Links:
+		- https://opengameart.org/content/lpc-heroine-2
+		- https://opengameart.org/content/lpc-hair
+
+dress/bodice/female/walk/purple.png
+	- Note: original princess.xcf by Sharm, extended to all poses by makrohn, edited to v3 bases and animation cleanup by bluecarrot16
+	- Licenses:
+		- OGA-BY 3.0
+		- CC-BY-SA 3.0
+		- GPL 3.0
+	- Authors:
+		- bluecarrot16
+		- Matthew Krohn (makrohn)
+		- Lanea Zimmerman (Sharm)
+	- Links:
+		- https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles
+		- https://opengameart.org/content/lpc-dress-in-combat-poses
+		- http://opengameart.org/content/lpc-clothing-updates
+
+legs/skirts/plain/thin/walk.png
+	- Note: original by wulax, edited for female base by pvigier, edited for v3 base by bluecarrot16, idle & sit by Ahmad3366, color reduced & female sit/emote by JaidynReiman
+	- Licenses:
+		- OGA-BY 3.0
+		- CC-BY-SA 3.0
+		- GPL 3.0
+	- Authors:
+		- bluecarrot16
+		- Pierre Vigier (pvigier)
+		- Johannes Sjölund (wulax)
+		- Ahmad3366
+		- JaidynReiman
+	- Links:
+		- https://opengameart.org/content/lpc-medieval-fantasy-character-sprites
+
+legs/skirts/overskirt/thin/walk.png
+	- Note: original princess.xcf by Sharm, extended to all poses by makrohn, edited to v3 bases and animation cleanup by bluecarrot16
+	- Licenses:
+		- OGA-BY 3.0
+		- CC-BY-SA 3.0
+		- GPL 3.0
+	- Authors:
+		- bluecarrot16
+		- Matthew Krohn (makrohn)
+		- Lanea Zimmerman (Sharm)
+	- Links:
+		- https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles
+		- https://opengameart.org/content/lpc-dress-in-combat-poses
+		- http://opengameart.org/content/lpc-clothing-updates
+
+feet/shoes/ghillies/thin/walk.png
+	- Note: original by pennomi, laetissima and makrohn; edited for v3 bases by bluecarrot16, Jump/Sit/Emote/Run/Revised Combat by JaidynReiman
+	- Licenses:
+		- CC-BY-SA 3.0
+		- GPL 3.0
+	- Authors:
+		- bluecarrot16
+		- JaidynReiman
+		- Thane Brimhall (pennomi)
+		- laetissima
+		- Matthew Krohn (makrohn)
+	- Links:
+		- https://opengameart.org/content/lpc-2-characters
+		- http://opengameart.org/content/lpc-clothing-updates
+		- https://opengameart.org/content/lpc-expanded-socks-shoes
+
+weapon/magic/crystal/universal/foreground/walk/red.png
+	- Licenses:
+		- OGA-BY 3.0+
+		- GPL 3.0
+		- CC-BY 4.0
+	- Authors:
+		- bluecarrot16
+	- Links:
+		- https://opengameart.org/content/lpc-more-weapons
+
+weapon/magic/simple/foreground/walk/simple.png
+	- Note: original by DrJamgo, hands switched and split into to layers by bluecarrot16
+	- Licenses:
+		- CC0
+	- Authors:
+		- bluecarrot16
+		- Dr. Jamgo
+	- Links:
+		- https://opengameart.org/content/lpc-simple-staff
+

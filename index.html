@@ -1,56 +1,332 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>WildSpell Online Test</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0a0612">
+<title>WildSpell: The Final Draw</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#090611;color:white;font-family:Arial,sans-serif;min-height:100vh}
-.wrap{max-width:1000px;margin:auto;padding:20px}h1{text-align:center;color:#ffd25c;font-size:52px;margin:10px}.sub{text-align:center;color:#c8a5ee}
-.panel{max-width:620px;margin:30px auto;background:#171022;border:2px solid #76509c;border-radius:18px;padding:24px}
-label{display:block;margin:12px 0 5px}input{width:100%;padding:13px;border-radius:10px;border:1px solid #76509c;background:#090611;color:white;font-size:18px}
-.row{display:flex;gap:12px;margin-top:14px}button{padding:14px 18px;border:0;border-radius:12px;background:#8b4de8;color:white;font-size:17px;font-weight:bold;cursor:pointer;flex:1}
-button.gold{background:#d69520;color:#160c00}button.red{background:#b62931}.hidden{display:none!important}#status{color:#ffd25c;text-align:center;min-height:24px;margin-top:12px}
-.table{min-height:650px;border:5px solid #c78b32;border-radius:30px;background:radial-gradient(circle,#39204e,#160b22 60%,#08040d);position:relative;overflow:hidden}
-.top{display:flex;justify-content:space-between;padding:18px}.p{display:flex;gap:10px;align-items:center;background:#08060dbb;padding:10px 14px;border-radius:14px}
-img{width:64px;height:64px;image-rendering:pixelated;object-fit:contain}.center{position:absolute;left:50%;top:45%;transform:translate(-50%,-50%);display:flex;gap:25px}
-.card{width:92px;height:132px;border:5px solid #ffe7a6;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:52px;font-weight:bold;box-shadow:0 10px 20px #0008}
-.red{background:#c92d31}.yellow{background:#d99c15}.green{background:#2f9e44}.blue{background:#2475c8}.wild{background:conic-gradient(#e33,#fc3,#3b5,#39f,#a4e,#e33)}.back{background:#5b2690}
-.hand{position:absolute;bottom:30px;left:50%;transform:translateX(-50%);display:flex;max-width:94%}.hand .card{margin-left:-26px;cursor:pointer;transition:.15s}.hand .card:first-child{margin-left:0}.hand .play{transform:translateY(-10px);box-shadow:0 0 0 3px white,0 0 25px #ffd75d}.hand .play:hover{transform:translateY(-22px)}
-.turn{position:absolute;bottom:190px;left:50%;transform:translateX(-50%);font-weight:bold;color:#ffd35d;background:#09060dcc;padding:9px 18px;border-radius:999px}
-.enemy{position:absolute;top:110px;left:50%;transform:translateX(-50%);display:flex}.enemy .card{width:55px;height:80px;margin-left:-32px}.enemy .card:first-child{margin-left:0}
-#msg{position:absolute;left:50%;top:58%;transform:translate(-50%,-50%);font-size:38px;font-weight:bold;color:#ffd65c;text-shadow:0 3px 8px black;text-align:center}
-.room{text-align:center;font-size:36px;color:#ffd25c;letter-spacing:5px}
-@media(max-width:700px){.row{flex-direction:column}.card{width:68px;height:100px;font-size:36px}.hand .card{margin-left:-32px}}
+:root{
+  --bg:#07040c;--panel:#130d1d;--panel2:#1b1128;--gold:#f5be4b;--gold2:#8e5715;
+  --purple:#7d42d6;--purple2:#3e1b6e;--text:#fff6dc;--muted:#bcaecb;
+  --red:#d63b35;--yellow:#dda91b;--green:#2f9d4b;--blue:#287dc8;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:
+radial-gradient(circle at 50% -10%,#341353 0,#130a20 32%,#08050e 65%,#030205 100%);
+color:var(--text);font-family:ui-monospace,SFMono-Regular,Consolas,"Liberation Mono",monospace}
+button,input,select{font:inherit}
+button{touch-action:manipulation}
+.hidden{display:none!important}
+.pixel{image-rendering:pixelated}
+.app{min-height:100vh;max-width:1500px;margin:auto;padding:14px}
+.brand{text-align:center;padding:8px 0 14px}
+.logo{font-family:Georgia,serif;font-weight:900;font-size:clamp(42px,8vw,88px);letter-spacing:.02em;
+color:#ffd767;-webkit-text-stroke:2px #8a3d00;text-shadow:0 5px 0 #713200,0 0 28px #9d4cff}
+.tagline{margin-top:-8px;color:#d8b5ff;letter-spacing:.28em;font-size:clamp(10px,2vw,14px)}
+.screen{animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.panel{background:linear-gradient(180deg,#1a1126ee,#100a19ee);border:2px solid #65468a;border-radius:18px;
+box-shadow:0 18px 55px #0009,inset 0 0 0 1px #ffffff0b}
+.menu{max-width:720px;margin:10px auto;padding:22px}
+.menu-grid{display:grid;gap:14px}
+.field{display:grid;gap:6px;color:#e8d9f7;font-size:13px}
+input,select{width:100%;padding:13px 14px;color:white;background:#09060f;border:1px solid #705590;border-radius:10px;outline:none}
+input:focus,select:focus{border-color:#d8a9ff;box-shadow:0 0 0 3px #8b46e833}
+.row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1 1 160px}
+.btn{border:0;border-radius:11px;padding:13px 16px;color:white;background:linear-gradient(#9557ef,#6230ae);
+box-shadow:0 4px 0 #3a1c69;font-weight:900;cursor:pointer;transition:.14s transform,.14s filter}
+.btn:hover{filter:brightness(1.13);transform:translateY(-1px)}.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #3a1c69}
+.btn.gold{background:linear-gradient(#ffd76b,#d28b14);color:#251400;box-shadow:0 4px 0 #80500c}
+.btn.red{background:linear-gradient(#ff6e68,#b4242a);box-shadow:0 4px 0 #6d1217}
+.btn.dark{background:linear-gradient(#30213f,#1b1226);box-shadow:0 4px 0 #0b0710;border:1px solid #69527d}
+.btn.small{padding:9px 12px;font-size:12px}
+.status{min-height:24px;text-align:center;color:#ffd269;font-size:13px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.tab{padding:10px;border-radius:10px;border:1px solid #5d4772;background:#0c0812;color:#c9bad6;cursor:pointer}
+.tab.active{color:#fff3ce;border-color:#e8b650;background:#2a173a}
+.tabpane{display:none}.tabpane.active{display:block}
+.note{font-size:12px;line-height:1.55;color:var(--muted)}
+.lobby{text-align:center;max-width:700px;margin:12px auto;padding:24px}
+.room-code{font-size:clamp(38px,10vw,76px);letter-spacing:.18em;color:#ffd666;text-shadow:0 0 16px #a650ff;margin:8px 0}
+.ready-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.ready-card{padding:15px;border:1px solid #654c7e;border-radius:14px;background:#0c0812}
+.ready-card.on{border-color:#5fe47c;box-shadow:0 0 20px #36ca5d33}
+.avatar-big{width:92px;height:92px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 10px 8px #0009)}
+.game-shell{position:relative;min-height:calc(100vh - 28px);border:4px solid #86551e;border-radius:28px;
+box-shadow:inset 0 0 0 4px #e0a94a,0 24px 70px #000c;overflow:hidden;
+background:
+linear-gradient(#09060a99,#09060a99),
+repeating-linear-gradient(45deg,#1a0d22 0 8px,#150a1b 8px 16px)}
+.game-shell:before{content:"";position:absolute;inset:84px 6% 120px;border-radius:50%;
+background:radial-gradient(ellipse at center,#4c265e 0,#2c1638 47%,#150b1d 72%);
+border:8px solid #6f381a;box-shadow:inset 0 0 0 5px #d19a3b,0 0 55px #000b}
+.hud{position:relative;z-index:5;display:flex;justify-content:space-between;align-items:flex-start;padding:16px}
+.player-box{display:flex;gap:11px;align-items:center;padding:9px 12px;background:#06040add;border:1px solid #5f4776;border-radius:15px;min-width:210px}
+.avatar-wrap{position:relative}.avatar{width:68px;height:68px;object-fit:contain;image-rendering:pixelated;transition:.2s}
+.avatar.react{animation:react .65s ease}.avatar.cast{animation:cast .9s ease}.avatar.hurt{animation:hurt .55s ease}
+@keyframes react{35%{transform:translateY(-12px) scale(1.12)}70%{transform:rotate(-5deg)}}
+@keyframes cast{50%{transform:scale(1.22) rotate(7deg);filter:drop-shadow(0 0 16px #d17cff)}}
+@keyframes hurt{25%{transform:translateX(-10px) rotate(-6deg)}50%{transform:translateX(10px) rotate(6deg)}}
+.player-name{font-weight:900}.card-count{color:#ffd766;font-size:13px}.score{color:#9de9ff;font-size:12px;margin-top:4px}
+.connection{position:absolute;width:10px;height:10px;border-radius:50%;right:2px;bottom:2px;background:#4ddd6e;box-shadow:0 0 8px #4ddd6e}
+.connection.off{background:#e85151;box-shadow:0 0 8px #e85151}
+.top-center{display:grid;gap:7px;text-align:center}.room-pill,.turn-pill{padding:7px 14px;border-radius:999px;background:#08050ccc;border:1px solid #6e527f;font-size:12px}
+.turn-pill{color:#ffd86c;font-weight:900}.round-info{color:#d8c8e8;font-size:11px}
+.enemy-hand{position:absolute;z-index:3;top:108px;left:50%;transform:translateX(-50%);display:flex;justify-content:center}
+.enemy-hand .game-card{margin-left:-52px}.enemy-hand .game-card:first-child{margin-left:0}
+.board-center{position:absolute;z-index:4;left:50%;top:45%;transform:translate(-50%,-50%);display:flex;gap:28px;align-items:center}
+.pile-wrap{position:relative;text-align:center}.pile-label{font-size:10px;color:#d0c2dd;margin-top:7px;letter-spacing:.12em}
+.game-card{--card:#555;position:relative;width:105px;height:153px;border:5px solid #ffe5a2;border-radius:15px;
+background:linear-gradient(145deg,color-mix(in srgb,var(--card),white 16%),color-mix(in srgb,var(--card),black 24%));
+box-shadow:0 10px 20px #0009,inset 0 0 0 2px #0003;display:flex;align-items:center;justify-content:center;
+font-family:Arial Black,Impact,sans-serif;color:white;font-size:57px;line-height:1;text-shadow:3px 4px 0 #0007;user-select:none;transition:.18s}
+.game-card.red{--card:var(--red)}.game-card.yellow{--card:var(--yellow)}.game-card.green{--card:var(--green)}.game-card.blue{--card:var(--blue)}
+.game-card.wild{background:conic-gradient(from 35deg,#e33 0 25%,#e7b51c 0 50%,#2fa24b 0 75%,#287fd2 0);--card:#7028a2}
+.game-card.back{background:
+radial-gradient(circle at center,#a452ef 0 7%,transparent 8%),
+conic-gradient(from 45deg,#4f1b7b,#251039,#7e3ab4,#251039,#4f1b7b);border-color:#f2d678}
+.game-card.back:after{content:"✦";font-size:48px;color:#ffd767;text-shadow:0 0 15px #d081ff}
+.game-card .corner{position:absolute;left:7px;top:6px;font-size:18px}.game-card .corner.br{left:auto;top:auto;right:7px;bottom:6px;transform:rotate(180deg)}
+.game-card .champion{position:absolute;inset:20px 10px 18px;display:grid;place-items:center;font-size:49px;text-shadow:0 4px 0 #0007}
+.game-card .champion-name{position:absolute;bottom:4px;left:0;right:0;font-size:8px;text-align:center;letter-spacing:.08em;color:#fff6ca}
+.hand{position:absolute;z-index:6;left:50%;bottom:25px;transform:translateX(-50%);display:flex;justify-content:center;align-items:flex-end;width:min(96%,1200px);padding-top:25px}
+.hand .game-card{margin-left:-31px}.hand .game-card:first-child{margin-left:0}
+.game-card.playable{cursor:pointer;transform:translateY(-9px);box-shadow:0 0 0 3px white,0 0 24px #ffd86d,0 12px 20px #000a}
+.game-card.playable:hover{transform:translateY(-24px) scale(1.06);z-index:20}.game-card.selected{transform:translateY(-30px) scale(1.06)}
+.game-card.disabled{filter:grayscale(.7) brightness(.6)}
+.side-actions{position:absolute;z-index:7;right:16px;bottom:18px;display:grid;gap:9px}
+.uno-btn{width:98px;height:98px;border-radius:50%;border:5px solid #ffd55a;background:radial-gradient(circle at 35% 30%,#ff796d,#be1b24 65%,#721016);
+color:white;font-weight:950;cursor:pointer;box-shadow:0 7px 0 #621016,0 0 25px #ff302f66}
+.uno-btn.called{background:radial-gradient(circle at 35% 30%,#7cff98,#178b38 65%,#0e4c25);box-shadow:0 7px 0 #0d4b24,0 0 25px #4dff7b88}
+.drawn-actions{position:absolute;z-index:8;left:50%;bottom:188px;transform:translateX(-50%);display:flex;gap:8px}
+.fx-layer{position:absolute;z-index:50;inset:0;pointer-events:none;overflow:hidden}
+.fx-text{position:absolute;left:50%;top:48%;transform:translate(-50%,-50%);font-size:clamp(36px,7vw,82px);font-weight:950;text-align:center;
+text-shadow:0 4px 0 #000,0 0 24px currentColor;animation:fxpop 1.1s both}
+@keyframes fxpop{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}35%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-65%) scale(.9)}}
+.particle{position:absolute;width:10px;height:10px;border-radius:2px;animation:particle 1s ease-out forwards}
+@keyframes particle{to{transform:translate(var(--x),var(--y)) rotate(480deg);opacity:0}}
+.champion-fx{position:absolute;left:50%;top:43%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:18px;animation:champ .95s both}
+.champion-sprite{font-size:86px;filter:drop-shadow(0 0 18px currentColor)}.champion-beam{width:180px;height:14px;border-radius:999px;background:currentColor;box-shadow:0 0 28px currentColor}
+@keyframes champ{0%{opacity:0;transform:translate(-80%,-50%) scale(.4)}40%{opacity:1;transform:translate(-50%,-50%) scale(1.15)}100%{opacity:0;transform:translate(15%,-50%) scale(.9)}}
+.modal{position:fixed;z-index:100;inset:0;background:#000c;display:grid;place-items:center;padding:16px}.modal-card{width:min(560px,100%);padding:22px}
+.color-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.color-choice{height:90px;border:5px solid #ffecc0;border-radius:15px;cursor:pointer}
+.result{text-align:center}.result-title{font-size:clamp(42px,9vw,80px);color:#ffd565;text-shadow:0 5px 0 #753500}
+.settings-grid{display:grid;gap:14px}.switch-row{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.range{accent-color:#9b55e8}.credits{font-size:11px;max-height:45vh;overflow:auto;line-height:1.5;color:#cbbbd7}
+.toast{position:fixed;z-index:200;left:50%;bottom:20px;transform:translateX(-50%);padding:11px 16px;background:#100a19;border:1px solid #8c68a7;border-radius:999px;animation:toast 2.4s both}
+@keyframes toast{0%,100%{opacity:0;transform:translate(-50%,12px)}12%,86%{opacity:1;transform:translate(-50%,0)}}
+@media(max-width:760px){
+.app{padding:4px}.brand{padding-bottom:6px}.logo{font-size:42px}.game-shell{min-height:100svh;border-radius:16px}
+.game-shell:before{inset:91px 3% 128px}.hud{padding:8px}.player-box{min-width:0;padding:6px 8px}.avatar{width:48px;height:48px}
+.player-name{font-size:11px}.card-count,.score{font-size:9px}.top-center{position:absolute;left:50%;transform:translateX(-50%)}
+.game-card{width:72px;height:106px;border-width:4px;border-radius:11px;font-size:38px}.game-card .corner{font-size:12px}.game-card .champion{font-size:34px}
+.enemy-hand{top:91px}.enemy-hand .game-card{margin-left:-43px}.board-center{top:43%;gap:12px}
+.hand{bottom:22px}.hand .game-card{margin-left:-38px}.side-actions{right:5px;bottom:10px}.uno-btn{width:70px;height:70px;font-size:11px}
+.drawn-actions{bottom:145px}.room-pill{display:none}.turn-pill{font-size:9px;padding:5px 8px}.round-info{font-size:8px}
+}
+
+/* WildSpell 2.0 production pixel layer */
+body{font-family:"Courier New",monospace;image-rendering:pixelated}
+.game-shell{background:#08040e url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath fill='%23130a1d' d='M0 0h16v16H0zm16 16h16v16H16z'/%3E%3C/svg%3E");}
+.game-shell::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(#ffffff05 50%,#00000010 50%);background-size:100% 4px;z-index:60;mix-blend-mode:overlay}
+.pixel-stage{position:absolute;z-index:3;width:192px;height:192px;bottom:145px;filter:drop-shadow(0 14px 7px #000b)}
+.pixel-stage.player-stage{left:3%}.pixel-stage.opponent-stage{right:3%;transform:scaleX(-1)}
+.lpc-sprite{width:64px;height:64px;transform:scale(3);transform-origin:top left;background-repeat:no-repeat;image-rendering:pixelated;
+background-position:0 -128px;animation:lpcIdle 1.25s steps(13) infinite}
+.opponent-stage .lpc-sprite{transform:scale(3)}
+@keyframes lpcIdle{to{background-position:-832px -128px}}
+.lpc-sprite.spellcast{animation:lpcCast .72s steps(13) 1}@keyframes lpcCast{to{background-position:-832px -128px}}
+.lpc-sprite.hurt{animation:lpcHurt .55s steps(13) 1;background-position:0 0}@keyframes lpcHurt{to{background-position:-832px 0}}
+.lpc-sprite.emote{animation:lpcEmote .8s steps(13) 1}@keyframes lpcEmote{to{background-position:-832px -128px}}
+.lpc-you{background-image:url("assets/characters/you/idle.png")}.lpc-gabby{background-image:url("assets/characters/gabby/idle.png")}.lpc-skeleton{background-image:url("assets/characters/skeleton/idle.png")}
+.lpc-you.spellcast{background-image:url("assets/characters/you/spellcast.png")}.lpc-gabby.spellcast{background-image:url("assets/characters/gabby/spellcast.png")}.lpc-skeleton.spellcast{background-image:url("assets/characters/skeleton/spellcast.png")}
+.lpc-you.hurt{background-image:url("assets/characters/you/hurt.png")}.lpc-gabby.hurt{background-image:url("assets/characters/gabby/hurt.png")}.lpc-skeleton.hurt{background-image:url("assets/characters/skeleton/hurt.png")}
+.lpc-you.emote{background-image:url("assets/characters/you/emote.png")}.lpc-gabby.emote{background-image:url("assets/characters/gabby/emote.png")}.lpc-skeleton.emote{background-image:url("assets/characters/skeleton/emote.png")}
+.guide-banner{position:absolute;z-index:12;left:50%;top:105px;transform:translateX(-50%);max-width:620px;width:80%;padding:10px 18px;
+text-align:center;background:#09050fe8;border:2px solid #f2bd4c;box-shadow:0 0 0 3px #5c3510,0 0 24px #a54cff55;color:#fff0bd;font-weight:900}
+.guide-banner.pulse{animation:guidePulse 1s steps(2) infinite}@keyframes guidePulse{50%{border-color:#fff;transform:translateX(-50%) scale(1.02)}}
+.game-card{border-radius:3px;box-shadow:5px 5px 0 #050208,inset 0 0 0 3px #0005;image-rendering:pixelated}
+.game-card.playable{animation:cardReady .8s steps(2) infinite}@keyframes cardReady{50%{filter:brightness(1.25);box-shadow:0 0 0 4px #fff46b,0 0 30px #ffd34f}}
+.card-flight{position:fixed!important;z-index:500!important;transition:transform .42s cubic-bezier(.2,.8,.2,1),opacity .42s;pointer-events:none}
+.champion-pixel{position:absolute;inset:22px 13px 24px;background-size:400% 100%;background-position:0 0;animation:champLoop .7s steps(4) infinite;image-rendering:pixelated}
+@keyframes champLoop{to{background-position:-400% 0}}
+.champion-pixel.skip{background-image:url("assets/champions/skip.png")}.champion-pixel.reverse{background-image:url("assets/champions/reverse.png")}
+.champion-pixel.draw2{background-image:url("assets/champions/draw2.png")}.champion-pixel.wild{background-image:url("assets/champions/wild.png")}
+.champion-pixel.wild4{background-image:url("assets/champions/wild4.png")}
+.atmosphere{position:absolute;z-index:2;inset:0;pointer-events:none;opacity:0;transition:opacity .25s;background:radial-gradient(circle at center,var(--atmo,#8a42ff55),transparent 65%)}
+.atmosphere.active{opacity:1;animation:atmoFlash .7s steps(3)}@keyframes atmoFlash{35%{filter:brightness(2)}70%{transform:translateX(5px)}}
+.screen-shake{animation:screenShake .45s steps(4)}@keyframes screenShake{25%{transform:translate(7px,-3px)}50%{transform:translate(-6px,4px)}75%{transform:translate(4px,2px)}}
+@media(max-width:760px){.pixel-stage{width:96px;height:96px;bottom:132px}.lpc-sprite{transform:scale(1.5)}.opponent-stage .lpc-sprite{transform:scale(1.5)}.guide-banner{top:82px;font-size:10px}}
+
 </style>
 </head>
 <body>
-<div class="wrap">
-<h1>WILDSPELL</h1><div class="sub">ONLINE TEST BUILD</div>
+<div class="app">
+  <header class="brand" id="brand">
+    <div class="logo">WILDSPELL</div>
+    <div class="tagline">THE FINAL DRAW</div>
+  </header>
 
-<div id="menu" class="panel">
-<label>Your name</label><input id="playerName" value="Cole" maxlength="16">
-<div class="row"><button id="create" class="gold">CREATE ROOM</button><button id="solo">SKELETON AI</button></div>
-<label>Join room code</label><input id="joinCode" maxlength="6" placeholder="ABC123">
-<button id="join" style="width:100%;margin-top:12px">JOIN ROOM</button>
-<div id="status"></div>
+  <main id="menuScreen" class="screen panel menu">
+    <div class="tabs">
+      <button class="tab active" data-tab="online">ONLINE</button>
+      <button class="tab" data-tab="solo">SOLO</button>
+      <button class="tab" data-tab="more">MORE</button>
+    </div>
+
+    <section class="tabpane active" data-pane="online">
+      <div class="menu-grid">
+        <label class="field">Display name<input id="playerName" maxlength="16" value="Cole"></label>
+        <div class="row">
+          <button id="createRoomBtn" class="btn gold">CREATE PRIVATE ROOM</button>
+          <button id="quickMatchBtn" class="btn">QUICK MATCH</button>
+        </div>
+        <label class="field">Join with room code<input id="joinCode" maxlength="6" placeholder="ABC123" autocomplete="off"></label>
+        <button id="joinRoomBtn" class="btn">JOIN ROOM</button>
+        <div id="menuStatus" class="status"></div>
+        <div class="note">Create a room and send Gabby the code, or use Quick Match to pair with another waiting player.</div>
+      </div>
+    </section>
+
+    <section class="tabpane" data-pane="solo">
+      <div class="menu-grid">
+        <label class="field">Your name<input id="soloName" maxlength="16" value="Cole"></label>
+        <label class="field">Skeleton difficulty
+          <select id="aiDifficulty"><option value="easy">Easy</option><option value="normal" selected>Normal</option><option value="hard">Hard</option></select>
+        </label>
+        <button id="soloBtn" class="btn gold">BATTLE SKELETON AI</button>
+        <div class="note">AI mode works even when Firebase is unavailable.</div>
+      </div>
+    </section>
+
+    <section class="tabpane" data-pane="more">
+      <div class="menu-grid">
+        <button id="rulesBtn" class="btn dark">HOW TO PLAY</button>
+        <button id="settingsBtn" class="btn dark">SETTINGS</button>
+        <button id="creditsBtn" class="btn dark">CREDITS</button>
+        <div class="note">WildSpell uses original presentation and LPC character artwork. It is inspired by classic color-matching shedding games.</div>
+      </div>
+    </section>
+  </main>
+
+  <section id="lobbyScreen" class="screen panel lobby hidden">
+    <div>ROOM CODE</div>
+    <div id="lobbyCode" class="room-code">------</div>
+    <div class="ready-row">
+      <div id="hostReadyCard" class="ready-card on"><img id="hostLobbyAvatar" class="avatar-big"><div id="hostLobbyName">Host</div><small>READY</small></div>
+      <div id="guestReadyCard" class="ready-card"><img id="guestLobbyAvatar" class="avatar-big"><div id="guestLobbyName">Waiting…</div><small id="guestReadyText">NOT JOINED</small></div>
+    </div>
+    <p id="lobbyText">Send the room code or invite link to your opponent.</p>
+    <div class="row"><button id="copyInviteBtn" class="btn gold">COPY INVITE LINK</button><button id="leaveLobbyBtn" class="btn red">LEAVE</button></div>
+  </section>
+
+  <section id="gameScreen" class="screen game-shell hidden">
+    <div id="atmosphere" class="atmosphere"></div>
+    <div id="guideBanner" class="guide-banner pulse">Loading the table…</div>
+    <div class="pixel-stage player-stage"><div id="playerLpc" class="lpc-sprite lpc-you"></div></div>
+    <div class="pixel-stage opponent-stage"><div id="opponentLpc" class="lpc-sprite lpc-skeleton"></div></div>
+
+    <div class="hud">
+      <div class="player-box">
+        <div class="avatar-wrap"><img id="oppAvatar" class="avatar"><span id="oppConnection" class="connection"></span></div>
+        <div><div id="oppName" class="player-name">Opponent</div><div class="card-count"><span id="oppCount">7</span> cards</div><div class="score">Score: <span id="oppScore">0</span></div></div>
+      </div>
+      <div class="top-center">
+        <div id="roomPill" class="room-pill">SOLO</div>
+        <div id="turnPill" class="turn-pill">YOUR TURN</div>
+        <div class="round-info">Round <span id="roundNum">1</span> · First to <span id="targetScore">200</span></div>
+      </div>
+      <div class="player-box">
+        <div><div id="myName" class="player-name">You</div><div class="card-count"><span id="myCount">7</span> cards</div><div class="score">Score: <span id="myScore">0</span></div></div>
+        <div class="avatar-wrap"><img id="myAvatar" class="avatar"><span id="myConnection" class="connection"></span></div>
+      </div>
+    </div>
+
+    <div id="enemyHand" class="enemy-hand"></div>
+
+    <div class="board-center">
+      <div class="pile-wrap"><div id="drawPile" class="game-card back"></div><div class="pile-label">DRAW PILE</div></div>
+      <div class="pile-wrap"><div id="discardPile"></div><div class="pile-label">DISCARD PILE</div></div>
+    </div>
+
+    <div id="drawnActions" class="drawn-actions hidden">
+      <button id="playDrawnBtn" class="btn gold small">PLAY DRAWN CARD</button>
+      <button id="passBtn" class="btn dark small">PASS</button>
+    </div>
+
+    <div id="playerHand" class="hand"></div>
+    <div class="side-actions">
+      <button id="unoBtn" class="uno-btn">FINAL<br>CARD!</button>
+      <button id="gameSettingsBtn" class="btn dark small">⚙</button>
+      <button id="quitBtn" class="btn red small">QUIT</button>
+    </div>
+    <div id="fxLayer" class="fx-layer"></div>
+  </section>
 </div>
 
-<div id="lobby" class="panel hidden">
-<div>ROOM CODE</div><div id="roomCode" class="room"></div>
-<p id="lobbyText">Waiting for Gabby to join…</p>
-<button id="copy" class="gold" style="width:100%">COPY INVITE LINK</button>
+<div id="colorModal" class="modal hidden">
+  <div class="panel modal-card">
+    <h2>Choose a color</h2>
+    <div class="color-grid">
+      <button class="color-choice" data-color="red" style="background:var(--red)"></button>
+      <button class="color-choice" data-color="yellow" style="background:var(--yellow)"></button>
+      <button class="color-choice" data-color="green" style="background:var(--green)"></button>
+      <button class="color-choice" data-color="blue" style="background:var(--blue)"></button>
+    </div>
+  </div>
 </div>
 
-<div id="game" class="table hidden">
-<div class="top">
-<div class="p"><img id="oppImg"><div><span id="oppName">Opponent</span><br><b><span id="oppCount">7</span> cards</b></div></div>
-<div class="p"><div><span id="myName">You</span><br><b><span id="myCount">7</span> cards</b></div><img id="myImg"></div>
+<div id="resultModal" class="modal hidden">
+  <div class="panel modal-card result">
+    <div id="resultTitle" class="result-title">VICTORY!</div>
+    <p id="resultText"></p>
+    <div class="row"><button id="nextRoundBtn" class="btn gold">NEXT ROUND</button><button id="resultMenuBtn" class="btn red">MAIN MENU</button></div>
+  </div>
 </div>
-<div id="enemy" class="enemy"></div>
-<div class="center"><div id="deckPile" class="card back">✦</div><div id="discard"></div></div>
-<div id="turn" class="turn">YOUR TURN</div><div id="msg"></div><div id="hand" class="hand"></div>
+
+<div id="settingsModal" class="modal hidden">
+  <div class="panel modal-card">
+    <h2>Settings</h2>
+    <div class="settings-grid">
+      <label class="switch-row">Music <input id="musicToggle" type="checkbox" checked></label>
+      <label class="switch-row">Sound effects <input id="sfxToggle" type="checkbox" checked></label>
+      <label class="switch-row">Announcer voice <input id="voiceToggle" type="checkbox" checked></label>
+      <label class="field">Music volume<input id="musicVolume" class="range" type="range" min="0" max="1" value=".24" step=".01"></label>
+      <label class="field">Effects volume<input id="sfxVolume" class="range" type="range" min="0" max="1" value=".55" step=".01"></label>
+      <button class="btn" data-close="settingsModal">DONE</button>
+    </div>
+  </div>
 </div>
+
+<div id="rulesModal" class="modal hidden">
+  <div class="panel modal-card">
+    <h2>How to Play</h2>
+    <div class="note">
+      Match the top discard by color, number, or action. Skip removes the opponent’s turn. Reverse acts like Skip in a two-player duel.
+      Draw Two and Wild Draw Four force extra cards and skip the opponent. Wild lets you choose the next color.
+      After drawing, you may immediately play the drawn card when legal or pass. Press FINAL CARD before playing down to one card.
+      Forgetting the call gives you a two-card penalty. Win rounds to earn the value of cards left in your opponent’s hand. First to 200 wins the match.
+    </div>
+    <br><button class="btn" data-close="rulesModal">GOT IT</button>
+  </div>
+</div>
+
+<div id="creditsModal" class="modal hidden">
+  <div class="panel modal-card">
+    <h2>Credits</h2>
+    <div class="credits">
+      WildSpell game design and code: original project.<br><br>
+      Character sprites created with the Universal LPC Spritesheet Generator. LPC contributors represented in the uploaded credit files include
+      bluecarrot16, JaidynReiman, Benjamin K. Smith, Evert, Eliza Wyatt, TheraHedwig, MuffinElZangano, Durrani,
+      Johannes Sjölund, Stephen Challener, Fabzy, Yamilian, Lanea Zimmerman, Matthew Krohn, Pierre Vigier,
+      Ahmad3366, Thane Brimhall, laetissima, Daniel Eddeland, gr3yh47, Dr. Jamgo and others.
+      Artwork is used under its applicable OGA-BY, CC-BY, CC-BY-SA, CC0 and GPL licenses.
+      Preserve the original downloaded LPC credits files with published distributions.<br><br>
+      Music, sound effects and announcer are generated in-browser through Web Audio and speech synthesis.
+    </div>
+    <br><button class="btn" data-close="creditsModal">CLOSE</button>
+  </div>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
@@ -58,43 +334,492 @@ img{width:64px;height:64px;image-rendering:pixelated;object-fit:contain}.center{
 <script>
 (function(){
 "use strict";
-var firebaseConfig={
- apiKey:"AIzaSyA9sFi7r006bjzRd4jNUGPPbZ8KDjlif04",
- authDomain:"wildspell.firebaseapp.com",
- databaseURL:"https://wildspell-default-rtdb.firebaseio.com",
- projectId:"wildspell",
- storageBucket:"wildspell.firebasestorage.app",
- messagingSenderId:"601752417654",
- appId:"1:601752417654:web:50219d23c03b47bc5ff657"
+
+const firebaseConfig={
+  apiKey:"AIzaSyA9sFi7r006bjzRd4jNUGPPbZ8KDjlif04",
+  authDomain:"wildspell.firebaseapp.com",
+  databaseURL:"https://wildspell-default-rtdb.firebaseio.com",
+  projectId:"wildspell",
+  storageBucket:"wildspell.firebasestorage.app",
+  messagingSenderId:"601752417654",
+  appId:"1:601752417654:web:50219d23c03b47bc5ff657"
 };
-firebase.initializeApp(firebaseConfig);
-var db=firebase.database();
-var YOU="data:image/png;base64,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",GABBY="data:image/png;base64,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",AI="data:image/png;base64,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";
-var colors=["red","yellow","green","blue"],state=null,room=null,slot=null,solo=false,listener=null;
-function id(x){return document.getElementById(x)}function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t}return a}
-function makeDeck(){var d=[],c,n;for(var x=0;x<4;x++){c=colors[x];d.push({c:c,v:"0"});for(n=1;n<=9;n++)d.push({c:c,v:String(n)},{c:c,v:String(n)});d.push({c:c,v:"skip"},{c:c,v:"skip"},{c:c,v:"reverse"},{c:c,v:"reverse"},{c:c,v:"draw2"},{c:c,v:"draw2"})}for(n=0;n<4;n++)d.push({c:"wild",v:"wild"},{c:"wild",v:"wild4"});return shuffle(d)}
-function fresh(names){var d=makeDeck(),h=[d.splice(0,7),d.splice(0,7)],f=d.shift();while(f.c==="wild"){d.push(f);d=shuffle(d);f=d.shift()}return{names:names,hands:h,deck:d,discard:[f],color:f.c,turn:0,winner:-1,updated:Date.now()}}
-function text(c){return c.v==="skip"?"⊘":c.v==="reverse"?"↻":c.v==="draw2"?"+2":c.v==="wild"?"✦":c.v==="wild4"?"+4":c.v}
-function card(c,play,index){var e=document.createElement("div");e.className="card "+c.c+(play?" play":"");e.textContent=text(c);if(play)e.onclick=function(){doPlay(index)};return e}
-function valid(c,s){var top=s.discard[s.discard.length-1];return c.c==="wild"||c.c===s.color||c.v===top.v}
-function draw(s,p,n){for(var k=0;k<n;k++){if(!s.deck.length){var top=s.discard.pop();s.deck=shuffle(s.discard);s.discard=[top]}s.hands[p].push(s.deck.shift())}}
-function apply(s,p,index){var c=s.hands[p][index];if(s.turn!==p||!c||!valid(c,s))return false;s.hands[p].splice(index,1);s.discard.push(c);s.color=c.c==="wild"?colors[Math.floor(Math.random()*4)]:c.c;var o=1-p;if(c.v==="draw2"){draw(s,o,2);s.turn=p}else if(c.v==="wild4"){draw(s,o,4);s.turn=p}else if(c.v==="skip"||c.v==="reverse")s.turn=p;else s.turn=o;if(!s.hands[p].length)s.winner=p;s.updated=Date.now();return true}
-function render(){if(!state)return;var me=solo?0:slot,o=1-me;id("myName").textContent=state.names[me];id("oppName").textContent=state.names[o];id("myCount").textContent=state.hands[me].length;id("oppCount").textContent=state.hands[o].length;id("myImg").src=me===0?YOU:GABBY;id("oppImg").src=solo?AI:(o===0?YOU:GABBY);
-var dis=id("discard");dis.innerHTML="";var top=state.discard[state.discard.length-1];dis.appendChild(card({c:state.color,v:top.v},false,0));
-var h=id("hand");h.innerHTML="";for(var i=0;i<state.hands[me].length;i++)h.appendChild(card(state.hands[me][i],state.turn===me&&valid(state.hands[me][i],state),i));
-var en=id("enemy");en.innerHTML="";for(i=0;i<state.hands[o].length;i++){var b=document.createElement("div");b.className="card back";b.textContent="✦";en.appendChild(b)}
-id("turn").textContent=state.turn===me?"YOUR TURN":"OPPONENT TURN";if(state.winner>=0)id("msg").textContent=state.winner===me?"YOU WIN!":"YOU LOSE!";else id("msg").textContent=""}
-function showGame(){id("menu").classList.add("hidden");id("lobby").classList.add("hidden");id("game").classList.remove("hidden");render()}
-function doPlay(index){var me=solo?0:slot;if(solo){if(apply(state,0,index)){render();setTimeout(aiMove,650)}}else{db.ref("rooms/"+room+"/state").transaction(function(s){if(s&&apply(s,slot,index))return s;return;})}}
-function aiMove(){if(!solo||state.turn!==1||state.winner>=0)return;var opts=[];for(var i=0;i<state.hands[1].length;i++)if(valid(state.hands[1][i],state))opts.push(i);if(!opts.length){draw(state,1,1);state.turn=0}else apply(state,1,opts[0]);render()}
-id("deckPile").onclick=function(){var me=solo?0:slot;if(!state||state.turn!==me)return;if(solo){draw(state,0,1);state.turn=1;render();setTimeout(aiMove,650)}else db.ref("rooms/"+room+"/state").transaction(function(s){if(!s||s.turn!==slot)return;draw(s,slot,1);s.turn=1-slot;s.updated=Date.now();return s})};
-id("solo").onclick=function(){solo=true;state=fresh([id("playerName").value||"Cole","Skeleton AI"]);showGame()};
+let db=null;
+try{firebase.initializeApp(firebaseConfig);db=firebase.database()}catch(e){console.error(e)}
+
+const IMG_YOU="data:image/png;base64,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",IMG_GABBY="data:image/png;base64,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",IMG_AI="data:image/png;base64,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";
+const COLORS=["red","yellow","green","blue"];
+const CHAMPIONS={
+  skip:{icon:"🥷",name:"SHADOW NINJA",voice:"Skipped!"},
+  reverse:{icon:"🧙",name:"TIME MAGE",voice:"Time reverses!"},
+  draw2:{icon:"👺",name:"GOBLIN TRICKSTER",voice:"Draw two!"},
+  wild:{icon:"🧝‍♀️",name:"RAINBOW SORCERESS",voice:"Choose your color!"},
+  wild4:{icon:"👿",name:"CHAOS OVERLORD",voice:"Wild draw four!"}
+};
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const screens={menu:$("#menuScreen"),lobby:$("#lobbyScreen"),game:$("#gameScreen")};
+
+let mode="menu",roomId=null,mySlot=0,roomRef=null,roomListener=null,presenceTimer=null;
+let state=null,pendingWildIndex=null,pendingDrawn=false,soloTimer=null;
+let settings=Object.assign({music:true,sfx:true,voice:true,musicVolume:.24,sfxVolume:.55},JSON.parse(localStorage.getItem("wildspellSettings")||"{}"));
+let audioCtx=null,musicTimer=null,musicStep=0;
+
+function saveSettings(){localStorage.setItem("wildspellSettings",JSON.stringify(settings))}
+function showScreen(name){Object.values(screens).forEach(s=>s.classList.add("hidden"));screens[name].classList.remove("hidden");$("#brand").classList.toggle("hidden",name==="game")}
+function toast(text){const e=document.createElement("div");e.className="toast";e.textContent=text;document.body.append(e);setTimeout(()=>e.remove(),2400)}
 function code(){return Math.random().toString(36).slice(2,8).toUpperCase()}
-id("create").onclick=function(){solo=false;room=code();slot=0;var n=id("playerName").value||"Cole";db.ref("rooms/"+room).set({players:{0:{name:n}},status:"waiting",created:Date.now()}).then(function(){id("menu").classList.add("hidden");id("lobby").classList.remove("hidden");id("roomCode").textContent=room;listen()}).catch(function(e){id("status").textContent=e.message})};
-id("join").onclick=function(){solo=false;room=id("joinCode").value.trim().toUpperCase();slot=1;if(!room)return;db.ref("rooms/"+room).once("value").then(function(snap){if(!snap.exists())throw new Error("Room not found");var r=snap.val();if(r.players&&r.players[1])throw new Error("Room is full");var n=id("playerName").value||"Gabby";return db.ref("rooms/"+room).update({"players/1":{name:n},"status":"playing","state":fresh([r.players[0].name,n])})}).then(function(){listen();showGame()}).catch(function(e){id("status").textContent=e.message})};
-function listen(){if(listener)listener.off();listener=db.ref("rooms/"+room);listener.on("value",function(snap){var r=snap.val();if(!r)return;if(slot===0&&r.players&&r.players[1]&&!r.state)db.ref("rooms/"+room).update({status:"playing",state:fresh([r.players[0].name,r.players[1].name])});if(r.state){state=r.state;showGame()}})}
-id("copy").onclick=function(){var u=location.href.split("?")[0]+"?room="+room;navigator.clipboard.writeText(u).then(function(){id("lobbyText").textContent="Invite link copied. Send it to Gabby."})};
-var invite=new URLSearchParams(location.search).get("room");if(invite){id("joinCode").value=invite.toUpperCase();id("status").textContent="Enter your name and click JOIN ROOM."}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+function now(){return Date.now()}
+function other(p){return 1-p}
+function clone(o){return JSON.parse(JSON.stringify(o))}
+function ensureAudio(){if(!audioCtx){audioCtx=new (window.AudioContext||window.webkitAudioContext)()}if(audioCtx.state==="suspended")audioCtx.resume();if(settings.music&&!musicTimer)startMusic()}
+document.addEventListener("pointerdown",ensureAudio,{once:true});
+
+function tone(freq,dur=.1,type="square",vol=.12,delay=0){
+  if(!settings.sfx||!audioCtx)return;
+  const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime+delay;
+  o.type=type;o.frequency.setValueAtTime(freq,t);g.gain.setValueAtTime(vol*settings.sfxVolume,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(g).connect(audioCtx.destination);o.start(t);o.stop(t+dur);
+}
+function sfx(kind){
+  if(kind==="play"){tone(420,.08);tone(620,.09,"square",.1,.06)}
+  if(kind==="draw"){tone(220,.08);tone(170,.12,"triangle",.09,.07)}
+  if(kind==="special"){tone(330,.08);tone(660,.12,"sawtooth",.1,.08);tone(990,.18,"square",.08,.16)}
+  if(kind==="win"){[523,659,784,1047].forEach((f,i)=>tone(f,.2,"square",.1,i*.12))}
+  if(kind==="lose"){[392,330,262].forEach((f,i)=>tone(f,.22,"triangle",.1,i*.15))}
+  if(kind==="button"){tone(480,.06,"square",.07)}
+}
+function speak(text){
+  if(!settings.voice||!("speechSynthesis" in window))return;
+  speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.rate=1.08;u.pitch=.8;u.volume=.8;speechSynthesis.speak(u)
+}
+function startMusic(){
+  if(!audioCtx||musicTimer||!settings.music)return;
+  const notes=[110,146.8,164.8,220,196,164.8,146.8,130.8];
+  musicTimer=setInterval(()=>{
+    if(!settings.music||!audioCtx)return;
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime;
+    o.type="triangle";o.frequency.value=notes[musicStep++%notes.length];
+    g.gain.setValueAtTime(.035*settings.musicVolume,t);g.gain.exponentialRampToValueAtTime(.0001,t+.45);
+    o.connect(g).connect(audioCtx.destination);o.start(t);o.stop(t+.46);
+  },480)
+}
+function stopMusic(){clearInterval(musicTimer);musicTimer=null}
+
+function makeDeck(){
+  const d=[];
+  for(const c of COLORS){
+    d.push({c,v:"0",id:crypto.randomUUID()});
+    for(let n=1;n<=9;n++)d.push({c,v:String(n),id:crypto.randomUUID()},{c,v:String(n),id:crypto.randomUUID()});
+    for(const v of ["skip","reverse","draw2"])d.push({c,v,id:crypto.randomUUID()},{c,v,id:crypto.randomUUID()});
+  }
+  for(let i=0;i<4;i++)d.push({c:"wild",v:"wild",id:crypto.randomUUID()},{c:"wild",v:"wild4",id:crypto.randomUUID()});
+  return shuffle(d)
+}
+function cardPoints(c){if(/^\d$/.test(c.v))return +c.v;if(c.v==="wild"||c.v==="wild4")return 50;return 20}
+function valid(card,s){
+  const top=s.discard[s.discard.length-1];
+  return card.c==="wild"||card.c===s.currentColor||card.v===top.v
+}
+function newRound(names,scores=[0,0],round=1,starter=0,ai=null){
+  let deck=makeDeck(),hands=[deck.splice(0,7),deck.splice(0,7)],first;
+  do{first=deck.shift();deck.push(first);deck=shuffle(deck)}while(first.c==="wild");
+  first=deck.shift();
+  return {names,hands,deck,discard:[first],currentColor:first.c,turn:starter,winner:null,roundWinner:null,
+    round,scores,targetScore:200,drawnIndex:null,unoCalled:[false,false],unoPenalty:[false,false],lastAction:"start",
+    ai,updated:now(),version:1}
+}
+function refill(s){
+  if(s.deck.length)return;
+  const top=s.discard.pop();s.deck=shuffle(s.discard);s.discard=[top]
+}
+function drawCards(s,p,n){
+  for(let i=0;i<n;i++){refill(s);if(s.deck.length)s.hands[p].push(s.deck.shift())}
+}
+function advance(s,p,steps=1){s.turn=(p+steps)%2}
+function chooseBestColor(hand){
+  const counts={red:0,yellow:0,green:0,blue:0};hand.forEach(c=>{if(counts[c.c]!==undefined)counts[c.c]++});
+  return COLORS.sort((a,b)=>counts[b]-counts[a])[0]
+}
+function finalizeRound(s,p){
+  s.roundWinner=p;
+  const points=s.hands[other(p)].reduce((sum,c)=>sum+cardPoints(c),0);
+  s.scores[p]+=points;
+  if(s.scores[p]>=s.targetScore)s.winner=p;
+  s.lastAction="roundEnd";s.updated=now()
+}
+function applyPlay(s,p,index,colorChoice,fromDraw=false){
+  if(s.turn!==p||s.winner!==null||s.roundWinner!==null)return false;
+  const card=s.hands[p][index];if(!card||!valid(card,s))return false;
+  if(s.hands[p].length===2&&!s.unoCalled[p])s.unoPenalty[p]=true;
+  s.hands[p].splice(index,1);s.discard.push(card);s.currentColor=card.c==="wild"?(colorChoice||chooseBestColor(s.hands[p])):card.c;
+  s.drawnIndex=null;
+  const o=other(p);
+  if(card.v==="draw2"){drawCards(s,o,2);s.turn=p}
+  else if(card.v==="wild4"){drawCards(s,o,4);s.turn=p}
+  else if(card.v==="skip"||card.v==="reverse"){s.turn=p}
+  else{s.turn=o}
+  s.unoCalled[p]=false;
+  if(s.hands[p].length===0)finalizeRound(s,p);
+  s.lastAction=card.v;s.updated=now();return true
+}
+function drawOne(s,p){
+  if(s.turn!==p||s.roundWinner!==null||s.winner!==null||s.drawnIndex!==null)return false;
+  refill(s);if(!s.deck.length)return false;
+  s.hands[p].push(s.deck.shift());s.drawnIndex=s.hands[p].length-1;s.lastAction="draw";s.updated=now();return true
+}
+function passDrawn(s,p){
+  if(s.turn!==p||s.drawnIndex===null)return false;
+  s.drawnIndex=null;s.turn=other(p);s.unoCalled[p]=false;s.lastAction="pass";s.updated=now();return true
+}
+function callUno(s,p){
+  if(s.hands[p].length>2)return false;
+  s.unoCalled[p]=true;s.unoPenalty[p]=false;s.lastAction="uno";s.updated=now();return true
+}
+function catchUno(s,caller){
+  const target=other(caller);
+  if(s.unoPenalty[target]&&s.hands[target].length===1){
+    drawCards(s,target,2);s.unoPenalty[target]=false;s.lastAction="catch";s.updated=now();return true
+  }
+  return false
+}
+
+function cardLabel(c){return c.v==="skip"?"⊘":c.v==="reverse"?"↻":c.v==="draw2"?"+2":c.v==="wild"?"✦":c.v==="wild4"?"+4":c.v}
+function cardEl(c,opts={}){
+  const el=document.createElement("div");
+  el.className=`game-card ${c.c} ${opts.back?"back":""} ${opts.playable?"playable":""} ${opts.disabled?"disabled":""}`;
+  if(opts.back)return el;
+  const label=cardLabel(c),champ=CHAMPIONS[c.v];
+  if(champ){
+    el.innerHTML=`<span class="corner">${label}</span><span class="champion-pixel ${c.v}"></span><span class="champion-name">${champ.name}</span><span class="corner br">${label}</span>`;
+  }else{
+    el.innerHTML=`<span class="corner">${label}</span>${label}<span class="corner br">${label}</span>`;
+  }
+  return el
+}
+function avatarFor(slot,ai){if(ai&&slot===1)return IMG_AI;return slot===0?IMG_YOU:IMG_GABBY}
+
+const productionAudio={
+  music:new Audio("assets/audio/music_loop.wav"),
+  play:new Audio("assets/audio/card_play.wav"),
+  draw:new Audio("assets/audio/card_draw.wav"),
+  invalid:new Audio("assets/audio/invalid.wav"),
+  special:new Audio("assets/audio/special.wav"),
+  turn:new Audio("assets/audio/turn.wav"),
+  win:new Audio("assets/audio/win.wav"),
+  lose:new Audio("assets/audio/lose.wav")
+};
+productionAudio.music.loop=true;productionAudio.music.preload="auto";
+Object.values(productionAudio).forEach(a=>a.preload="auto");
+function playAsset(name,volume=.7){
+  if(name==="music"){if(settings.music){productionAudio.music.volume=settings.musicVolume;productionAudio.music.play().catch(()=>{})}return}
+  if(!settings.sfx||!productionAudio[name])return;
+  const a=productionAudio[name].cloneNode();a.volume=Math.min(1,settings.sfxVolume*volume);a.play().catch(()=>{})
+}
+document.addEventListener("pointerdown",()=>playAsset("music"),{once:true});
+function guideText(){
+  if(!state)return "Preparing the match…";
+  const me=mode==="solo"?0:mySlot;
+  if(state.winner!==null)return state.winner===me?"You won the match!":"The opponent won the match.";
+  if(state.roundWinner!==null)return state.roundWinner===me?"Round won — continue when ready.":"Round lost — prepare for the next round.";
+  if(state.turn!==me)return `${state.names[other(me)]} is thinking…`;
+  if(state.drawnIndex!==null){
+    const c=state.hands[me][state.drawnIndex];
+    return valid(c,state)?"The card you drew can be played. Play it or pass.":"That card cannot be played. Press PASS.";
+  }
+  const legal=state.hands[me].filter(c=>valid(c,state)).length;
+  if(!legal)return "No matching card. Draw from the glowing draw pile.";
+  if(state.hands[me].length===2&&!state.unoCalled[me])return "Call FINAL CARD before playing down to one card!";
+  return `Your turn — choose one of ${legal} glowing playable card${legal===1?"":"s"}.`;
+}
+function updateGuide(){
+  const g=$("#guideBanner");if(!g)return;g.textContent=guideText();
+  const me=mode==="solo"?0:mySlot;
+  const urgent=state&&state.turn===me&&(state.drawnIndex!==null||!state.hands[me].some(c=>valid(c,state))||state.hands[me].length===2);
+  g.classList.toggle("pulse",!!urgent);
+}
+function setLpcCharacters(){
+  const me=mode==="solo"?0:mySlot,o=other(me);
+  const myClass=me===0?"lpc-you":"lpc-gabby";
+  const oppClass=state&&state.ai?"lpc-skeleton":(o===0?"lpc-you":"lpc-gabby");
+  $("#playerLpc").className=`lpc-sprite ${myClass}`;
+  $("#opponentLpc").className=`lpc-sprite ${oppClass}`;
+}
+function lpcAction(slot,action){
+  const me=mode==="solo"?0:mySlot;
+  const el=slot===me?$("#playerLpc"):$("#opponentLpc");if(!el)return;
+  const base=[...el.classList].find(x=>x.startsWith("lpc-")&&x!=="lpc-sprite");
+  el.className=`lpc-sprite ${base} ${action}`;void el.offsetWidth;
+  setTimeout(()=>{el.className=`lpc-sprite ${base}`},action==="hurt"?600:850);
+}
+function fullCardImpact(v,actor){
+  const at=$("#atmosphere"),shell=$("#gameScreen");
+  const colors={skip:"#228cff66",reverse:"#35d65b66",draw2:"#ff9f2066",wild:"#d14cff77",wild4:"#8c22ff99"};
+  at.style.setProperty("--atmo",colors[v]||"#ffffff22");at.classList.add("active");
+  if(CHAMPIONS[v]){shell.classList.add("screen-shake");lpcAction(actor,"spellcast");playAsset("special",1)}
+  else{lpcAction(actor,"emote");playAsset("play")}
+  setTimeout(()=>{at.classList.remove("active");shell.classList.remove("screen-shake")},750);
+}
+
+function render(){
+  if(!state)return;
+  const me=mode==="solo"?0:mySlot,o=other(me);
+  $("#myName").textContent=state.names[me];$("#oppName").textContent=state.names[o];
+  $("#myCount").textContent=state.hands[me].length;$("#oppCount").textContent=state.hands[o].length;
+  $("#myScore").textContent=state.scores[me];$("#oppScore").textContent=state.scores[o];
+  $("#roundNum").textContent=state.round;$("#targetScore").textContent=state.targetScore;
+  $("#myAvatar").src=avatarFor(me,state.ai);$("#oppAvatar").src=avatarFor(o,state.ai);
+  $("#roomPill").textContent=mode==="solo"?`SOLO · ${String(state.ai||"normal").toUpperCase()}`:`ROOM ${roomId}`;
+  $("#turnPill").textContent=state.roundWinner!==null?"ROUND COMPLETE":state.winner!==null?"MATCH COMPLETE":state.turn===me?"YOUR TURN":"OPPONENT TURN";
+  $("#discardPile").replaceChildren(cardEl({...state.discard[state.discard.length-1],c:state.currentColor}));
+  const hand=$("#playerHand");hand.innerHTML="";
+  state.hands[me].forEach((c,i)=>{
+    const isDrawn=state.drawnIndex===i&&state.turn===me;
+    const playable=state.turn===me&&valid(c,state)&&(state.drawnIndex===null||isDrawn)&&state.roundWinner===null;
+    const el=cardEl(c,{playable,disabled:state.turn!==me});
+    if(playable)el.addEventListener("click",()=>requestPlay(i));
+    hand.append(el)
+  });
+  const eh=$("#enemyHand");eh.innerHTML="";
+  state.hands[o].forEach(()=>eh.append(cardEl({},{back:true})));
+  const canDraw=state.turn===me&&state.drawnIndex===null&&state.roundWinner===null;
+  $("#drawPile").style.cursor=canDraw?"pointer":"default";
+  $("#drawnActions").classList.toggle("hidden",!(state.turn===me&&state.drawnIndex!==null));
+  $("#unoBtn").classList.toggle("called",state.unoCalled[me]);
+  $("#unoBtn").textContent=state.unoCalled[me]?"CALLED!":"FINAL\nCARD!";
+  if(state.roundWinner!==null)showRoundResult();
+  updatePresenceUI();setLpcCharacters();updateGuide()
+}
+function updatePresenceUI(){
+  if(mode==="solo"){$("#myConnection").classList.remove("off");$("#oppConnection").classList.remove("off");return}
+  if(!roomId||!db)return;
+  db.ref(`rooms/${roomId}/presence`).once("value").then(s=>{
+    const p=s.val()||{},cut=now()-15000;
+    $("#myConnection").classList.toggle("off",!(p[mySlot]&&p[mySlot]>cut));
+    $("#oppConnection").classList.toggle("off",!(p[other(mySlot)]&&p[other(mySlot)]>cut))
+  })
+}
+function reaction(slot,type="react"){
+  const id=slot===(mode==="solo"?0:mySlot)?"#myAvatar":"#oppAvatar",el=$(id);
+  el.classList.remove("react","cast","hurt");void el.offsetWidth;el.classList.add(type);setTimeout(()=>el.classList.remove(type),950)
+}
+function fxText(text,color="#ffd75f"){
+  const e=document.createElement("div");e.className="fx-text";e.style.color=color;e.textContent=text;$("#fxLayer").append(e);setTimeout(()=>e.remove(),1150)
+}
+function particles(color="#ffd45f",count=24){
+  for(let i=0;i<count;i++){
+    const e=document.createElement("i");e.className="particle";e.style.background=color;e.style.left="50%";e.style.top="47%";
+    e.style.setProperty("--x",`${(Math.random()-.5)*520}px`);e.style.setProperty("--y",`${(Math.random()-.65)*380}px`);
+    $("#fxLayer").append(e);setTimeout(()=>e.remove(),1050)
+  }
+}
+function championFx(v){
+  const c=CHAMPIONS[v];if(!c)return;
+  const colors={skip:"#58b8ff",reverse:"#65e77b",draw2:"#ffb833",wild:"#cf77ff",wild4:"#b15cff"};
+  const e=document.createElement("div");e.className="champion-fx";e.style.color=colors[v];
+  e.innerHTML=`<span class="champion-sprite">${c.icon}</span><span class="champion-beam"></span>`;
+  $("#fxLayer").append(e);particles(colors[v],30);sfx("special");speak(c.voice);setTimeout(()=>e.remove(),1000)
+}
+function describeAction(v){
+  if(v==="skip")return "SKIPPED!";if(v==="reverse")return "REVERSED!";if(v==="draw2")return "DRAW TWO!";if(v==="wild")return "WILD!";if(v==="wild4")return "CHAOS +4!";return "CARD PLAYED"
+}
+let lastSeenAction=null,lastSeenUpdated=0;
+function handleStateChange(next){
+  const prev=state;state=next;render();
+  if(next.updated&&next.updated!==lastSeenUpdated){
+    lastSeenUpdated=next.updated;
+    const v=next.lastAction;
+    if(v&&v!=="start"&&v!=="roundEnd"){
+      const actor=next.turn===0?1:0;
+      if(CHAMPIONS[v]){championFx(v);fullCardImpact(v,actor)}
+      else if(v==="draw"){fxText("CARD DRAW","#ffd665");playAsset("draw");lpcAction(actor,"emote")}
+      else if(v==="uno"){fxText("FINAL CARD!","#ff5f5f");lpcAction(actor,"emote")}
+      else if(v==="catch"){fxText("CAUGHT! +2","#ff5f5f");lpcAction(other(actor),"hurt");playAsset("special")}
+      else if(v!=="pass"){playAsset("play");fullCardImpact(v,actor)}
+    }
+  }
+}
+
+async function commit(mutator){
+  if(mode==="solo"){const s=clone(state);const changed=mutator(s);if(changed!==false){handleStateChange(s);scheduleAI()}return}
+  if(!db||!roomId)return;
+  await db.ref(`rooms/${roomId}/state`).transaction(s=>{if(!s)return;s=clone(s);const changed=mutator(s);return changed===false?undefined:s})
+}
+function requestPlay(index){
+  const me=mode==="solo"?0:mySlot,c=state.hands[me][index];
+  if(state.turn!==me||!valid(c,state)){playAsset("invalid");toast(state.turn!==me?"Wait for your turn.":"That card does not match.");return}
+  if(c.c==="wild"){pendingWildIndex=index;$("#colorModal").classList.remove("hidden");return}
+  commit(s=>applyPlay(s,me,index,null))
+}
+$$(".color-choice").forEach(b=>b.addEventListener("click",()=>{
+  $("#colorModal").classList.add("hidden");const i=pendingWildIndex;pendingWildIndex=null;
+  const me=mode==="solo"?0:mySlot;commit(s=>applyPlay(s,me,i,b.dataset.color))
+}));
+$("#drawPile").addEventListener("click",()=>{
+  const me=mode==="solo"?0:mySlot;if(!state||state.turn!==me)return;
+  commit(s=>drawOne(s,me))
+});
+$("#playDrawnBtn").addEventListener("click",()=>{
+  const me=mode==="solo"?0:mySlot;if(state.drawnIndex===null)return;
+  const c=state.hands[me][state.drawnIndex];
+  if(!valid(c,state)){toast("That drawn card is not playable.");return}
+  if(c.c==="wild"){pendingWildIndex=state.drawnIndex;$("#colorModal").classList.remove("hidden")}else commit(s=>applyPlay(s,me,s.drawnIndex,null,true))
+});
+$("#passBtn").addEventListener("click",()=>{const me=mode==="solo"?0:mySlot;commit(s=>passDrawn(s,me))});
+$("#unoBtn").addEventListener("click",()=>{
+  const me=mode==="solo"?0:mySlot;
+  commit(s=>{if(catchUno(s,me))return true;return callUno(s,me)})
+});
+
+function scheduleAI(){
+  clearTimeout(soloTimer);
+  if(mode!=="solo"||!state||state.turn!==1||state.roundWinner!==null||state.winner!==null)return;
+  soloTimer=setTimeout(aiMove,650+Math.random()*450)
+}
+function aiMove(){
+  if(mode!=="solo"||state.turn!==1)return;
+  const s=clone(state),difficulty=s.ai||"normal";
+  if(s.unoPenalty[0]&&s.hands[0].length===1&&Math.random()<(difficulty==="hard"?.95:difficulty==="normal"?.55:.15)){catchUno(s,1);handleStateChange(s);scheduleAI();return}
+  if(s.hands[1].length<=2)callUno(s,1);
+  let options=s.hands[1].map((c,i)=>valid(c,s)?i:-1).filter(i=>i>=0);
+  if(!options.length){drawOne(s,1);const c=s.hands[1][s.drawnIndex];if(valid(c,s)&&Math.random()>(difficulty==="easy"?.35:.05))applyPlay(s,1,s.drawnIndex,c.c==="wild"?chooseBestColor(s.hands[1]):null,true);else passDrawn(s,1)}
+  else{
+    let idx;
+    if(difficulty==="easy")idx=options[Math.floor(Math.random()*options.length)];
+    else{
+      const score=i=>{const c=s.hands[1][i];let n=0;if(c.v==="wild4")n+=9;if(c.v==="draw2")n+=7;if(c.v==="skip"||c.v==="reverse")n+=6;if(c.c===chooseBestColor(s.hands[1]))n+=3;if(difficulty==="hard"&&s.hands[0].length<=2&&CHAMPIONS[c.v])n+=8;return n};
+      idx=options.sort((a,b)=>score(b)-score(a))[0]
+    }
+    const c=s.hands[1][idx];applyPlay(s,1,idx,c.c==="wild"?chooseBestColor(s.hands[1]):null)
+  }
+  handleStateChange(s);scheduleAI()
+}
+
+function showRoundResult(){
+  if(!$("#resultModal").classList.contains("hidden"))return;
+  const me=mode==="solo"?0:mySlot,won=state.roundWinner===me,matchDone=state.winner!==null;
+  $("#resultTitle").textContent=matchDone?(state.winner===me?"MATCH VICTORY!":"MATCH DEFEAT"):(won?"ROUND WON!":"ROUND LOST");
+  $("#resultText").textContent=`Score: ${state.scores[me]} – ${state.scores[other(me)]}`;
+  $("#nextRoundBtn").textContent=matchDone?"REMATCH":"NEXT ROUND";
+  $("#resultModal").classList.remove("hidden");
+  if(won){playAsset("win");speak(matchDone?"You are the WildSpell champion!":"You won the round!");particles("#ffd55d",55)}
+  else{playAsset("lose");speak(matchDone?"The match is lost.":"Round lost.")}
+}
+$("#nextRoundBtn").addEventListener("click",()=>{
+  $("#resultModal").classList.add("hidden");
+  const me=mode==="solo"?0:mySlot;
+  if(mode==="online"&&mySlot!==0){toast("Waiting for the host to start the next round.");return}
+  commit(s=>{
+    const scores=s.winner!==null?[0,0]:s.scores;
+    const round=s.winner!==null?1:s.round+1;
+    const starter=s.roundWinner===null?0:other(s.roundWinner);
+    const n=newRound(s.names,scores,round,starter,s.ai);Object.assign(s,n);return true
+  })
+});
+$("#resultMenuBtn").addEventListener("click",leaveGame);
+
+function showLobby(){
+  showScreen("lobby");$("#lobbyCode").textContent=roomId;$("#hostLobbyAvatar").src=IMG_YOU;$("#guestLobbyAvatar").src=IMG_GABBY;
+}
+function listenRoom(){
+  if(roomListener)roomRef.off("value",roomListener);
+  roomRef=db.ref(`rooms/${roomId}`);
+  roomListener=roomRef.on("value",snap=>{
+    const r=snap.val();if(!r){toast("Room closed.");leaveGame();return}
+    $("#hostLobbyName").textContent=r.players?.[0]?.name||"Host";
+    $("#guestLobbyName").textContent=r.players?.[1]?.name||"Waiting…";
+    $("#guestReadyCard").classList.toggle("on",!!r.players?.[1]);$("#guestReadyText").textContent=r.players?.[1]?"READY":"NOT JOINED";
+    if(mySlot===0&&r.players?.[1]&&!r.state){
+      db.ref(`rooms/${roomId}/state`).set(newRound([r.players[0].name,r.players[1].name],[0,0],1,Math.random()<.5?0:1,null))
+    }
+    if(r.state){mode="online";showScreen("game");handleStateChange(r.state)}
+  })
+  setupPresence()
+}
+function setupPresence(){
+  clearInterval(presenceTimer);
+  const p=db.ref(`rooms/${roomId}/presence/${mySlot}`);
+  p.set(now());p.onDisconnect().remove();presenceTimer=setInterval(()=>p.set(now()),5000)
+}
+async function createRoom(){
+  if(!db){$("#menuStatus").textContent="Firebase could not load.";return}
+  const name=$("#playerName").value.trim()||"Player 1";roomId=code();mySlot=0;mode="online";
+  await db.ref(`rooms/${roomId}`).set({players:{0:{name,joined:now()}},created:now(),type:"private"});
+  localStorage.setItem("wildspellRoom",JSON.stringify({roomId,mySlot,name}));
+  showLobby();listenRoom()
+}
+async function joinRoom(codeValue){
+  if(!db){$("#menuStatus").textContent="Firebase could not load.";return}
+  const rid=(codeValue||$("#joinCode").value).trim().toUpperCase();if(!rid)return;
+  const snap=await db.ref(`rooms/${rid}`).once("value");if(!snap.exists())throw new Error("Room not found.");
+  const r=snap.val();if(r.players?.[1])throw new Error("Room is full.");
+  roomId=rid;mySlot=1;mode="online";const name=$("#playerName").value.trim()||"Player 2";
+  await db.ref(`rooms/${rid}/players/1`).set({name,joined:now()});
+  localStorage.setItem("wildspellRoom",JSON.stringify({roomId,mySlot,name}));
+  listenRoom();showLobby()
+}
+$("#createRoomBtn").addEventListener("click",()=>createRoom().catch(e=>$("#menuStatus").textContent=e.message));
+$("#joinRoomBtn").addEventListener("click",()=>joinRoom().catch(e=>$("#menuStatus").textContent=e.message));
+$("#copyInviteBtn").addEventListener("click",()=>{
+  const u=new URL(location.href);u.searchParams.set("room",roomId);navigator.clipboard.writeText(u.href).then(()=>toast("Invite link copied!"))
+});
+$("#leaveLobbyBtn").addEventListener("click",leaveGame);
+$("#quitBtn").addEventListener("click",leaveGame);
+
+async function quickMatch(){
+  if(!db){$("#menuStatus").textContent="Firebase could not load.";return}
+  const name=$("#playerName").value.trim()||"Player";
+  $("#menuStatus").textContent="Searching for an opponent…";
+  const q=db.ref("matchmaking/waiting");
+  const found=await q.transaction(cur=>{
+    if(cur&&cur.roomId&&now()-cur.created<60000)return cur;
+    return {roomId:code(),name,created:now()}
+  });
+  const wait=found.snapshot.val();
+  if(wait.name===name&&wait.created>now()-3000){
+    roomId=wait.roomId;mySlot=0;mode="online";
+    await db.ref(`rooms/${roomId}`).set({players:{0:{name}},created:now(),type:"quick"});
+    showLobby();listenRoom()
+  }else{
+    roomId=wait.roomId;mySlot=1;mode="online";
+    await db.ref(`rooms/${roomId}/players/1`).set({name,joined:now()});await q.remove();listenRoom();showLobby()
+  }
+}
+$("#quickMatchBtn").addEventListener("click",()=>quickMatch().catch(e=>$("#menuStatus").textContent=e.message));
+
+$("#soloBtn").addEventListener("click",()=>{
+  mode="solo";roomId=null;mySlot=0;
+  state=newRound([$("#soloName").value.trim()||"Cole","Skeleton AI"],[0,0],1,Math.random()<.5?0:1,$("#aiDifficulty").value);
+  showScreen("game");handleStateChange(state);scheduleAI()
+});
+function leaveGame(){
+  clearTimeout(soloTimer);clearInterval(presenceTimer);
+  if(roomRef&&roomListener)roomRef.off("value",roomListener);
+  if(mode==="online"&&db&&roomId)db.ref(`rooms/${roomId}/presence/${mySlot}`).remove();
+  localStorage.removeItem("wildspellRoom");state=null;roomId=null;mode="menu";
+  $("#resultModal").classList.add("hidden");showScreen("menu")
+}
+
+$$(".tab").forEach(t=>t.addEventListener("click",()=>{
+  $$(".tab").forEach(x=>x.classList.remove("active"));$$(".tabpane").forEach(x=>x.classList.remove("active"));
+  t.classList.add("active");$(`[data-pane="${t.dataset.tab}"]`).classList.add("active");sfx("button")
+}));
+$("#settingsBtn").addEventListener("click",()=>$("#settingsModal").classList.remove("hidden"));
+$("#gameSettingsBtn").addEventListener("click",()=>$("#settingsModal").classList.remove("hidden"));
+$("#rulesBtn").addEventListener("click",()=>$("#rulesModal").classList.remove("hidden"));
+$("#creditsBtn").addEventListener("click",()=>$("#creditsModal").classList.remove("hidden"));
+$$("[data-close]").forEach(b=>b.addEventListener("click",()=>$("#"+b.dataset.close).classList.add("hidden")));
+$("#musicToggle").checked=settings.music;$("#sfxToggle").checked=settings.sfx;$("#voiceToggle").checked=settings.voice;
+$("#musicVolume").value=settings.musicVolume;$("#sfxVolume").value=settings.sfxVolume;
+$("#musicToggle").addEventListener("change",e=>{settings.music=e.target.checked;saveSettings();settings.music?startMusic():stopMusic()});
+$("#sfxToggle").addEventListener("change",e=>{settings.sfx=e.target.checked;saveSettings()});
+$("#voiceToggle").addEventListener("change",e=>{settings.voice=e.target.checked;saveSettings()});
+$("#musicVolume").addEventListener("input",e=>{settings.musicVolume=+e.target.value;saveSettings()});
+$("#sfxVolume").addEventListener("input",e=>{settings.sfxVolume=+e.target.value;saveSettings()});
+
+const invite=new URLSearchParams(location.search).get("room");
+if(invite){$("#joinCode").value=invite.toUpperCase();$("#menuStatus").textContent="Enter your name and press JOIN ROOM."}
+window.addEventListener("online",()=>toast("Back online"));window.addEventListener("offline",()=>toast("Connection lost — trying to reconnect"));
 })();
 </script>
 </body>

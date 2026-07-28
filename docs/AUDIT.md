@@ -27,6 +27,7 @@ The prototype was served at `http://127.0.0.1:4173` and inspected in Chromium.
 - In one sampled turn, guidance reported four legal cards and a playable green `7` successfully moved to the discard pile, reducing the local hand from seven to six.
 - The current 1280×720 game view clips important HUD content at the right edge and most of the local hand below the viewport.
 - Characters are positioned at the edges; the opponent is primarily represented by a tiny portrait while the arena/table dominates the composition.
+- Runtime requests for replacement audio such as `assets/music/menu.ogg`, `assets/music/battle.ogg`, and `assets/sfx/play.ogg` return 404; the prototype fails quietly as designed, but those hooks are not proof of supplied final audio.
 - The current app exposes no stable test IDs and no debug animation viewer.
 
 The sampled click does not disprove the reported intermittent legal-card bug. State-transition and hit-target coverage are absent, so the issue cannot yet be bounded to a specific card/state combination.

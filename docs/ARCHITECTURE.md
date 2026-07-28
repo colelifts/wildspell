@@ -40,4 +40,3 @@ The rules package owns cards, deck lifecycle, legal moves, statuses, stacking, s
 ## Deployment
 
 Vite emits a static `dist/` directory for Vercel. Firebase values come from documented `VITE_FIREBASE_*` variables and `.env` remains ignored. Public configuration may be shipped to the browser, but credentials with server authority must never be added. Firebase database rules and indexes are versioned and reviewed with the client protocol.
-

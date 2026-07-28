@@ -1,7 +1,9 @@
 # WildSpell repository audit
 
-Audit date: 2026-07-28  
-Baseline commit: `b0d6be8` (`origin/main`)  
+Audit date: 2026-07-28
+
+Baseline commit: `b0d6be8` (`origin/main`)
+
 Audit branch: `codex/wildspell-rebuild`
 
 ## Executive summary

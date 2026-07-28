@@ -1,7 +1,6 @@
 {
   "id": "arcane-plus-two-ultimate",
   "source": "arcane-plus-two-master.png",
-  "videoSource": "gojo-source.mp4",
   "rulesContract": {
     "numericValue": null,
     "stackValue": 2,
@@ -15,13 +14,17 @@
   "sheetColumns": 8,
   "sheetRows": 6,
   "effects": [
-    "user-video-character-motion",
-    "two-orbiting-spectral-cards",
-    "counter-rotating-spell-rings",
+    "painted-energy-refraction",
+    "counter-rotating-arcane-ribbons",
+    "two-card-aura-pulses",
     "three-depth-cosmic-particles",
+    "three-depth-orbiting-crystal-shards",
     "hand-energy-charge",
-    "violet-blue-foil-glint",
-    "cosine-seamless-video-shuttle"
+    "blindfold-glint",
+    "spell-emblem-heartbeat",
+    "violet-foil-glint",
+    "title-glint",
+    "art-camera-push"
   ],
   "runtimeAsset": "arcane-plus-two-ultimate-sheet.webp",
   "previewAssets": [

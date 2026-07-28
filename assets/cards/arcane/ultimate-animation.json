@@ -1,0 +1,31 @@
+{
+  "id": "arcane-plus-two-ultimate",
+  "source": "arcane-plus-two-master.png",
+  "videoSource": "gojo-source.mp4",
+  "rulesContract": {
+    "numericValue": null,
+    "stackValue": 2,
+    "effect": "Add 2 to the active draw stack",
+    "resolution": "If the next player does not stack an allowed draw card, draw the full stack and lose the turn"
+  },
+  "loopDurationMs": 3984,
+  "frameCount": 48,
+  "frameWidth": 384,
+  "frameHeight": 576,
+  "sheetColumns": 8,
+  "sheetRows": 6,
+  "effects": [
+    "user-video-character-motion",
+    "two-orbiting-spectral-cards",
+    "counter-rotating-spell-rings",
+    "three-depth-cosmic-particles",
+    "hand-energy-charge",
+    "violet-blue-foil-glint",
+    "cosine-seamless-video-shuttle"
+  ],
+  "runtimeAsset": "arcane-plus-two-ultimate-sheet.webp",
+  "previewAssets": [
+    "arcane-plus-two-ultimate-loop.webp",
+    "arcane-plus-two-ultimate-preview.gif"
+  ]
+}

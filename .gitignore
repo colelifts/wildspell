@@ -3,6 +3,7 @@ test-results/
 playwright-report/
 coverage/
 dist/
+.codex-tmp/
 .env
 .env.*
 !.env.example

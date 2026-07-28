@@ -1,0 +1,32 @@
+{
+  "id": "whirlwind-ultimate",
+  "source": "whirlwind-master.png",
+  "rulesContract": {
+    "numericValue": null,
+    "effect": "Swap one random card from each player's hand",
+    "selection": "Random and automatic"
+  },
+  "loopDurationMs": 3984,
+  "frameCount": 48,
+  "frameWidth": 384,
+  "frameHeight": 576,
+  "sheetColumns": 8,
+  "sheetRows": 6,
+  "effects": [
+    "rotating-vortex-ribbons",
+    "counter-moving-card-energy",
+    "three-depth-wind-streaks",
+    "three-depth-orbiting-debris",
+    "painted-vortex-refraction",
+    "floating-card-glows",
+    "spell-seal-heartbeat",
+    "teal-foil-sweep",
+    "border-title-glint",
+    "art-camera-push"
+  ],
+  "runtimeAsset": "whirlwind-ultimate-sheet.webp",
+  "previewAssets": [
+    "whirlwind-ultimate-loop.webp",
+    "whirlwind-ultimate-preview.gif"
+  ]
+}

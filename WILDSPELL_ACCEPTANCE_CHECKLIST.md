@@ -36,16 +36,10 @@
 
 - [ ] Full number deck
 - [ ] Freeze
-- [ ] Rewind
 - [ ] Arcane +2
-- [ ] Prism Shift
 - [ ] Chaos +4
 - [ ] Arsonist
 - [ ] Whirlwind Swap
-- [ ] Stormcall
-- [ ] Frostbite
-- [ ] Mirror Trick
-- [ ] Cleanse
 - [ ] Looping special-card faces
 - [ ] Hover
 - [ ] Playable glow
@@ -69,11 +63,7 @@
 - [ ] Red removes one Burn
 - [ ] Burn draws correct amount
 - [ ] Freeze skips next turn
-- [ ] Frostbite locks one card
-- [ ] Stormcall yellow answer
 - [ ] Whirlwind swaps cards
-- [ ] Mirror copies last special
-- [ ] Cleanse clears statuses
 - [ ] Color picker works
 - [ ] Drawn-card play/pass works
 - [x] Round scoring
@@ -96,10 +86,10 @@
 ## Audio
 
 - [ ] No browser speech synthesis
-- [ ] No generated chiptune placeholder
-- [ ] Menu music hook
-- [ ] Battle music hook
-- [ ] Challenge music hook
+- [x] No generated chiptune placeholder
+- [x] Menu music hook
+- [x] Battle music hook
+- [x] Challenge music hook
 - [ ] Victory music hook
 - [ ] SFX preloaded
 - [ ] Voice lines preloaded
@@ -116,7 +106,6 @@
 - [ ] Never illegal
 - [ ] Understands stacking
 - [ ] Understands all statuses
-- [ ] Uses Cleanse
 - [ ] Chooses Wild colors
 - [ ] Protects against opponent near-win
 - [ ] Seeded tests

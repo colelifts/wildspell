@@ -103,43 +103,63 @@ export class ReactiveArena {
   }
 
   private freeze(target: Phaser.Math.Vector2): void {
-    this.flash(0x7ee9ff, 0.34, 1450);
-    const frost = this.scene.add.graphics().setDepth(255);
-    frost.lineStyle(8, 0xbef7ff, 0.7);
+    this.flash(0x7ee9ff, 0.42, 1650);
     const { width, height } = virtualViewport(this.scene);
-    for (let branch = 0; branch < 14; branch += 1) {
-      const edgeX = branch % 2 ? 0 : width;
-      const edgeY = (branch / 14) * height;
-      frost.lineBetween(edgeX, edgeY, edgeX + (edgeX ? -1 : 1) * (45 + branch * 4), edgeY + (branch % 3 - 1) * 42);
+    const frost = this.scene.add.graphics().setDepth(255).setBlendMode(Phaser.BlendModes.ADD);
+    frost.lineStyle(18, 0x5bc8ff, 0.18).strokeRect(4, 4, width - 8, height - 8);
+    frost.lineStyle(4, 0xd9fbff, 0.9);
+    for (let branch = 0; branch < 22; branch += 1) {
+      const horizontal = branch % 2 === 0;
+      const edgeX = horizontal ? (branch % 4 ? 0 : width) : (branch / 22) * width;
+      const edgeY = horizontal ? (branch / 22) * height : (branch % 4 ? 0 : height);
+      const inwardX = horizontal ? (edgeX ? -1 : 1) * (55 + (branch % 5) * 18) : (branch % 3 - 1) * 32;
+      const inwardY = horizontal ? (branch % 3 - 1) * 28 : (edgeY ? -1 : 1) * (50 + (branch % 6) * 14);
+      frost.beginPath().moveTo(edgeX, edgeY).lineTo(edgeX + inwardX, edgeY + inwardY).lineTo(edgeX + inwardX * 1.35, edgeY + inwardY * 0.72).strokePath();
     }
-    for (let index = 0; index < 46; index += 1) {
-      const snow = this.scene.add.circle(Phaser.Math.Between(0, width), Phaser.Math.Between(-80, 20), Phaser.Math.Between(2, 5), 0xe6fdff, Phaser.Math.FloatBetween(0.55, 1)).setDepth(260);
-      this.scene.tweens.add({ targets: snow, x: snow.x + Phaser.Math.Between(-90, 90), y: height + 80, angle: 260, duration: Phaser.Math.Between(700, 1300), onComplete: () => snow.destroy() });
+    for (let index = 0; index < 38; index += 1) {
+      const streak = this.scene.add.rectangle(Phaser.Math.Between(-100, width), Phaser.Math.Between(-120, height), Phaser.Math.Between(18, 54), Phaser.Math.Between(2, 5), index % 4 ? 0xdffbff : 0x75dfff, Phaser.Math.FloatBetween(0.55, 0.95)).setDepth(260).setAngle(-24).setBlendMode(Phaser.BlendModes.ADD);
+      this.scene.tweens.add({ targets: streak, x: streak.x + Phaser.Math.Between(180, 360), y: streak.y + Phaser.Math.Between(260, 520), alpha: 0, scaleX: 0.25, duration: Phaser.Math.Between(620, 1150), delay: index * 12, ease: "Cubic.In", onComplete: () => streak.destroy() });
     }
-    const prison = this.scene.add.circle(target.x, target.y + 40, 72, 0x7ee9ff, 0.12).setStrokeStyle(8, 0xc7fbff, 0.88).setDepth(245);
-    this.scene.tweens.add({ targets: prison, scale: 1.24, alpha: 0, duration: 1450, ease: "Cubic.Out", onComplete: () => prison.destroy() });
-    this.scene.tweens.add({ targets: frost, alpha: 0, duration: 650, delay: 900, onComplete: () => frost.destroy() });
+    const shell = this.scene.add.circle(target.x, target.y + 35, 78, 0x73dcff, 0.16).setStrokeStyle(9, 0xd7fbff, 0.94).setDepth(251).setBlendMode(Phaser.BlendModes.ADD).setScale(0.35);
+    const innerShell = this.scene.add.circle(target.x, target.y + 35, 55, 0xcaf7ff, 0.12).setStrokeStyle(3, 0xffffff, 0.86).setDepth(252).setBlendMode(Phaser.BlendModes.ADD).setScale(0.35);
+    this.scene.tweens.add({ targets: [shell, innerShell], scale: 1, duration: 280, ease: "Back.Out" });
+    for (let index = 0; index < 14; index += 1) {
+      const angle = Math.PI * 2 * index / 14;
+      const spike = this.scene.add.triangle(target.x + Math.cos(angle) * 76, target.y + 35 + Math.sin(angle) * 76, 0, 34, 8, 0, 16, 34, index % 3 ? 0x8ee9ff : 0xe6fdff, 0.92).setDepth(253).setAngle(Phaser.Math.RadToDeg(angle) + 90).setScale(0.1).setBlendMode(Phaser.BlendModes.ADD);
+      this.scene.tweens.add({ targets: spike, scale: 1, duration: 260, delay: index * 18, ease: "Back.Out", onComplete: () => this.scene.tweens.add({ targets: spike, alpha: 0, scale: 1.4, duration: 520, delay: 520, onComplete: () => spike.destroy() }) });
+    }
+    this.scene.tweens.add({ targets: [shell, innerShell], alpha: 0, scale: 1.18, duration: 620, delay: 850, onComplete: () => { shell.destroy(); innerShell.destroy(); } });
+    this.scene.tweens.add({ targets: frost, alpha: 0, duration: 650, delay: 1050, onComplete: () => frost.destroy() });
   }
 
   private burn(target: Phaser.Math.Vector2): void {
-    this.flash(0xff431f, 0.3, 1250);
-    const magmaOuter = this.scene.add.ellipse(target.x, target.y + 110, 250, 88, 0x4a0603, 0.76).setStrokeStyle(8, 0xff4b16, 0.85).setDepth(242).setBlendMode(Phaser.BlendModes.ADD);
-    const magmaCore = this.scene.add.ellipse(target.x, target.y + 110, 168, 48, 0xff7425, 0.38).setStrokeStyle(4, 0xffd06a, 0.8).setDepth(243).setBlendMode(Phaser.BlendModes.ADD);
-    this.scene.tweens.add({ targets: [magmaOuter, magmaCore], scaleX: 1.18, scaleY: 0.78, alpha: 0, duration: 1550, ease: "Cubic.Out", onComplete: () => { magmaOuter.destroy(); magmaCore.destroy(); } });
-    const cracks = this.scene.add.graphics().setDepth(245).lineStyle(5, 0xff6b27, 0.92);
+    this.flash(0xff3518, 0.38, 1650);
+    const magmaOuter = this.scene.add.ellipse(target.x, target.y + 110, 286, 96, 0x290104, 0.9).setStrokeStyle(10, 0xff3518, 0.82).setDepth(242).setBlendMode(Phaser.BlendModes.ADD).setScale(0.25);
+    const magmaCore = this.scene.add.ellipse(target.x, target.y + 110, 194, 58, 0xff5b20, 0.46).setStrokeStyle(5, 0xffdc76, 0.95).setDepth(243).setBlendMode(Phaser.BlendModes.ADD).setScale(0.2);
+    this.scene.tweens.add({ targets: [magmaOuter, magmaCore], scale: 1, duration: 250, ease: "Back.Out" });
+    const cracks = this.scene.add.graphics().setDepth(245).lineStyle(9, 0x7a0804, 0.82);
     for (let ray = 0; ray < 12; ray += 1) {
       const angle = (Math.PI * 2 * ray) / 12;
       cracks.lineBetween(target.x, target.y + 75, target.x + Math.cos(angle) * Phaser.Math.Between(70, 180), target.y + 75 + Math.sin(angle) * Phaser.Math.Between(45, 110));
     }
-    for (let index = 0; index < 42; index += 1) {
-      const ember = this.scene.add.circle(target.x + Phaser.Math.Between(-130, 130), target.y + Phaser.Math.Between(20, 130), Phaser.Math.Between(2, 6), index % 3 ? 0xff5b22 : 0xffd064, 0.95).setDepth(260).setBlendMode(Phaser.BlendModes.ADD);
-      this.scene.tweens.add({ targets: ember, x: ember.x + Phaser.Math.Between(-45, 45), y: ember.y - Phaser.Math.Between(120, 280), alpha: 0, scale: 0.2, duration: Phaser.Math.Between(700, 1450), onComplete: () => ember.destroy() });
+    cracks.lineStyle(4, 0xff7a29, 1);
+    for (let ray = 0; ray < 12; ray += 1) {
+      const angle = (Math.PI * 2 * ray) / 12;
+      cracks.lineBetween(target.x, target.y + 75, target.x + Math.cos(angle) * (65 + ray * 8), target.y + 75 + Math.sin(angle) * (45 + ray * 4));
     }
-    for (let index = 0; index < 15; index += 1) {
-      const x = target.x + Phaser.Math.Between(-95, 95);
-      const flame = this.scene.add.triangle(x, target.y + 105, 0, 70, 15, 0, 30, 70, index % 3 ? 0xff4a18 : 0xffcb54, 0.88).setDepth(257).setBlendMode(Phaser.BlendModes.ADD).setScale(Phaser.Math.FloatBetween(0.65, 1.25));
-      this.scene.tweens.add({ targets: flame, y: flame.y - Phaser.Math.Between(100, 210), x: flame.x + Phaser.Math.Between(-32, 32), scaleX: 0.2, scaleY: 1.4, alpha: 0, angle: Phaser.Math.Between(-18, 18), duration: Phaser.Math.Between(720, 1280), delay: index * 35, ease: "Cubic.Out", onComplete: () => flame.destroy() });
+    for (let index = 0; index < 18; index += 1) {
+      const flame = this.createFlame(target.x + Phaser.Math.Between(-105, 105), target.y + 112, 0.7 + (index % 5) * 0.16, index % 3 === 0);
+      this.scene.tweens.add({ targets: flame, y: flame.y - Phaser.Math.Between(105, 235), x: flame.x + Phaser.Math.Between(-28, 28), scaleX: 0.45, scaleY: 1.35, alpha: 0, angle: Phaser.Math.Between(-14, 14), duration: Phaser.Math.Between(780, 1300), delay: index * 30, ease: "Cubic.Out", onComplete: () => flame.destroy(true) });
     }
+    for (let index = 0; index < 28; index += 1) {
+      const ember = this.scene.add.circle(target.x + Phaser.Math.Between(-120, 120), target.y + Phaser.Math.Between(30, 125), Phaser.Math.Between(2, 5), index % 4 ? 0xff6a24 : 0xffe096, 0.96).setDepth(260).setBlendMode(Phaser.BlendModes.ADD);
+      this.scene.tweens.add({ targets: ember, x: ember.x + Phaser.Math.Between(-55, 55), y: ember.y - Phaser.Math.Between(150, 310), alpha: 0, scale: 0.1, duration: Phaser.Math.Between(760, 1450), onComplete: () => ember.destroy() });
+    }
+    for (let index = 0; index < 7; index += 1) {
+      const smoke = this.scene.add.circle(target.x + Phaser.Math.Between(-70, 70), target.y + 15, 22 + index * 3, 0x16070a, 0.34).setDepth(256).setBlendMode(Phaser.BlendModes.MULTIPLY);
+      this.scene.tweens.add({ targets: smoke, y: smoke.y - 160 - index * 18, x: smoke.x + Phaser.Math.Between(-50, 50), scale: 1.8, alpha: 0, duration: 1250 + index * 70, delay: index * 80, onComplete: () => smoke.destroy() });
+    }
+    this.scene.tweens.add({ targets: [magmaOuter, magmaCore], scaleX: 1.18, scaleY: 0.78, alpha: 0, duration: 700, delay: 900, ease: "Cubic.Out", onComplete: () => { magmaOuter.destroy(); magmaCore.destroy(); } });
     this.scene.tweens.add({ targets: cracks, alpha: 0, duration: 1200, delay: 500, onComplete: () => cracks.destroy() });
   }
 
@@ -147,13 +167,31 @@ export class ReactiveArena {
     const centerX = virtualViewport(this.scene).width / 2;
     const centerY = target.y + 45;
     this.scene.tweens.add({ targets: this.scene.cameras.main, rotation: 0.015, duration: 120, yoyo: true, repeat: 5 });
-    for (let index = 0; index < 44; index += 1) {
-      const debris = this.scene.add.star(centerX, centerY, 5, 2, Phaser.Math.Between(4, 10), index % 3 ? 0xaaf8df : 0x704d35, 0.92).setDepth(260);
-      const angle = (Math.PI * 2 * index) / 44;
-      const radius = 45 + index * 5;
-      debris.setPosition(centerX + Math.cos(angle) * radius, centerY + Math.sin(angle) * radius * 0.38);
-      this.scene.tweens.add({ targets: debris, angle: 720, x: centerX + Math.cos(angle + Math.PI * 2) * radius * 0.25, y: centerY - 210 + Math.sin(angle) * 40, alpha: 0, scale: 0.15, duration: 780 + index * 14, onComplete: () => debris.destroy() });
+    for (let ring = 0; ring < 8; ring += 1) {
+      const ribbon = this.scene.add.ellipse(centerX, centerY + 100 - ring * 32, 140 + ring * 38, 34 + ring * 8, 0x07171a, 0.03).setStrokeStyle(5 - ring * 0.25, ring % 2 ? 0xe8fff9 : 0x65e8c8, 0.75).setDepth(255 + ring).setBlendMode(Phaser.BlendModes.ADD).setScale(0.2).setAngle(ring % 2 ? -8 : 8);
+      this.scene.tweens.add({ targets: ribbon, scale: 1, angle: ring % 2 ? 355 : -355, alpha: 0, duration: 920 + ring * 70, delay: ring * 30, ease: "Cubic.Out", onComplete: () => ribbon.destroy() });
     }
+    for (let index = 0; index < 34; index += 1) {
+      const debris = index % 3 === 0
+        ? this.scene.add.rectangle(centerX, centerY, Phaser.Math.Between(10, 24), Phaser.Math.Between(3, 7), 0x8b765c, 0.9).setDepth(264)
+        : this.scene.add.circle(centerX, centerY, Phaser.Math.Between(2, 5), 0xc8fff0, 0.9).setDepth(264).setBlendMode(Phaser.BlendModes.ADD);
+      const angle = index * 1.7;
+      const radius = 55 + index * 4.8;
+      debris.setPosition(centerX + Math.cos(angle) * radius, centerY + Math.sin(angle) * radius * 0.34);
+      this.scene.tweens.add({ targets: debris, angle: 900, x: centerX + Math.cos(angle + Math.PI * 1.6) * radius * 0.3, y: centerY - 250 + Math.sin(angle) * 55, alpha: 0, scale: 0.15, duration: 760 + index * 16, onComplete: () => debris.destroy() });
+    }
+  }
+
+  private createFlame(x: number, y: number, scale: number, whiteHot: boolean): Phaser.GameObjects.Container {
+    const root = this.scene.add.container(x, y).setDepth(258).setScale(scale).setBlendMode(Phaser.BlendModes.ADD);
+    const outer = this.scene.add.graphics().fillStyle(0xff3517, 0.86).fillPoints([
+      new Phaser.Geom.Point(0, -58), new Phaser.Geom.Point(-7, -35), new Phaser.Geom.Point(-18, -13), new Phaser.Geom.Point(-27, 12), new Phaser.Geom.Point(-24, 42), new Phaser.Geom.Point(24, 42), new Phaser.Geom.Point(29, 15), new Phaser.Geom.Point(20, -8), new Phaser.Geom.Point(8, -25)
+    ], true);
+    const inner = this.scene.add.graphics().fillStyle(whiteHot ? 0xffffff : 0xffd45f, 0.92).fillPoints([
+      new Phaser.Geom.Point(3, -28), new Phaser.Geom.Point(-5, -6), new Phaser.Geom.Point(-14, 17), new Phaser.Geom.Point(-11, 39), new Phaser.Geom.Point(12, 39), new Phaser.Geom.Point(17, 19), new Phaser.Geom.Point(10, 1)
+    ], true);
+    root.add([outer, inner]);
+    return root;
   }
 
   private drawSpell(target: Phaser.Math.Vector2, count: number, color: number): void {

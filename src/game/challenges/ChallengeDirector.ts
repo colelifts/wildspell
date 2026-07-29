@@ -24,16 +24,17 @@ export class ChallengeDirector {
     const portrait = height > width;
     const background = this.scene.add.rectangle(width / 2, height / 2, width, height, 0x02040e, 0.96);
     const colorWash = this.scene.add.rectangle(width / 2, height / 2, width, height, 0x5427a5, 0.1).setBlendMode(Phaser.BlendModes.ADD);
-    const frame = this.scene.add.rectangle(width / 2, height / 2, Math.min(820, width - 30), portrait ? 680 : 500, 0x091631, 0.98).setStrokeStyle(5, 0xf4cb68);
-    const innerFrame = this.scene.add.rectangle(width / 2, height / 2, Math.min(800, width - 50), portrait ? 660 : 480, 0x0b1d41, 0.35).setStrokeStyle(2, 0x8f6cff, 0.8);
-    const header = this.scene.add.text(width / 2, portrait ? 245 : 92, "FINAL CARD", {
+    const portraitFrameHeight = Math.min(980, height - 50);
+    const frame = this.scene.add.rectangle(width / 2, height / 2, Math.min(820, width - 30), portrait ? portraitFrameHeight : 500, 0x091631, 0.98).setStrokeStyle(5, 0xf4cb68);
+    const innerFrame = this.scene.add.rectangle(width / 2, height / 2, Math.min(800, width - 50), portrait ? portraitFrameHeight - 20 : 480, 0x0b1d41, 0.35).setStrokeStyle(2, 0x8f6cff, 0.8);
+    const header = this.scene.add.text(width / 2, portrait ? height * 0.16 : 92, "FINAL CARD", {
       fontFamily: "Georgia, serif", fontSize: portrait ? "43px" : "52px", fontStyle: "bold", color: "#fff0b3", stroke: "#3d155f", strokeThickness: 10
     }).setOrigin(0.5);
-    const subtitle = this.scene.add.text(width / 2, portrait ? 300 : 145, this.challengeName(type), {
+    const subtitle = this.scene.add.text(width / 2, portrait ? height * 0.21 : 145, this.challengeName(type), {
       fontFamily: '"Trebuchet MS", sans-serif', fontSize: portrait ? "18px" : "22px", fontStyle: "bold", color: "#9eeaff", letterSpacing: 3
     }).setOrigin(0.5);
-    const leftSeal = this.scene.add.circle(portrait ? 58 : width / 2 - 360, portrait ? 265 : 120, 28, 0x713fc0, 0.2).setStrokeStyle(4, 0xc9a6ff, 0.9);
-    const rightSeal = this.scene.add.circle(portrait ? width - 58 : width / 2 + 360, portrait ? 265 : 120, 28, 0x713fc0, 0.2).setStrokeStyle(4, 0xc9a6ff, 0.9);
+    const leftSeal = this.scene.add.circle(portrait ? 58 : width / 2 - 360, portrait ? height * 0.18 : 120, 28, 0x713fc0, 0.2).setStrokeStyle(4, 0xc9a6ff, 0.9);
+    const rightSeal = this.scene.add.circle(portrait ? width - 58 : width / 2 + 360, portrait ? height * 0.18 : 120, 28, 0x713fc0, 0.2).setStrokeStyle(4, 0xc9a6ff, 0.9);
     this.layer = this.scene.add.container(0, 0, [background, colorWash, frame, innerFrame, header, subtitle, leftSeal, rightSeal]).setDepth(500).setAlpha(0);
     this.scene.tweens.add({ targets: this.layer, alpha: 1, duration: 220 });
     this.scene.tweens.add({ targets: [leftSeal, rightSeal], angle: 360, scale: 1.15, duration: 1400, yoyo: true, repeat: -1, ease: "Sine.InOut" });
@@ -94,13 +95,13 @@ export class ChallengeDirector {
     const palette = [0xff6b8b, 0x69b8ff, 0x73e6a5, 0xffdc72];
     const seed = Number(this.scene.registry.get("seed")) || 1;
     const sequence = Array.from({ length: 5 }, (_, index) => (seed + index * 7 + Math.floor(index / 2)) % runes.length);
-    const instructions = this.scene.add.text(width / 2, portrait ? 365 : 195, "Watch the spell sequence", { fontSize: portrait ? "21px" : "25px", fontStyle: "bold", color: "#e8f1ff" }).setOrigin(0.5);
-    const spotlight = this.scene.add.circle(width / 2, portrait ? 500 : 300, portrait ? 76 : 88, 0x7f5cff, 0.14).setStrokeStyle(6, 0xb8a5ff, 0.9);
+    const instructions = this.scene.add.text(width / 2, portrait ? height * 0.285 : 195, "Watch the spell sequence", { fontSize: portrait ? "21px" : "25px", fontStyle: "bold", color: "#e8f1ff" }).setOrigin(0.5);
+    const spotlight = this.scene.add.circle(width / 2, portrait ? height * 0.42 : 300, portrait ? 76 : 88, 0x7f5cff, 0.14).setStrokeStyle(6, 0xb8a5ff, 0.9);
     const display = this.scene.add.text(width / 2, spotlight.y, "✦", { fontSize: portrait ? "72px" : "88px", color: "#ffffff", stroke: "#32185e", strokeThickness: 10 }).setOrigin(0.5).setAlpha(0.25);
-    const progress = this.scene.add.text(width / 2, portrait ? 590 : 390, "○  ○  ○  ○  ○", { fontSize: portrait ? "25px" : "30px", color: "#8094ba" }).setOrigin(0.5);
+    const progress = this.scene.add.text(width / 2, portrait ? height * 0.54 : 390, "○  ○  ○  ○  ○", { fontSize: portrait ? "25px" : "30px", color: "#8094ba" }).setOrigin(0.5);
     this.add(instructions); this.add(spotlight); this.add(display); this.add(progress);
 
-    const buttonY = portrait ? 710 : 475;
+    const buttonY = portrait ? height * 0.69 : 475;
     const gap = portrait ? 112 : 124;
     const buttons = runes.map((rune, index) => {
       const x = width / 2 + (index - 1.5) * gap;
@@ -163,6 +164,14 @@ export class ChallengeDirector {
       }
     };
 
+    const keyboard = this.scene.input.keyboard;
+    const keyHandler = (event: KeyboardEvent) => {
+      const index = ["1", "2", "3", "4"].indexOf(event.key);
+      if (index >= 0) answer(index);
+    };
+    keyboard?.on("keydown", keyHandler);
+    this.cleanup.push(() => keyboard?.off("keydown", keyHandler));
+
     this.schedule(700, revealNext);
   }
 
@@ -170,15 +179,15 @@ export class ChallengeDirector {
     const { width, height } = virtualViewport(this.scene);
     const portrait = height > width;
     const trackWidth = portrait ? width - 82 : 610;
-    const trackY = portrait ? 525 : 325;
-    const instructions = this.scene.add.text(width / 2, portrait ? 365 : 195, "Lock the sigil inside the moving gold zone", { fontSize: portrait ? "19px" : "23px", fontStyle: "bold", color: "#e5efff", wordWrap: { width: width - 70 }, align: "center" }).setOrigin(0.5);
+    const trackY = portrait ? height * 0.45 : 325;
+    const instructions = this.scene.add.text(width / 2, portrait ? height * 0.285 : 195, "Lock the sigil inside the moving gold zone", { fontSize: portrait ? "19px" : "23px", fontStyle: "bold", color: "#e5efff", wordWrap: { width: width - 70 }, align: "center" }).setOrigin(0.5);
     const trackShadow = this.scene.add.rectangle(width / 2, trackY + 6, trackWidth + 16, 50, 0x02050d, 0.8).setRounded(12);
     const track = this.scene.add.rectangle(width / 2, trackY, trackWidth, 30, 0x1d3563, 1).setStrokeStyle(3, 0x8eaae2).setRounded(9);
     const zone = this.scene.add.rectangle(width / 2, trackY, 96, 54, 0xf3c95e, 0.32).setStrokeStyle(5, 0xffeaa1, 1).setRounded(8);
     const marker = this.scene.add.triangle(width / 2 - trackWidth / 2 + 22, trackY, 0, 30, 18, 0, 36, 30, 0xbffcff).setOrigin(0.5).setStrokeStyle(3, 0xffffff);
-    const button = this.scene.add.text(width / 2, portrait ? 680 : 450, "LOCK SIGIL", { fontSize: portrait ? "27px" : "30px", fontStyle: "bold", backgroundColor: "#b96c19", color: "#fff5cf", padding: { x: 40, y: 17 } }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-    const roundText = this.scene.add.text(width / 2, portrait ? 425 : 248, "ROUND 1 / 3", { fontSize: "21px", fontStyle: "bold", color: "#ffe17c" }).setOrigin(0.5);
-    const feedback = this.scene.add.text(width / 2, portrait ? 595 : 390, "", { fontSize: "24px", fontStyle: "bold", color: "#9dffda" }).setOrigin(0.5);
+    const button = this.scene.add.text(width / 2, portrait ? height * 0.69 : 450, "LOCK SIGIL", { fontSize: portrait ? "27px" : "30px", fontStyle: "bold", backgroundColor: "#b96c19", color: "#fff5cf", padding: { x: 40, y: 17 } }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+    const roundText = this.scene.add.text(width / 2, portrait ? height * 0.35 : 248, "ROUND 1 / 3", { fontSize: "21px", fontStyle: "bold", color: "#ffe17c" }).setOrigin(0.5);
+    const feedback = this.scene.add.text(width / 2, portrait ? height * 0.57 : 390, "", { fontSize: "24px", fontStyle: "bold", color: "#9dffda" }).setOrigin(0.5);
     [instructions, trackShadow, track, zone, marker, button, roundText, feedback].forEach((item) => this.add(item));
 
     const seed = Number(this.scene.registry.get("seed")) || 1;
@@ -205,7 +214,7 @@ export class ChallengeDirector {
     };
     this.scene.events.on("update", update);
     this.cleanup.push(() => this.scene.events.off("update", update));
-    button.on("pointerdown", () => {
+    const lockSigil = () => {
       if (locked) return;
       locked = true;
       button.disableInteractive().setAlpha(0.5);
@@ -227,7 +236,14 @@ export class ChallengeDirector {
           placeZone();
         }
       });
-    });
+    };
+    button.on("pointerdown", lockSigil);
+    const keyboard = this.scene.input.keyboard;
+    const keyHandler = (event: KeyboardEvent) => {
+      if (event.key === " " || event.key === "Enter") lockSigil();
+    };
+    keyboard?.on("keydown", keyHandler);
+    this.cleanup.push(() => keyboard?.off("keydown", keyHandler));
     this.schedule(8500, () => done(score));
   }
 
@@ -237,11 +253,11 @@ export class ChallengeDirector {
     const directions = ["↑", "→", "↓", "←"];
     const keys = ["UP", "RIGHT", "DOWN", "LEFT"];
     const colors = [0xff7c98, 0x78c7ff, 0x82e5a7, 0xffdd78];
-    const instructions = this.scene.add.text(width / 2, portrait ? 365 : 195, "Answer five directional runes — speed and accuracy", { fontSize: portrait ? "18px" : "22px", fontStyle: "bold", color: "#e4efff", wordWrap: { width: width - 70 }, align: "center" }).setOrigin(0.5);
-    const promptHalo = this.scene.add.circle(width / 2, portrait ? 505 : 305, portrait ? 78 : 90, 0x7b4eca, 0.18).setStrokeStyle(6, 0xc6a8ff, 0.9);
+    const instructions = this.scene.add.text(width / 2, portrait ? height * 0.285 : 195, "Answer five directional runes — speed and accuracy", { fontSize: portrait ? "18px" : "22px", fontStyle: "bold", color: "#e4efff", wordWrap: { width: width - 70 }, align: "center" }).setOrigin(0.5);
+    const promptHalo = this.scene.add.circle(width / 2, portrait ? height * 0.42 : 305, portrait ? 78 : 90, 0x7b4eca, 0.18).setStrokeStyle(6, 0xc6a8ff, 0.9);
     const prompt = this.scene.add.text(width / 2, promptHalo.y, "✦", { fontSize: portrait ? "82px" : "98px", color: "#ffdf75", stroke: "#6c35b7", strokeThickness: 10 }).setOrigin(0.5);
-    const progress = this.scene.add.text(width / 2, portrait ? 620 : 420, "GET READY", { fontSize: "22px", fontStyle: "bold", color: "#9dffda" }).setOrigin(0.5);
-    const buttonY = portrait ? 730 : 480;
+    const progress = this.scene.add.text(width / 2, portrait ? height * 0.55 : 420, "GET READY", { fontSize: "22px", fontStyle: "bold", color: "#9dffda" }).setOrigin(0.5);
+    const buttonY = portrait ? height * 0.69 : 480;
     const buttons = directions.map((direction, index) => {
       const x = width / 2 + (index - 1.5) * (portrait ? 112 : 122);
       const button = this.scene.add.text(x, buttonY, direction, { fontSize: portrait ? "39px" : "43px", backgroundColor: "#182c59", color: "#ffffff", padding: { x: portrait ? 18 : 23, y: 12 } }).setOrigin(0.5).setInteractive({ useHandCursor: true });

@@ -658,7 +658,7 @@ select:focus {
   position: fixed;
   z-index: 1200;
   left: 50%;
-  top: 24px;
+  top: 178px;
   translate: -50% -25px;
   max-width: min(760px, 90vw);
   padding: 14px 22px;
@@ -779,6 +779,12 @@ select:focus {
     translate: -50% 0;
     transform: scale(0.82);
     transform-origin: bottom center;
+  }
+  .toast {
+    top: 250px;
+    max-width: 88vw;
+    padding: 10px 16px;
+    font-size: 12px;
   }
   .control-button.icon {
     display: none;

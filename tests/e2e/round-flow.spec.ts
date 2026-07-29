@@ -16,7 +16,7 @@ for (const result of ["round", "match"] as const) {
       const box = await canvas.boundingBox();
       expect(box).not.toBeNull();
       const portrait = box!.height > box!.width;
-      await page.mouse.click(box!.x + box!.width * 0.5, box!.y + box!.height * (portrait ? 0.642 : 0.58));
+      await page.mouse.click(box!.x + box!.width * 0.5, box!.y + box!.height * (portrait ? 0.616 : 0.752));
     }
     await expect(canvas).toHaveAttribute("data-result-state", `complete:${result}`, { timeout: 5_000 });
     expect(pageErrors).toEqual([]);

@@ -14,22 +14,16 @@ for (const challenge of ["rune-memory", "spell-timing", "arcane-clash"] as const
     await page.waitForTimeout(challenge === "rune-memory" ? 5_000 : 900);
     await page.screenshot({ path: `artifacts/challenges/${challenge}-${testInfo.project.name}.png`, fullPage: true });
 
-    const box = await canvas.boundingBox();
-    expect(box).not.toBeNull();
-    const portrait = box!.height > box!.width;
-    const clickAt = async (xRatio: number, yRatio: number) => {
-      await page.mouse.click(box!.x + box!.width * xRatio, box!.y + box!.height * yRatio);
-    };
     if (challenge === "rune-memory") {
-      for (let index = 0; index < 5; index += 1) await clickAt(portrait ? 0.208 : 0.385, portrait ? 0.693 : 0.66);
+      for (let index = 0; index < 5; index += 1) await page.keyboard.press("1");
     } else if (challenge === "spell-timing") {
       for (let round = 0; round < 3; round += 1) {
-        await clickAt(0.5, portrait ? 0.664 : 0.625);
+        await page.keyboard.press("Space");
         await page.waitForTimeout(650);
       }
     } else {
       for (let round = 0; round < 5; round += 1) {
-        await clickAt(portrait ? 0.208 : 0.385, portrait ? 0.713 : 0.667);
+        await page.keyboard.press("ArrowUp");
         await page.waitForTimeout(360);
       }
     }

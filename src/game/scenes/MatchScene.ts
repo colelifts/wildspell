@@ -8,7 +8,7 @@ import { ChallengeDirector, type ChallengeType } from "../challenges/ChallengeDi
 import { audioManager } from "../audio/AudioManager";
 import { gameBus, emitGameEvents, emitGameState, requestColor, type StartMatchDetail } from "../events";
 import { chooseAiCard, chooseAiColor } from "../rules/ai";
-import { CARD_GLYPHS, CARD_NAMES } from "../rules/cards";
+import { CARD_EFFECT_LABELS, CARD_GLYPHS, CARD_NAMES } from "../rules/cards";
 import { illegalReason, isLegalCard, legalCards } from "../rules/legalMoves";
 import { advanceRound, createGame, reduceGame, resolveChallenge, restartMatch } from "../rules/reducer";
 import type { Card, CardColor, CardKind, GameCommand, GameEvent, GameState } from "../rules/types";
@@ -109,7 +109,8 @@ export class MatchScene extends Phaser.Scene {
     const height = this.virtualHeight;
     const originalText = this.add.text.bind(this.add);
     this.add.text = ((x, y, text, style = {}) => originalText(x, y, text, { ...style, resolution: this.renderScale })) as typeof this.add.text;
-    this.cameras.main.setViewport(0, 0, this.scale.width, this.scale.height).setZoom((this.portrait ? 1 : 0.72) * this.renderScale).centerOn(width / 2, this.portrait ? height / 2 : 360);
+    this.cameras.main.setViewport(0, 0, this.scale.width, this.scale.height).setZoom(this.renderScale).centerOn(width / 2, height / 2);
+    this.game.canvas.dataset.virtualViewport = `${width}x${height}@${this.renderScale.toFixed(2)}`;
     this.cameras.main.setBackgroundColor(0x07112c);
     this.arena = new ReactiveArena(this, this.portrait);
     this.arena.create("arena-premium");
@@ -118,10 +119,15 @@ export class MatchScene extends Phaser.Scene {
 
     createPremiumCardAnimations(this);
     const guestPerspective = this.onlineSession?.slot === 1;
+    const baseY = this.portrait ? height * 0.68 : height * 0.89;
+    const playerX = this.portrait ? width * 0.17 : width * 0.23;
+    const opponentX = this.portrait ? width * 0.83 : width * 0.77;
+    const coleHeight = this.portrait ? Phaser.Math.Clamp(height * 0.39, 370, 430) : 360;
+    const gabbyHeight = this.portrait ? Phaser.Math.Clamp(height * 0.36, 345, 405) : 320;
     this.playerDirector = guestPerspective ? new PremiumGabbyDirector(this) : new PremiumPlayerDirector(this);
-    this.playerSprite = this.playerDirector.create(this.portrait ? 102 : 118, this.portrait ? 650 : 425, this.portrait ? (guestPerspective ? 375 : 390) : (guestPerspective ? 440 : 455));
+    this.playerSprite = this.playerDirector.create(playerX, baseY, guestPerspective ? gabbyHeight : coleHeight);
     this.opponentDirector = guestPerspective ? new PremiumPlayerDirector(this) : new PremiumGabbyDirector(this);
-    this.opponentSprite = this.opponentDirector.create(this.portrait ? 475 : 902, this.portrait ? 650 : 425, this.portrait ? (guestPerspective ? 390 : 375) : (guestPerspective ? 455 : 440));
+    this.opponentSprite = this.opponentDirector.create(opponentX, baseY, guestPerspective ? coleHeight : gabbyHeight);
     this.cinematics = new SpellCinematics(this);
     this.challenges = new ChallengeDirector(this);
     this.bindControls();
@@ -135,14 +141,30 @@ export class MatchScene extends Phaser.Scene {
       this.time.delayedCall(850, () => {
         const previewType = this.startDetail.challengePreview!;
         this.game.canvas.dataset.challengeState = `active:${previewType}`;
+        void audioManager.playMusic("challenge");
         void this.challenges.start(previewType)
           .then((result) => {
             this.game.canvas.dataset.challengeState = `complete:${result.type}:${result.score}`;
           })
           .finally(() => {
+            void audioManager.playMusic("battle");
             this.busy = false;
             this.renderState();
           });
+      });
+    }
+    if (this.startDetail.spellPreview) {
+      this.busy = true;
+      this.time.delayedCall(850, () => {
+        const spell = this.startDetail.spellPreview!;
+        const from = new Phaser.Math.Vector2(this.playerSprite.x, this.playerSprite.y - 120);
+        const to = new Phaser.Math.Vector2(this.opponentSprite.x, this.opponentSprite.y - 120);
+        this.game.canvas.dataset.spellState = `active:${spell}`;
+        this.arena.react(spell, to, spell === "wild4" ? 4 : spell === "draw2" ? 2 : 0);
+        void this.cinematics.play(spell, from, to).finally(() => {
+          this.game.canvas.dataset.spellState = `complete:${spell}`;
+          this.busy = false;
+        });
       });
     }
     void audioManager.playMusic("battle");
@@ -243,11 +265,11 @@ export class MatchScene extends Phaser.Scene {
     this.dynamicObjects = [];
     const top = this.state.discard.at(-1)!;
     this.addHud();
-    this.addNameplate(this.portrait ? 105 : -70, this.portrait ? 105 : 50, this.state.names[0], this.state.hands[0].length, this.state.scores[0], this.state.statuses[0], false);
-    this.addNameplate(this.portrait ? 471 : 1094, this.portrait ? 105 : 50, this.state.names[1], this.state.hands[1].length, this.state.scores[1], this.state.statuses[1], true);
+    this.addNameplate(this.portrait ? 104 : 150, this.portrait ? 112 : 74, this.state.names[0], this.state.hands[0].length, this.state.scores[0], this.state.statuses[0], false);
+    this.addNameplate(this.portrait ? this.virtualWidth - 104 : this.virtualWidth - 150, this.portrait ? 112 : 74, this.state.names[1], this.state.hands[1].length, this.state.scores[1], this.state.statuses[1], true);
     this.addEnemyHand();
     this.addDrawPile();
-    this.addCard(top, this.portrait ? 345 : 512, this.portrait ? 420 : 305, false, false, 0, this.portrait ? 1.08 : 1.06);
+    this.addCard(top, this.portrait ? this.virtualWidth * 0.6 : this.virtualWidth / 2 + 70, this.portrait ? this.virtualHeight * 0.43 : 285, false, false, 0, this.portrait ? 1.08 : 0.9);
     this.addPlayerHand(initial);
     this.addStatusAuras();
     this.arena.sync(this.state);
@@ -365,21 +387,36 @@ export class MatchScene extends Phaser.Scene {
     const hud = this.add.text(this.virtualWidth / 2, this.portrait ? 22 : 19, `${turn}   •   ${colorName} MAGIC   •   ROUND ${this.state.roundNumber}`, {
       fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "15px" : "17px", fontStyle: "bold", color: "#fff2bd", stroke: "#081127", strokeThickness: 5
     }).setOrigin(0.5).setDepth(30);
-    const guideY = this.portrait ? 175 : 94;
-    const guidePlate = this.add.rectangle(this.virtualWidth / 2, guideY, this.portrait ? 520 : 640, this.portrait ? 52 : 42, 0x050b1d, 0.94).setStrokeStyle(2, 0xe4bd62, 1).setDepth(29);
-    const guideText = this.add.text(this.virtualWidth / 2, guideY, guide, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "12px" : "15px", fontStyle: "bold", color: "#f5f8ff", align: "center", wordWrap: { width: this.portrait ? 490 : 610 } }).setOrigin(0.5).setDepth(30);
-    const stack = this.add.text(this.virtualWidth / 2, this.portrait ? 220 : 132, this.state.drawStack.amount ? `ARCANE STACK  +${this.state.drawStack.amount}` : "", { fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "18px" : "24px", fontStyle: "bold", color: "#ffe472", stroke: "#6c2f9f", strokeThickness: 7 }).setOrigin(0.5).setDepth(30);
+    const guideY = this.portrait ? 190 : 82;
+    const guideWidth = this.portrait ? 520 : Math.min(560, this.virtualWidth * 0.47);
+    const guidePlate = this.add.rectangle(this.virtualWidth / 2, guideY, guideWidth, this.portrait ? 52 : 42, 0x050b1d, 0.94).setStrokeStyle(2, 0xe4bd62, 1).setDepth(29);
+    const guideText = this.add.text(this.virtualWidth / 2, guideY, guide, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "12px" : "14px", fontStyle: "bold", color: "#f5f8ff", align: "center", wordWrap: { width: guideWidth - 30 } }).setOrigin(0.5).setDepth(30);
+    const stack = this.add.text(this.virtualWidth / 2, this.portrait ? 235 : 118, this.state.drawStack.amount ? `ARCANE STACK  +${this.state.drawStack.amount}` : "", { fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "18px" : "22px", fontStyle: "bold", color: "#ffe472", stroke: "#6c2f9f", strokeThickness: 7 }).setOrigin(0.5).setDepth(30);
     this.dynamicObjects.push(hud, guidePlate, guideText, stack);
     if (this.state.drawStack.amount) this.tweens.add({ targets: stack, scale: 1.08, alpha: 0.72, duration: 430, yoyo: true, repeat: -1 });
   }
 
   private addNameplate(x: number, y: number, name: string, count: number, score: number, status: GameState["statuses"][number], alignRight: boolean): void {
-    const plate = this.add.rectangle(x, y, 220, 64, 0x08142c, 0.95).setStrokeStyle(3, alignRight ? 0xbe6cff : 0x55dcff).setDepth(24);
-    const anchor = alignRight ? x + 88 : x - 88;
+    const width = this.portrait ? 188 : 254;
+    const half = width / 2;
+    const accent = alignRight ? 0xc56bff : 0x55dcff;
+    const points = alignRight
+      ? [new Phaser.Geom.Point(x - half + 18, y - 34), new Phaser.Geom.Point(x + half, y - 34), new Phaser.Geom.Point(x + half, y + 34), new Phaser.Geom.Point(x - half + 18, y + 34), new Phaser.Geom.Point(x - half, y + 16), new Phaser.Geom.Point(x - half, y - 16)]
+      : [new Phaser.Geom.Point(x - half, y - 34), new Phaser.Geom.Point(x + half - 18, y - 34), new Phaser.Geom.Point(x + half, y - 16), new Phaser.Geom.Point(x + half, y + 16), new Phaser.Geom.Point(x + half - 18, y + 34), new Phaser.Geom.Point(x - half, y + 34)];
+    const plate = this.add.graphics().setDepth(24);
+    plate.fillStyle(0x030817, 0.96).fillPoints(points, true);
+    plate.lineStyle(2, 0xb79a62, 0.9).strokePoints(points, true);
+    plate.lineStyle(2, accent, 0.9).lineBetween(x - half + 20, y + 27, x + half - 20, y + 27);
+    const sealX = alignRight ? x + half - 28 : x - half + 28;
+    const seal = this.add.circle(sealX, y, 18, 0x091229, 1).setStrokeStyle(2, accent, 0.92).setDepth(25);
+    const initial = this.add.text(sealX, y, name.slice(0, 1).toUpperCase(), { fontFamily: "Georgia, serif", fontSize: "18px", fontStyle: "bold", color: "#fff0c2", stroke: "#02040b", strokeThickness: 4 }).setOrigin(0.5).setDepth(26);
+    const anchor = alignRight ? x + half - 54 : x - half + 54;
     const origin = alignRight ? 1 : 0;
-    const label = this.add.text(anchor, y - 21, name, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: "16px", fontStyle: "bold", color: "#ffffff" }).setOrigin(origin, 0).setDepth(25);
-    const detail = this.add.text(anchor, y + 3, `${count} CARDS  •  ${score} PTS  •  ${status.burn ? `BURN ${status.burn}` : status.stormcall ? "STORMBOUND" : status.frozenCardIds.length ? "FROST-LOCKED" : "READY"}`, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: "11px", fontStyle: "bold", color: status.burn ? "#ff9a6f" : "#aee9ff" }).setOrigin(origin, 0).setDepth(25);
-    this.dynamicObjects.push(plate, label, detail);
+    const kicker = this.add.text(anchor, y - 25, alignRight ? "RIVAL" : "DUELIST", { fontFamily: '"Trebuchet MS", sans-serif', fontSize: "8px", fontStyle: "bold", color: `#${accent.toString(16).padStart(6, "0")}`, letterSpacing: 2 }).setOrigin(origin, 0).setDepth(26);
+    const label = this.add.text(anchor, y - 12, name.toUpperCase(), { fontFamily: "Georgia, serif", fontSize: this.portrait ? "15px" : "18px", fontStyle: "bold", color: "#fff8e7", stroke: "#02040b", strokeThickness: 4 }).setOrigin(origin, 0).setDepth(26);
+    const condition = status.burn ? `BURN ${status.burn}` : status.frozenCardIds.length ? "FROZEN" : "READY";
+    const detail = this.add.text(anchor, y + 11, `${count} CARDS  •  ${score} PTS  •  ${condition}`, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "8px" : "10px", fontStyle: "bold", color: status.burn ? "#ff9a6f" : "#cfe8ff" }).setOrigin(origin, 0).setDepth(26);
+    this.dynamicObjects.push(plate, seal, initial, kicker, label, detail);
   }
 
   private addEnemyHand(): void {
@@ -387,18 +424,18 @@ export class MatchScene extends Phaser.Scene {
     const spacing = Math.min(this.portrait ? 32 : 35, (this.portrait ? 310 : 312) / Math.max(1, count - 1));
     for (let index = 0; index < count; index += 1) {
       const x = this.virtualWidth / 2 + (index - (count - 1) / 2) * spacing;
-      const card = this.addCard(this.state.hands[1][index]!, x, (this.portrait ? 260 : 168) + Math.abs(index - (count - 1) / 2) * 1.6, true, false, (index - (count - 1) / 2) * 1.8, this.portrait ? 0.62 : 0.58);
+      const card = this.addCard(this.state.hands[1][index]!, x, (this.portrait ? this.virtualHeight * 0.255 : 190) + Math.abs(index - (count - 1) / 2) * 1.6, true, false, (index - (count - 1) / 2) * 1.8, this.portrait ? 0.62 : 0.5);
       card.container.setDepth(11 + index);
     }
   }
 
   private addDrawPile(): void {
     const fake: Card = { id: "deck", color: "wild", kind: "prism" };
-    const deckX = this.portrait ? 225 : 415;
-    const deckY = this.portrait ? 420 : 305;
-    const view = this.addCard(fake, deckX, deckY, true, false, -4, this.portrait ? 1.04 : 1.02);
+    const deckX = this.virtualWidth / 2 - (this.portrait ? 58 : 70);
+    const deckY = this.portrait ? this.virtualHeight * 0.43 : 285;
+    const view = this.addCard(fake, deckX, deckY, true, false, -4, this.portrait ? 1.04 : 0.86);
     view.container.setInteractive(new Phaser.Geom.Rectangle(-55, -80, 110, 160), Phaser.Geom.Rectangle.Contains).on("pointerdown", () => this.commit({ type: "draw", player: 0 }));
-    const labelY = this.portrait ? 515 : 410;
+    const labelY = deckY + (this.portrait ? 102 : 62);
     const deckBadge = this.add.graphics().setDepth(29);
     deckBadge.fillStyle(0x071226, 0.92).fillRoundedRect(deckX - 51, labelY - 12, 102, 24, 9);
     deckBadge.lineStyle(1.5, 0x6bcfff, 0.72).strokeRoundedRect(deckX - 51, labelY - 12, 102, 24, 9);
@@ -409,15 +446,15 @@ export class MatchScene extends Phaser.Scene {
 
   private addPlayerHand(initial: boolean): void {
     const hand = this.state.hands[0];
-    const spacing = Math.min(this.portrait ? 70 : 94, (this.portrait ? 485 : 760) / Math.max(1, hand.length - 1));
+    const spacing = Math.min(this.portrait ? 70 : 82, (this.portrait ? 485 : Math.min(760, this.virtualWidth * 0.64)) / Math.max(1, hand.length - 1));
     hand.forEach((card, index) => {
       const offset = index - (hand.length - 1) / 2;
       const x = this.virtualWidth / 2 + offset * spacing;
-      const y = (this.portrait ? 700 : 480) + Math.abs(offset) * 2.4;
+      const y = (this.portrait ? this.virtualHeight * 0.78 : 408) + Math.abs(offset) * 2.4;
       const angle = offset * 2.2;
-      const cardScale = this.portrait ? 0.98 : 1.08;
+      const cardScale = this.portrait ? 0.98 : 0.84;
       const playable = isLegalCard(this.state, card, 0);
-      const view = this.addCard(card, x, initial ? (this.portrait ? 860 : 580) : y, false, playable, angle, cardScale);
+      const view = this.addCard(card, x, initial ? (this.portrait ? this.virtualHeight + 120 : 620) : y, false, playable, angle, cardScale);
       view.container.setDepth(80 + index);
       if (initial) this.tweens.add({ targets: view.container, y, duration: 480, delay: index * 65, ease: "Back.Out" });
       view.container.setInteractive(new Phaser.Geom.Rectangle(-55, -80, 110, 160), Phaser.Geom.Rectangle.Contains);
@@ -461,6 +498,7 @@ export class MatchScene extends Phaser.Scene {
         const face = this.add.sprite(0, 0, premium.texture, premium.animation ? Phaser.Math.Between(0, 47) : 0).setDisplaySize(110, 165);
         if (premium.animation) face.play({ key: premium.animation, startFrame: Phaser.Math.Between(0, 47) });
         container.add(face);
+        this.addSpecialCardChrome(container, card);
       } else if (card.kind === "number") {
         this.addNumberCardFace(container, card);
       } else {
@@ -525,10 +563,11 @@ export class MatchScene extends Phaser.Scene {
     };
     const player = this.state.statuses[0];
     const opponent = this.state.statuses[1];
-    if (player.burn) addAura(this.portrait ? 95 : 125, this.portrait ? 570 : 365, 0xff643b, `BURN ${player.burn}`);
-    if (player.stormcall) addAura(this.portrait ? 95 : 125, this.portrait ? 570 : 365, 0xffec6f, "STORMBOUND");
-    if (opponent.burn) addAura(this.portrait ? 481 : 850, this.portrait ? 540 : 345, 0xff643b, `BURN ${opponent.burn}`);
-    if (opponent.stormcall) addAura(this.portrait ? 481 : 850, this.portrait ? 540 : 345, 0xffec6f, "STORMBOUND");
+    const auraY = this.virtualHeight * (this.portrait ? 0.57 : 0.63);
+    const playerX = this.virtualWidth * (this.portrait ? 0.17 : 0.2);
+    const opponentX = this.virtualWidth * (this.portrait ? 0.83 : 0.8);
+    if (player.burn) addAura(playerX, auraY, 0xff643b, `BURN ${player.burn}`);
+    if (opponent.burn) addAura(opponentX, auraY, 0xff643b, `BURN ${opponent.burn}`);
   }
 
   private onCardSelected(view: CardView): void {
@@ -546,6 +585,23 @@ export class MatchScene extends Phaser.Scene {
     if (view.card.color === "wild" || view.card.kind === "cleanse") {
       requestColor((color) => this.playCard(view.card, color));
     } else this.playCard(view.card);
+  }
+
+  private addSpecialCardChrome(container: Phaser.GameObjects.Container, card: Card): void {
+    const color = SPELL_COLORS[card.kind] ?? CARD_COLORS[card.color];
+    const plate = this.add.rectangle(0, 55, 102, 47, 0x030611, 0.91).setRounded(8).setStrokeStyle(1.5, 0xffe6a6, 0.9);
+    const rule = this.add.rectangle(0, 74, 96, 1.5, color, 0.9).setBlendMode(Phaser.BlendModes.ADD);
+    const badge = this.add.circle(-40, -64, 12, 0x050814, 0.94).setStrokeStyle(2, color, 1);
+    const glyph = this.add.text(-40, -64, CARD_GLYPHS[card.kind], {
+      fontFamily: '"Trebuchet MS", sans-serif', fontSize: card.kind === "draw2" || card.kind === "wild4" ? "12px" : "15px", fontStyle: "bold", color: "#ffffff", stroke: "#050611", strokeThickness: 3
+    }).setOrigin(0.5);
+    const title = this.add.text(0, 46, CARD_NAMES[card.kind].toUpperCase(), {
+      fontFamily: '"Trebuchet MS", sans-serif', fontSize: CARD_NAMES[card.kind].length > 11 ? "9px" : "11px", fontStyle: "bold", color: "#fff4ce", stroke: "#02030a", strokeThickness: 3, align: "center"
+    }).setOrigin(0.5);
+    const effect = this.add.text(0, 64, CARD_EFFECT_LABELS[card.kind], {
+      fontFamily: '"Trebuchet MS", sans-serif', fontSize: "7px", fontStyle: "bold", color: "#eef7ff", align: "center", wordWrap: { width: 92 }
+    }).setOrigin(0.5);
+    container.add([plate, rule, badge, glyph, title, effect]);
   }
 
   private onCardRequested(cardId: string): void {
@@ -668,17 +724,18 @@ export class MatchScene extends Phaser.Scene {
     const premium = premiumCardTexture(card.kind);
     if (!premium) return;
     this.cardInspection?.destroy(true);
-    const y = this.portrait ? 535 : 318;
-    const width = this.portrait ? 178 : 215;
+    const y = this.portrait ? this.virtualHeight * 0.51 : 318;
+    const width = this.portrait ? 258 : 235;
     const height = width * 1.5;
     const root = this.add.container(this.virtualWidth / 2, y).setDepth(520).setAlpha(0).setScale(0.72);
     const shadow = this.add.rectangle(10, 12, width + 18, height + 18, 0x000000, 0.72).setRounded(18);
     const halo = this.add.rectangle(0, 0, width + 12, height + 12, SPELL_COLORS[card.kind] ?? 0xb887ff, 0.15).setRounded(16).setStrokeStyle(4, 0xffe49a, 0.98).setBlendMode(Phaser.BlendModes.ADD);
     const face = this.add.sprite(0, 0, premium.texture, premium.animation ? Phaser.Math.Between(0, 47) : 0).setDisplaySize(width, height);
     if (premium.animation) face.play({ key: premium.animation, startFrame: Phaser.Math.Between(0, 47) });
-    const instruction = this.portrait ? "TAP THE CARD AGAIN TO CAST" : "MOVE AWAY TO RETURN";
-    const label = this.add.text(0, height / 2 + 24, `${CARD_NAMES[card.kind].toUpperCase()}  •  ${instruction}`, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "12px" : "14px", fontStyle: "bold", color: "#fff4c9", stroke: "#070b18", strokeThickness: 5 }).setOrigin(0.5);
-    root.add([shadow, halo, face, label]);
+    const infoPlate = this.add.rectangle(0, height / 2 + (this.portrait ? 50 : 47), width + 20, this.portrait ? 74 : 66, 0x030714, 0.97).setRounded(13).setStrokeStyle(2, SPELL_COLORS[card.kind] ?? 0xb887ff, 0.9);
+    const effect = this.add.text(0, height / 2 + (this.portrait ? 34 : 30), CARD_EFFECT_LABELS[card.kind], { fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "17px" : "16px", fontStyle: "bold", color: "#ffffff", stroke: "#070b18", strokeThickness: 5, align: "center", wordWrap: { width: width - 10 } }).setOrigin(0.5);
+    const instruction = this.add.text(0, height / 2 + (this.portrait ? 65 : 59), this.portrait ? "TAP THE CARD AGAIN TO CAST" : "MOVE AWAY TO RETURN", { fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "11px" : "10px", fontStyle: "bold", color: "#ffe69a", letterSpacing: 1 }).setOrigin(0.5);
+    root.add([shadow, halo, face, infoPlate, effect, instruction]);
     this.cardInspection = root;
     this.tweens.add({ targets: root, alpha: 1, scale: 1, y: y - 8, duration: 180, ease: "Back.Out" });
     this.tweens.add({ targets: halo, alpha: { from: 0.28, to: 0.08 }, duration: 520, yoyo: true, repeat: -1 });
@@ -714,6 +771,7 @@ export class MatchScene extends Phaser.Scene {
     this.finalChallengeRunning = true;
     this.busy = true;
     audioManager.playSfx("challenge");
+    void audioManager.playMusic("challenge");
     const types: ChallengeType[] = ["rune-memory", "spell-timing", "arcane-clash"];
     const type = types[this.state.turnNumber % types.length]!;
     const result = await this.challenges.start(type);
@@ -730,6 +788,7 @@ export class MatchScene extends Phaser.Scene {
     gameBus.dispatchEvent(new CustomEvent("toast", { detail: `${CARD_NAMES.prism}: You ${result.score} • Rival ${aiScore}` }));
     this.finalChallengeRunning = false;
     this.busy = false;
+    void audioManager.playMusic("battle");
     this.renderState();
   }
 
@@ -737,6 +796,7 @@ export class MatchScene extends Phaser.Scene {
     if (!this.onlineSession || this.finalChallengeRunning) return;
     this.finalChallengeRunning = true;
     this.busy = true;
+    void audioManager.playMusic("challenge");
     const types: ChallengeType[] = ["rune-memory", "spell-timing", "arcane-clash"];
     const type = types[this.state.turnNumber % types.length]!;
     this.game.canvas.dataset.challengeState = `active:${type}`;
@@ -754,6 +814,7 @@ export class MatchScene extends Phaser.Scene {
       gameBus.dispatchEvent(new CustomEvent("toast", { detail: error instanceof Error ? error.message : "Challenge synchronization failed." }));
     } finally {
       this.busy = false;
+      void audioManager.playMusic("battle");
     }
   }
 }

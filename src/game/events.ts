@@ -1,4 +1,4 @@
-import type { CardColor, Difficulty, GameEvent, GameState, Ruleset } from "./rules/types";
+import type { CardColor, CardKind, Difficulty, GameEvent, GameState, Ruleset } from "./rules/types";
 import type { ChallengeType } from "./challenges/ChallengeDirector";
 import type { RoomRecord } from "./multiplayer/protocol";
 import type { RoomSession } from "./multiplayer/roomService";
@@ -10,6 +10,7 @@ export interface StartMatchDetail {
   difficulty: Difficulty;
   ruleset: Ruleset;
   challengePreview?: ChallengeType;
+  spellPreview?: CardKind;
   resultPreview?: ResultPreview;
   online?: { session: RoomSession; room: RoomRecord };
   render?: { width: number; height: number; scale: number };

@@ -20,8 +20,8 @@ npm run test:e2e
 
 ## Gameplay in this milestone
 
-- Number, Skip, Reverse, +2, +4, Prism, Arsonist, Freeze, Whirlwind, Stormcall, Frostbite, Mirror, and Cleanse cards
-- +2/+4 draw-stack handling, burn and frost locks, forced Stormcall color, and persistent status indicators
+- Full four-color number deck plus exactly five animated signature cards: Arsonist, Freeze, Whirlwind, Arcane +2, and Chaos +4
+- Automatic +2/+4 draw-stack handling, Burn, Freeze turn skips, and Whirlwind hand swaps
 - Easy, Normal, Hard, and Nightmare seeded AI policies
 - Animated high-detail Cole and Gabby pose systems with spell and status reactions
 - Card dealing, hover/play feedback, ambient particles, character actions, and spell-specific full-screen cinematics
@@ -29,10 +29,11 @@ npm run test:e2e
 - Automatic round transitions, scoring to 200 points, match victory, and rematch
 - Landscape and portrait arena compositions with reduced-motion and audio settings
 - Device-density-aware Phaser rendering that keeps cards, character linework, and HUD text sharp on 2K/Retina displays
+- Aspect-ratio-driven arena staging verified on laptop, QHD, ultrawide, and portrait phone layouts
 
-## Optional audio
+## Audio
 
-The game safely runs without media files. Add files using the exact names listed in `assets/music/README.txt`, `assets/sfx/README.txt`, and `assets/voices/README.txt`; the audio manager preloads available tracks and ignores missing optional hooks.
+Cole's supplied menu, battle, and Final Card minigame music is installed and switches automatically with the game state. Sound-effect, voice, and victory-music hooks remain replaceable and safely ignore missing optional files listed in `assets/sfx/README.txt` and `assets/voices/README.txt`.
 
 ## Firebase online beta
 

@@ -30,6 +30,21 @@ export const CARD_GLYPHS: Record<CardKind, string> = {
   cleanse: "✧"
 };
 
+export const CARD_EFFECT_LABELS: Record<CardKind, string> = {
+  number: "MATCH COLOR OR NUMBER",
+  freeze: "RIVAL SKIPS NEXT TURN",
+  rewind: "PLAY ANOTHER CARD",
+  draw2: "ADD 2 TO DRAW STACK",
+  prism: "CHOOSE THE NEXT COLOR",
+  wild4: "ADD 4 TO DRAW STACK",
+  arsonist: "APPLY BURN 1",
+  whirlwind: "SWAP 1 RANDOM CARD",
+  stormcall: "YELLOW OR DRAW 2",
+  frostbite: "LOCK 1 RIVAL CARD",
+  mirror: "COPY THE LAST SPELL",
+  cleanse: "CLEAR EVERY CURSE"
+};
+
 export const SPECIAL_KINDS = new Set<CardKind>([
   "freeze",
   "rewind",

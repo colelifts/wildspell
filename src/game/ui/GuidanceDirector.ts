@@ -9,7 +9,7 @@ export function guidanceFor(state: GameState, player: 0 | 1): string {
   if (state.drawnCardId) {
     const drawn = state.hands[player].find((card) => card.id === state.drawnCardId);
     const playable = drawn && legalCards(state, player).some((card) => card.id === drawn.id);
-    return playable ? "Your drawn card is playable. Cast it or end your turn." : "The drawn card cannot be played. End your turn.";
+    return playable ? "Your drawn card is playable. Cast it to continue." : "No playable card remains. Your turn will pass automatically.";
   }
   if (state.hands[player].length === 2 && !state.finalCalled[player]) return "Call FINAL CARD before playing down to one!";
   if (state.statuses[player].stormcall) return "Stormcall crackles around you. Answer with yellow or Wild to avoid drawing two.";

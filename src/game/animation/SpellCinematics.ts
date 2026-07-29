@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import { premiumCardTexture } from "./CardVisuals";
+import { CARD_BACK_KEY, premiumCardTexture } from "./CardVisuals";
 import { CARD_NAMES } from "../rules/cards";
 import type { CardKind } from "../rules/types";
 import { virtualViewport } from "../render/virtualViewport";
@@ -47,10 +47,13 @@ export class SpellCinematics {
     this.scene.time.delayedCall(360, () => {
       if (kind === "whirlwind") this.whirlwind(from, to, color);
       else if (kind === "freeze" || kind === "frostbite") this.iceWave(from, to, color);
+      else if (kind === "arsonist") this.fireSurge(from, to);
+      else if (kind === "draw2") this.arcaneVolley(from, to, color);
+      else if (kind === "wild4") this.chaosConvergence(to);
       else if (kind === "stormcall") this.lightning(to, color);
       else if (kind === "mirror") this.mirrorShards(width / 2, height / 2, color);
       else if (kind === "cleanse") this.healingRings(from, color);
-      else this.projectileBurst(from, to, color, kind === "wild4" ? 4 : kind === "draw2" ? 2 : 1);
+      else this.projectileBurst(from, to, color, 1);
     });
 
     await new Promise<void>((resolve) => {
@@ -123,19 +126,78 @@ export class SpellCinematics {
   }
 
   private iceWave(from: Phaser.Math.Vector2, to: Phaser.Math.Vector2, color: number): void {
-    for (let index = 0; index < 12; index += 1) {
-      const shard = this.scene.add.triangle(from.x, from.y, 0, 28, 10, 0, 20, 28, color, 0.95).setDepth(320);
-      this.scene.tweens.add({ targets: shard, x: to.x + (index - 6) * 14, y: to.y + 80 - Math.abs(index - 6) * 9, angle: 160, duration: 380 + index * 25, ease: "Cubic.In", onComplete: () => shard.destroy() });
+    const angle = Phaser.Math.Angle.Between(from.x, from.y, to.x, to.y);
+    for (let index = 0; index < 18; index += 1) {
+      const shard = this.scene.add.polygon(from.x, from.y, [0, -34, 9, 8, 3, 42, -8, 8], index % 3 ? color : 0xeaffff, 0.92).setStrokeStyle(2, 0xffffff, 0.9).setDepth(320).setAngle(Phaser.Math.RadToDeg(angle) + 90).setScale(0.25).setBlendMode(Phaser.BlendModes.ADD);
+      const spread = (index - 8.5) * 13;
+      this.scene.tweens.add({ targets: shard, x: to.x + Math.cos(angle + Math.PI / 2) * spread, y: to.y + Math.sin(angle + Math.PI / 2) * spread + 35, angle: shard.angle + 120, scale: 1 + (index % 4) * 0.16, duration: 410 + index * 18, ease: "Cubic.In", onComplete: () => this.scene.tweens.add({ targets: shard, alpha: 0, y: shard.y - 24, duration: 420, onComplete: () => shard.destroy() }) });
+    }
+    for (let wave = 0; wave < 4; wave += 1) {
+      const ring = this.scene.add.ellipse(to.x, to.y + 55, 70, 24, 0x08152a, 0.08).setStrokeStyle(7 - wave, wave % 2 ? 0xffffff : color, 0.9).setDepth(319).setBlendMode(Phaser.BlendModes.ADD).setScale(0.2);
+      this.scene.tweens.add({ targets: ring, scaleX: 3.6 + wave * 0.7, scaleY: 2 + wave * 0.3, alpha: 0, duration: 620, delay: wave * 70, ease: "Cubic.Out", onComplete: () => ring.destroy() });
     }
   }
 
   private whirlwind(from: Phaser.Math.Vector2, to: Phaser.Math.Vector2, color: number): void {
     const centerX = (from.x + to.x) / 2;
-    for (let index = 0; index < 18; index += 1) {
-      const mote = this.scene.add.star(centerX, to.y + 80, 5, 3, 8, color, 0.9).setDepth(320);
-      const angle = index * 0.72;
-      this.scene.tweens.add({ targets: mote, x: centerX + Math.cos(angle) * (40 + index * 4), y: to.y + 100 - index * 17, angle: 540, scale: 0.2, alpha: 0, duration: 720 + index * 18, onComplete: () => mote.destroy() });
+    for (let ring = 0; ring < 9; ring += 1) {
+      const ribbon = this.scene.add.ellipse(centerX, to.y + 105 - ring * 24, 90 + ring * 36, 22 + ring * 5, 0x06191b, 0.04).setStrokeStyle(6 - ring * 0.35, ring % 2 ? 0xffffff : color, 0.82).setDepth(320 + ring).setBlendMode(Phaser.BlendModes.ADD).setScale(0.18).setAngle(ring % 2 ? -8 : 8);
+      this.scene.tweens.add({ targets: ribbon, scale: 1, angle: ring % 2 ? 350 : -350, alpha: 0, duration: 720 + ring * 65, delay: ring * 22, ease: "Cubic.Out", onComplete: () => ribbon.destroy() });
     }
+    for (let index = 0; index < 22; index += 1) {
+      const streak = this.scene.add.rectangle(centerX, to.y + 80, 34 + index % 5 * 9, 3, index % 3 ? color : 0xffffff, 0.88).setDepth(330).setBlendMode(Phaser.BlendModes.ADD);
+      const angle = index * 1.42;
+      const radius = 50 + index * 6;
+      streak.setPosition(centerX + Math.cos(angle) * radius, to.y + 80 + Math.sin(angle) * radius * 0.35).setAngle(Phaser.Math.RadToDeg(angle));
+      this.scene.tweens.add({ targets: streak, x: centerX + Math.cos(angle + 4.6) * radius * 0.25, y: to.y - 180 + Math.sin(angle) * 35, angle: streak.angle + 600, alpha: 0, scaleX: 0.15, duration: 690 + index * 19, onComplete: () => streak.destroy() });
+    }
+  }
+
+  private fireSurge(from: Phaser.Math.Vector2, to: Phaser.Math.Vector2): void {
+    const angle = Phaser.Math.Angle.Between(from.x, from.y, to.x, to.y);
+    for (let index = 0; index < 3; index += 1) {
+      const root = this.scene.add.container(from.x, from.y + (index - 1) * 18).setDepth(324).setRotation(angle).setScale(0.35);
+      const wake = this.scene.add.ellipse(-42, 0, 118, 34, 0xff3518, 0.3).setBlendMode(Phaser.BlendModes.ADD);
+      const body = this.scene.add.ellipse(0, 0, 64, 46, index === 1 ? 0xffffff : 0xff8a2d, 0.95).setStrokeStyle(8, 0xff3518, 0.9).setBlendMode(Phaser.BlendModes.ADD);
+      const core = this.scene.add.circle(8, -4, 12, 0xfff2b0, 1).setBlendMode(Phaser.BlendModes.ADD);
+      root.add([wake, body, core]);
+      this.scene.tweens.add({ targets: wake, scaleX: 1.5, alpha: 0.08, duration: 140, yoyo: true, repeat: 3 });
+      this.scene.tweens.add({ targets: root, x: to.x, y: to.y + (index - 1) * 22, scale: 1 + index * 0.12, duration: 410 + index * 55, delay: index * 45, ease: "Cubic.In", onComplete: () => { this.fireImpact(root.x, root.y); root.destroy(true); } });
+    }
+  }
+
+  private fireImpact(x: number, y: number): void {
+    for (let ring = 0; ring < 3; ring += 1) {
+      const shock = this.scene.add.circle(x, y, 24, 0xff3b17, 0.05).setStrokeStyle(9 - ring * 2, ring === 1 ? 0xffd26a : 0xff4a1e, 0.95).setDepth(326).setBlendMode(Phaser.BlendModes.ADD);
+      this.scene.tweens.add({ targets: shock, scale: 3.5 + ring, alpha: 0, duration: 420 + ring * 90, delay: ring * 35, ease: "Cubic.Out", onComplete: () => shock.destroy() });
+    }
+    for (let index = 0; index < 24; index += 1) {
+      const ember = this.scene.add.circle(x, y, 3 + index % 4, index % 4 ? 0xff5a20 : 0xffffff, 1).setDepth(329).setBlendMode(Phaser.BlendModes.ADD);
+      const angle = Math.PI * 2 * index / 24;
+      this.scene.tweens.add({ targets: ember, x: x + Math.cos(angle) * (70 + index * 4), y: y + Math.sin(angle) * (55 + index * 2) - 45, alpha: 0, scale: 0.15, duration: 480 + index * 14, onComplete: () => ember.destroy() });
+    }
+  }
+
+  private arcaneVolley(from: Phaser.Math.Vector2, to: Phaser.Math.Vector2, color: number): void {
+    for (let index = 0; index < 2; index += 1) {
+      const card = this.scene.add.image(from.x + (index ? 24 : -24), from.y, CARD_BACK_KEY).setDisplaySize(72, 108).setDepth(326).setAngle(index ? 18 : -18).setScale(0.35).setBlendMode(Phaser.BlendModes.ADD);
+      const halo = this.scene.add.circle(card.x, card.y, 42, color, 0.08).setStrokeStyle(5, color, 0.86).setDepth(325).setBlendMode(Phaser.BlendModes.ADD);
+      this.scene.tweens.add({ targets: [card, halo], x: to.x + (index ? 30 : -30), y: to.y, scale: index ? 0.72 : 0.78, angle: index ? 382 : -382, alpha: 0, duration: 650, delay: index * 110, ease: "Cubic.In", onComplete: () => { card.destroy(); halo.destroy(); } });
+    }
+  }
+
+  private chaosConvergence(to: Phaser.Math.Vector2): void {
+    const { width, height } = virtualViewport(this.scene);
+    const rift = this.scene.add.circle(width / 2, height / 2, 42, 0x130019, 0.72).setStrokeStyle(12, 0xc356ff, 0.9).setDepth(323).setBlendMode(Phaser.BlendModes.ADD).setScale(0.1);
+    const core = this.scene.add.star(width / 2, height / 2, 8, 12, 35, 0xff4b38, 0.95).setDepth(324).setBlendMode(Phaser.BlendModes.ADD).setScale(0.1);
+    this.scene.tweens.add({ targets: [rift, core], scale: 1.5, angle: 360, duration: 330, ease: "Back.Out" });
+    for (let index = 0; index < 4; index += 1) {
+      const angle = Math.PI * 2 * index / 4 - Math.PI / 4;
+      const seal = this.scene.add.circle(width / 2 + Math.cos(angle) * width * 0.3, height / 2 + Math.sin(angle) * height * 0.34, 38, 0x210008, 0.7).setStrokeStyle(6, index % 2 ? 0xff4b38 : 0xc356ff, 0.96).setDepth(327).setScale(0.2);
+      const mark = this.scene.add.text(seal.x, seal.y, "+4", { fontFamily: "Georgia, serif", fontSize: "25px", fontStyle: "bold", color: "#ffffff", stroke: "#340009", strokeThickness: 6 }).setOrigin(0.5).setDepth(328).setAlpha(0);
+      this.scene.tweens.add({ targets: [seal, mark], scale: 1, alpha: 1, duration: 250, delay: index * 65, ease: "Back.Out", onComplete: () => this.scene.tweens.add({ targets: [seal, mark], x: to.x, y: to.y, scale: 0.15, alpha: 0, duration: 520, delay: 180, ease: "Cubic.In", onComplete: () => { seal.destroy(); mark.destroy(); } }) });
+    }
+    this.scene.tweens.add({ targets: [rift, core], x: to.x, y: to.y, scale: 0.15, alpha: 0, duration: 520, delay: 520, ease: "Cubic.In", onComplete: () => { rift.destroy(); core.destroy(); this.fireImpact(to.x, to.y); } });
   }
 
   private lightning(to: Phaser.Math.Vector2, color: number): void {

@@ -60,16 +60,9 @@ function controlledState(): GameState {
 }
 
 async function answerArcaneClash(page: Page): Promise<void> {
-  const canvas = page.locator("canvas");
-  const box = await canvas.boundingBox();
-  expect(box).not.toBeNull();
-  const portrait = box!.height > box!.width;
   await page.waitForTimeout(900);
   for (let round = 0; round < 5; round += 1) {
-    await page.mouse.click(
-      box!.x + box!.width * (portrait ? 0.208 : 0.385),
-      box!.y + box!.height * (portrait ? 0.713 : 0.667)
-    );
+    await page.keyboard.press("ArrowUp");
     await page.waitForTimeout(360);
   }
 }

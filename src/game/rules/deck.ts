@@ -13,27 +13,19 @@ export function buildDeck(ruleset: Ruleset, seed = 0xc01ecafe): { cards: Card[];
     for (let value = 1; value <= 9; value += 1) {
       cards.push(makeCard(color, "number", serial++, value), makeCard(color, "number", serial++, value));
     }
-    for (const kind of ["freeze", "rewind", "draw2"] as const) {
+    for (const kind of ["freeze", "draw2"] as const) {
       cards.push(makeCard(color, kind, serial++), makeCard(color, kind, serial++));
     }
   }
   for (let index = 0; index < 4; index += 1) {
-    cards.push(makeCard("wild", "prism", serial++), makeCard("wild", "wild4", serial++));
+    cards.push(makeCard("wild", "wild4", serial++));
   }
   if (ruleset === "wild") {
     cards.push(
       makeCard("red", "arsonist", serial++),
       makeCard("red", "arsonist", serial++),
       makeCard("green", "whirlwind", serial++),
-      makeCard("green", "whirlwind", serial++),
-      makeCard("yellow", "stormcall", serial++),
-      makeCard("yellow", "stormcall", serial++),
-      makeCard("blue", "frostbite", serial++),
-      makeCard("blue", "frostbite", serial++),
-      makeCard("wild", "mirror", serial++),
-      makeCard("wild", "mirror", serial++),
-      makeCard("wild", "cleanse", serial++),
-      makeCard("wild", "cleanse", serial++)
+      makeCard("green", "whirlwind", serial++)
     );
   }
   const shuffled = shuffleSeeded(cards, seed);
@@ -42,7 +34,7 @@ export function buildDeck(ruleset: Ruleset, seed = 0xc01ecafe): { cards: Card[];
 
 export function cardPoints(card: Card): number {
   if (card.kind === "number") return card.value ?? 0;
-  if (card.kind === "wild4" || card.kind === "prism" || card.kind === "mirror" || card.kind === "cleanse") return 50;
-  if (["arsonist", "whirlwind", "stormcall", "frostbite"].includes(card.kind)) return 35;
+  if (card.kind === "wild4") return 50;
+  if (["arsonist", "whirlwind"].includes(card.kind)) return 35;
   return 20;
 }

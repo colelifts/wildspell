@@ -2,7 +2,7 @@ import { audioManager } from "../game/audio/AudioManager";
 import { gameBus, type ResultPreview } from "../game/events";
 import type { ChallengeType } from "../game/challenges/ChallengeDirector";
 import { illegalReason } from "../game/rules/legalMoves";
-import type { Difficulty, GameEvent, GameState, Ruleset } from "../game/rules/types";
+import type { CardKind, Difficulty, GameEvent, GameState, Ruleset } from "../game/rules/types";
 import { WildSpellGame } from "../game/WildSpellGame";
 import { firebaseConfigured } from "../game/multiplayer/firebase";
 import { findQuickMatch } from "../game/multiplayer/matchmaking";
@@ -62,11 +62,10 @@ export class App {
                 </div>
                 <div class="tab-panel spellbook" data-panel="codex">
                   <article><i class="fire">♨</i><div><b>ARSONIST</b><span>Burn spreads when your rival fails to answer red.</span></div></article>
-                  <article><i class="ice">❄</i><div><b>FROSTBITE</b><span>Locks a specific rival card beneath enchanted ice.</span></div></article>
+                  <article><i class="ice">❄</i><div><b>FREEZE</b><span>Encases the arena in ice and skips the rival's next turn.</span></div></article>
                   <article><i class="wind">◌</i><div><b>WHIRLWIND</b><span>Tears cards from both hands and swaps them midair.</span></div></article>
-                  <article><i class="storm">ϟ</i><div><b>STORMCALL</b><span>Demand yellow magic or punish the rival with two draws.</span></div></article>
-                  <article><i class="mirror">◈</i><div><b>MIRROR TRICK</b><span>Reflects the most recent special spell.</span></div></article>
-                  <article><i class="cleanse">✧</i><div><b>CLEANSE</b><span>Shatters every curse and shifts the active color.</span></div></article>
+                  <article><i class="mirror">+2</i><div><b>ARCANE +2</b><span>Adds two cards to the live draw stack.</span></div></article>
+                  <article><i class="fire">+4</i><div><b>CHAOS +4</b><span>Adds four cards to the draw stack and changes color.</span></div></article>
                 </div>
               </section>
               <aside class="showcase-panel rune-frame">
@@ -74,7 +73,7 @@ export class App {
                 <span class="rival-tag">FEATURED RIVAL</span>
                 <h2>GABBY</h2>
                 <p>Card illusionist. Impossible to read.<br />Even harder to outplay.</p>
-                <div class="feature-chips"><span>4 AI LEVELS</span><span>11 SPELLS</span><span>3 CHALLENGES</span></div>
+                <div class="feature-chips"><span>4 AI LEVELS</span><span>5 SIGNATURE SPELLS</span><span>3 CHALLENGES</span></div>
               </aside>
             </div>
           </div>
@@ -167,7 +166,9 @@ export class App {
     const challengePreview = (["rune-memory", "spell-timing", "arcane-clash"] as ChallengeType[]).find((type) => type === requestedChallenge);
     const requestedResult = new URLSearchParams(window.location.search).get("result");
     const resultPreview = (["round", "match"] as ResultPreview[]).find((type) => type === requestedResult);
-    this.game.start({ playerName, difficulty, ruleset, ...(challengePreview ? { challengePreview } : {}), ...(resultPreview ? { resultPreview } : {}) });
+    const requestedSpell = new URLSearchParams(window.location.search).get("spell");
+    const spellPreview = (["arsonist", "freeze", "whirlwind", "draw2", "wild4"] as CardKind[]).find((type) => type === requestedSpell);
+    this.game.start({ playerName, difficulty, ruleset, ...(challengePreview ? { challengePreview } : {}), ...(spellPreview ? { spellPreview } : {}), ...(resultPreview ? { resultPreview } : {}) });
     audioManager.playSfx("deal");
   }
 

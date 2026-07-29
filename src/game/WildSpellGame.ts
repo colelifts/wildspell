@@ -8,10 +8,13 @@ export class WildSpellGame {
   start(config: StartMatchDetail): void {
     this.destroy();
     const portrait = window.matchMedia("(max-width: 700px) and (orientation: portrait)").matches;
-    const virtualWidth = portrait ? 576 : 1024;
-    const virtualHeight = portrait ? 1024 : 576;
-    const viewportScale = Math.max(window.innerWidth / virtualWidth, window.innerHeight / virtualHeight);
-    const renderScale = Math.min(2, Math.max(window.devicePixelRatio || 1, viewportScale));
+    const viewportWidth = Math.max(320, window.visualViewport?.width ?? window.innerWidth);
+    const viewportHeight = Math.max(480, window.visualViewport?.height ?? window.innerHeight);
+    const aspect = viewportWidth / viewportHeight;
+    const virtualWidth = portrait ? 576 : Math.round(Phaser.Math.Clamp(576 * aspect, 960, 2048));
+    const virtualHeight = portrait ? Math.round(Phaser.Math.Clamp(576 / aspect, 960, 1248)) : 576;
+    const viewportScale = Math.max(viewportWidth / virtualWidth, viewportHeight / virtualHeight);
+    const renderScale = Math.min(portrait ? 2 : 3, Math.max(window.devicePixelRatio || 1, viewportScale));
     const width = Math.round(virtualWidth * renderScale);
     const height = Math.round(virtualHeight * renderScale);
     this.game = new Phaser.Game({

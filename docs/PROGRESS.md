@@ -82,4 +82,11 @@ The first visual gate is captured in `artifacts/rebuild/` for desktop and mobile
 - [x] Increase desktop camera scale, hand-card scale, nameplate type size, deck-count contrast, and disabled-control legibility.
 - [x] Add a dedicated 2048-pixel clarity assertion and proof image under `artifacts/clarity/`.
 - [x] Prove atomic Quick Match pairing plus synchronized color choice, mixed +4/+2 stacking, reconnect, Final Card scoring, and round transition in two desktop/mobile browsers.
+- [x] Narrow the live deck to the five approved animated specials: Arsonist, Freeze, Whirlwind, Arcane +2, and Chaos +4.
+- [x] Install Cole's supplied menu, battle, and minigame music with automatic scene switching.
+- [x] Replace the noisy galaxy card back with a simplified violet-and-gold eclipse design generated for thumbnail readability.
+- [x] Replace the fixed desktop zoom workaround with an aspect-ratio-driven stage and percentage-based duel staging.
+- [x] Rebuild both nameplates as beveled supernatural-anime duel banners with identity seals and clear status hierarchy.
+- [x] Add laptop, QHD, and ultrawide responsive browser proofs under `artifacts/responsive/`.
+- [x] Upgrade the five approved spell reactions with staged, layered arena effects and proof frames under `artifacts/spells/`.
 - [ ] Continue the full non-audio polish, multiplayer, accessibility, and acceptance-checklist pass.

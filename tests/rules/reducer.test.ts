@@ -20,9 +20,11 @@ function stateWith(hands: [Card[], Card[]], top = card("red", "number", 5), rule
 
 describe("deck", () => {
   it("builds deterministic Classic and Wild decks", () => {
-    expect(buildDeck("classic", 7).cards).toHaveLength(108);
-    expect(buildDeck("wild", 7).cards).toHaveLength(120);
+    expect(buildDeck("classic", 7).cards).toHaveLength(96);
+    expect(buildDeck("wild", 7).cards).toHaveLength(100);
     expect(buildDeck("wild", 7).cards.map((item) => item.id)).toEqual(buildDeck("wild", 7).cards.map((item) => item.id));
+    const liveSpecials = [...new Set(buildDeck("wild", 7).cards.filter((item) => item.kind !== "number").map((item) => item.kind))].sort();
+    expect(liveSpecials).toEqual(["arsonist", "draw2", "freeze", "whirlwind", "wild4"]);
   });
 });
 

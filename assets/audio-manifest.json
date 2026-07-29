@@ -1,8 +1,8 @@
 {
   "music": {
-    "menu": "assets/music/menu.ogg",
-    "battle": "assets/music/battle.ogg",
-    "challenge": "assets/music/challenge.ogg",
+    "menu": "assets/music/menu.mp3",
+    "battle": "assets/music/battle.mp3",
+    "challenge": "assets/music/challenge.mp3",
     "victory": "assets/music/victory.ogg"
   },
   "sfx": {

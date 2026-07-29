@@ -54,4 +54,7 @@ The first visual gate is captured in `artifacts/rebuild/` for desktop and mobile
 - [x] Add entrance, breathing, anticipation, impact, recovery, persistent Burn, reaction, victory, and defeat direction in Phaser.
 - [x] Replace the LPC player sprite in the live match without changing the supplied legacy files.
 - [x] Validate player scale, transparency, placement, and browser console in a live Chromium match.
-- [ ] Receive and build the premium opponent character pack.
+- [x] Lock Gabby's supplied character identity, costume, proportions, and animation style.
+- [x] Create Gabby's transparent turn-ready, card-play, light-cast, heavy-cast, hurt, frozen, Burn, Whirlwind, Final Card, victory, and defeat poses.
+- [x] Add Gabby's reusable entrance, breathing, anticipation, impact, recovery, persistent-status, victory, and defeat animation director for the future second-player flow.
+- [ ] Receive and build the premium Skeleton/AI opponent character pack.

@@ -8,7 +8,7 @@ WildSpell is an original dark-supernatural anime card duel. It uses crisp illust
 
 - Cole — Riftbound Duelist: athletic young adult, spiked gold hair with a pale-white forelock, asymmetrical black and ivory battle coat, silver armor, two restrained spectral wing shapes, violet-blue arcane gauntlet. Heroic, focused, versatile.
 - The Hexlord — Gravebound Rival: tall skeletal sorcerer in damaged black ceremonial armor, indigo soul-fire crown, elegant scythe-like staff, violet-red curse energy. Intimidating rather than grotesque.
-- Gabby — Astral Weaver: poised young adult mage, dark-violet layered coat and bodice, luminous crystal focus, violet/cyan constellation magic. Reserved, clever, powerful.
+- Gabby — Card Illusionist: tall, poised trickster with swept red-and-violet hair, pale-blue suit-symbol costume, pink wraps, yellow sash, and theatrical playing-card magic. Elegant, taunting, unreadable, and precise. Her motion language uses dancer-like weight shifts, sleight of hand, violet card ribbons, and floating suit sigils.
 
 ## Animation production rules
 

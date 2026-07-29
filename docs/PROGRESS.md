@@ -58,3 +58,14 @@ The first visual gate is captured in `artifacts/rebuild/` for desktop and mobile
 - [x] Create Gabby's transparent turn-ready, card-play, light-cast, heavy-cast, hurt, frozen, Burn, Whirlwind, Final Card, victory, and defeat poses.
 - [x] Add Gabby's reusable entrance, breathing, anticipation, impact, recovery, persistent-status, victory, and defeat animation director for the future second-player flow.
 - [x] Replace the Skeleton/AI opponent with Gabby and connect her complete pose set to live AI turns, spells, reactions, Final Card, victory, and defeat.
+
+## Premium gameplay and clarity pass
+
+- [x] Draw through unusable cards until the first legal card appears.
+- [x] Resolve unanswerable draw stacks and exhausted no-move turns automatically.
+- [x] Remove the unnecessary manual End Turn control and reject voluntary draws when a legal play exists.
+- [x] Enlarge the live hand, discard, deck, and opponent cards across desktop and mobile.
+- [x] Add full-size animated inspection previews for premium special cards.
+- [x] Separate guidance and player plates so they no longer cover the central play field.
+- [x] Add full-card cinematic reveals and layered arena reactions for every current spell family.
+- [ ] Continue the full non-audio polish, multiplayer, accessibility, and acceptance-checklist pass.

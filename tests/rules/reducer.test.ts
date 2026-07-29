@@ -80,6 +80,39 @@ describe("draw stacking", () => {
   });
 });
 
+describe("automatic forced draws", () => {
+  it("draws through unusable cards until the first legal card", () => {
+    const bad = card("blue", "number", 2);
+    const playable = card("red", "number", 7);
+    const state = stateWith([[card("green", "number", 1)], [card("yellow", "number", 3)]], card("red", "number", 5));
+    state.drawPile = [playable, bad];
+    const result = reduceGame(state, { type: "draw", player: 0 });
+    expect(result.accepted).toBe(true);
+    expect(result.state.hands[0].map((item) => item.id)).toContain(bad.id);
+    expect(result.state.hands[0].map((item) => item.id)).toContain(playable.id);
+    expect(result.state.drawnCardId).toBe(playable.id);
+    expect(result.state.turn).toBe(0);
+    expect(result.state.events).toContainEqual(expect.objectContaining({ type: "cards-drawn", count: 2, reason: "until playable" }));
+  });
+
+  it("ends the turn when the available deck contains no legal card", () => {
+    const state = stateWith([[card("green", "number", 1)], [card("yellow", "number", 3)]], card("red", "number", 5));
+    state.drawPile = [card("blue", "number", 2), card("green", "number", 8)];
+    const result = reduceGame(state, { type: "draw", player: 0 });
+    expect(result.accepted).toBe(true);
+    expect(result.state.drawnCardId).toBeNull();
+    expect(result.state.turn).toBe(1);
+    expect(result.state.turnNumber).toBe(state.turnNumber + 1);
+  });
+
+  it("refuses a voluntary draw while a legal play is available", () => {
+    const state = stateWith([[card("red", "number", 1)], [card("yellow", "number", 3)]], card("red", "number", 5));
+    const result = reduceGame(state, { type: "draw", player: 0 });
+    expect(result.accepted).toBe(false);
+    expect(result.reason).toContain("already have a playable card");
+  });
+});
+
 describe("Wild statuses and spells", () => {
   it("Arsonist applies Burn and unanswered Burn draws then grows to two", () => {
     const arsonist = card("red", "arsonist");

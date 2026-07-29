@@ -36,6 +36,23 @@ function drawCards(state: GameState, player: 0 | 1, count: number, reason: strin
   emit(state, { type: "cards-drawn", actor: player, count: drawn, reason });
 }
 
+function drawUntilPlayable(state: GameState, player: 0 | 1): boolean {
+  let drawn = 0;
+  state.drawnCardId = null;
+  while (true) {
+    refill(state);
+    const card = state.drawPile.pop();
+    if (!card) break;
+    state.hands[player].push(card);
+    drawn += 1;
+    state.drawnCardId = card.id;
+    if (!illegalReason(state, card, player)) break;
+    state.drawnCardId = null;
+  }
+  emit(state, { type: "cards-drawn", actor: player, count: drawn, reason: "until playable" });
+  return Boolean(state.drawnCardId);
+}
+
 function chooseColor(hand: Card[]): "red" | "blue" | "green" | "yellow" {
   const counts = { red: 0, blue: 0, green: 0, yellow: 0 };
   for (const card of hand) if (card.color !== "wild") counts[card.color] += 1;
@@ -192,6 +209,8 @@ export function reduceGame(current: GameState, command: GameCommand): CommandRes
 
   if (command.type === "draw") {
     if (state.drawnCardId) return reject(current, command.player, "Play or pass the card you already drew.");
+    const playable = state.hands[command.player].some((card) => !illegalReason(state, card, command.player));
+    if (playable) return reject(current, command.player, "You already have a playable card.");
     if (state.drawStack.amount > 0) {
       const amount = state.drawStack.amount;
       drawCards(state, command.player, amount, `+${amount} stack`);
@@ -200,8 +219,12 @@ export function reduceGame(current: GameState, command: GameCommand): CommandRes
       state.turn = other(command.player);
       state.turnNumber += 1;
     } else {
-      drawCards(state, command.player, 1, "draw pile");
-      state.drawnCardId = state.hands[command.player].at(-1)?.id ?? null;
+      const foundPlayable = drawUntilPlayable(state, command.player);
+      if (!foundPlayable) {
+        finishTurnStatuses(state, command.player, null);
+        state.turn = other(command.player);
+        state.turnNumber += 1;
+      }
     }
     emit(state, { type: "turn", actor: state.turn });
     return { accepted: true, state };

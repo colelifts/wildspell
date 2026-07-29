@@ -1,5 +1,6 @@
 import { audioManager } from "../game/audio/AudioManager";
 import { gameBus } from "../game/events";
+import { illegalReason } from "../game/rules/legalMoves";
 import type { Difficulty, GameEvent, GameState, Ruleset } from "../game/rules/types";
 import { WildSpellGame } from "../game/WildSpellGame";
 import { firebaseConfigured } from "../game/multiplayer/firebase";
@@ -59,10 +60,10 @@ export class App {
                 </div>
               </section>
               <aside class="showcase-panel rune-frame">
-                <div class="character-pedestal skeleton-showcase"></div>
-                <span class="rival-tag">TONIGHT'S HEXLORD</span>
-                <h2>THE BONE ORACLE</h2>
-                <p>It sees three turns ahead.<br />It still hates being set on fire.</p>
+                <div class="character-pedestal gabby-showcase"></div>
+                <span class="rival-tag">FEATURED RIVAL</span>
+                <h2>GABBY</h2>
+                <p>Card illusionist. Impossible to read.<br />Even harder to outplay.</p>
                 <div class="feature-chips"><span>4 AI LEVELS</span><span>11 SPELLS</span><span>3 CHALLENGES</span></div>
               </aside>
             </div>
@@ -74,7 +75,6 @@ export class App {
           <div id="game-canvas"></div>
           <div class="game-controls" aria-label="Match controls">
             <button id="draw-button" class="control-button draw"><span>✦</span><b>DRAW</b></button>
-            <button id="pass-button" class="control-button pass"><span>↠</span><b>END TURN</b></button>
             <button id="final-button" class="final-button"><span>FINAL</span><strong>CARD!</strong></button>
             <button id="emote-button" class="control-button icon" aria-label="Emote">☄</button>
             <button id="game-settings" class="control-button icon" aria-label="Settings">⚙</button>
@@ -109,7 +109,6 @@ export class App {
     }));
     this.root.querySelector("#start-solo")?.addEventListener("click", () => this.startSolo());
     this.root.querySelector("#draw-button")?.addEventListener("click", () => gameBus.dispatchEvent(new Event("draw")));
-    this.root.querySelector("#pass-button")?.addEventListener("click", () => gameBus.dispatchEvent(new Event("pass")));
     this.root.querySelector("#final-button")?.addEventListener("click", () => gameBus.dispatchEvent(new Event("call-final")));
     this.root.querySelector("#emote-button")?.addEventListener("click", () => gameBus.dispatchEvent(new Event("emote")));
     this.root.querySelector("#exit-match")?.addEventListener("click", () => this.exitMatch());
@@ -212,10 +211,8 @@ export class App {
   private updateState(state: GameState): void {
     this.state = state;
     const draw = this.root.querySelector<HTMLButtonElement>("#draw-button")!;
-    const pass = this.root.querySelector<HTMLButtonElement>("#pass-button")!;
     const final = this.root.querySelector<HTMLButtonElement>("#final-button")!;
-    draw.disabled = state.turn !== 0 || state.phase !== "playing" || Boolean(state.drawnCardId);
-    pass.disabled = state.turn !== 0 || !state.drawnCardId;
+    draw.disabled = state.turn !== 0 || state.phase !== "playing" || Boolean(state.drawnCardId) || state.hands[0].some((card) => !illegalReason(state, card, 0));
     final.disabled = state.turn !== 0 || state.hands[0].length !== 2;
     final.classList.toggle("called", state.finalCalled[0]);
   }
@@ -223,7 +220,7 @@ export class App {
   private reactToEvent(event: GameEvent): void {
     if (event.type === "final-card") this.showToast(event.success ? "FINAL CARD CALLED — challenge the rival!" : "Missed call! Draw two.");
     if (event.type === "cards-drawn" && event.actor === 0) this.showToast(`Drew ${event.count}: ${event.reason}.`);
-    if (event.type === "round-won") this.showToast(event.actor === 0 ? "ROUND WON! The crowd erupts." : "The Bone Oracle takes the round.");
+    if (event.type === "round-won") this.showToast(event.actor === 0 ? "ROUND WON! The crowd erupts." : "Gabby takes the round.");
   }
 
   private openSettings(): void { this.root.querySelector("#settings-modal")?.classList.remove("hidden"); }

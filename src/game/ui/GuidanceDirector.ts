@@ -14,6 +14,6 @@ export function guidanceFor(state: GameState, player: 0 | 1): string {
   if (state.hands[player].length === 2 && !state.finalCalled[player]) return "Call FINAL CARD before playing down to one!";
   if (state.statuses[player].stormcall) return "Stormcall crackles around you. Answer with yellow or Wild to avoid drawing two.";
   const legal = legalCards(state, player);
-  if (!legal.length) return "No legal card. Draw from the glowing deck.";
+  if (!legal.length) return "No legal card — drawing automatically until a playable card appears.";
   return `Cast ${state.currentColor}, match the discard, use a Wild, or draw. ${legal.length} legal card${legal.length === 1 ? "" : "s"}.`;
 }

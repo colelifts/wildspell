@@ -54,11 +54,16 @@ export class ReactiveArena {
   }
 
   react(kind: CardKind, target: Phaser.Math.Vector2, stackAmount: number): void {
-    if (kind === "freeze") this.freeze(target);
+    if (kind === "freeze" || kind === "frostbite") this.freeze(target);
     else if (kind === "arsonist") this.burn(target);
     else if (kind === "whirlwind") this.whirlwind(target);
     else if (kind === "draw2") this.drawSpell(target, 2, 0x9b67ff);
     else if (kind === "wild4") this.chaos(target, Math.max(4, stackAmount));
+    else if (kind === "stormcall") this.storm(target);
+    else if (kind === "mirror") this.mirror(target);
+    else if (kind === "cleanse") this.cleanse(target);
+    else if (kind === "prism") this.prismShift();
+    else if (kind === "rewind") this.rewind(target);
   }
 
   private drawRune(x: number, y: number, radius: number, color: number): void {
@@ -116,6 +121,9 @@ export class ReactiveArena {
 
   private burn(target: Phaser.Math.Vector2): void {
     this.flash(0xff431f, 0.3, 1250);
+    const magmaOuter = this.scene.add.ellipse(target.x, target.y + 110, 250, 88, 0x4a0603, 0.76).setStrokeStyle(8, 0xff4b16, 0.85).setDepth(242).setBlendMode(Phaser.BlendModes.ADD);
+    const magmaCore = this.scene.add.ellipse(target.x, target.y + 110, 168, 48, 0xff7425, 0.38).setStrokeStyle(4, 0xffd06a, 0.8).setDepth(243).setBlendMode(Phaser.BlendModes.ADD);
+    this.scene.tweens.add({ targets: [magmaOuter, magmaCore], scaleX: 1.18, scaleY: 0.78, alpha: 0, duration: 1550, ease: "Cubic.Out", onComplete: () => { magmaOuter.destroy(); magmaCore.destroy(); } });
     const cracks = this.scene.add.graphics().setDepth(245).lineStyle(5, 0xff6b27, 0.92);
     for (let ray = 0; ray < 12; ray += 1) {
       const angle = (Math.PI * 2 * ray) / 12;
@@ -124,6 +132,11 @@ export class ReactiveArena {
     for (let index = 0; index < 42; index += 1) {
       const ember = this.scene.add.circle(target.x + Phaser.Math.Between(-130, 130), target.y + Phaser.Math.Between(20, 130), Phaser.Math.Between(2, 6), index % 3 ? 0xff5b22 : 0xffd064, 0.95).setDepth(260).setBlendMode(Phaser.BlendModes.ADD);
       this.scene.tweens.add({ targets: ember, x: ember.x + Phaser.Math.Between(-45, 45), y: ember.y - Phaser.Math.Between(120, 280), alpha: 0, scale: 0.2, duration: Phaser.Math.Between(700, 1450), onComplete: () => ember.destroy() });
+    }
+    for (let index = 0; index < 15; index += 1) {
+      const x = target.x + Phaser.Math.Between(-95, 95);
+      const flame = this.scene.add.triangle(x, target.y + 105, 0, 70, 15, 0, 30, 70, index % 3 ? 0xff4a18 : 0xffcb54, 0.88).setDepth(257).setBlendMode(Phaser.BlendModes.ADD).setScale(Phaser.Math.FloatBetween(0.65, 1.25));
+      this.scene.tweens.add({ targets: flame, y: flame.y - Phaser.Math.Between(100, 210), x: flame.x + Phaser.Math.Between(-32, 32), scaleX: 0.2, scaleY: 1.4, alpha: 0, angle: Phaser.Math.Between(-18, 18), duration: Phaser.Math.Between(720, 1280), delay: index * 35, ease: "Cubic.Out", onComplete: () => flame.destroy() });
     }
     this.scene.tweens.add({ targets: cracks, alpha: 0, duration: 1200, delay: 500, onComplete: () => cracks.destroy() });
   }
@@ -164,6 +177,53 @@ export class ReactiveArena {
       const label = this.scene.add.text(seal.x, seal.y, `+${Math.max(4, Math.ceil(stackAmount / 4) * 4)}`, { fontFamily: "Georgia", fontSize: "24px", fontStyle: "bold", color: "#fff0df", stroke: "#62040a", strokeThickness: 6 }).setOrigin(0.5).setDepth(266).setAlpha(0);
       this.scene.tweens.add({ targets: seal, scale: 1, angle: 360, duration: 420, delay: index * 150, ease: "Back.Out", onComplete: () => this.scene.tweens.add({ targets: seal, x: target.x, y: target.y, scale: 0.15, alpha: 0, duration: 620, delay: 260, onComplete: () => seal.destroy() }) });
       this.scene.tweens.add({ targets: label, alpha: 1, duration: 220, delay: index * 150 + 180, yoyo: true, hold: 450, onComplete: () => label.destroy() });
+    }
+  }
+
+  private storm(target: Phaser.Math.Vector2): void {
+    this.flash(0xffef87, 0.48, 1050);
+    this.scene.cameras.main.shake(520, 0.011);
+    for (let bolt = 0; bolt < 4; bolt += 1) {
+      const graphics = this.scene.add.graphics().setDepth(270).setAlpha(0);
+      const offset = (bolt - 1.5) * 34;
+      graphics.lineStyle(18, 0x7d68ff, 0.38).beginPath().moveTo(target.x + offset - 70, -30).lineTo(target.x + offset + 18, target.y - 90).lineTo(target.x + offset - 25, target.y - 20).lineTo(target.x + offset + 4, target.y + 105).strokePath();
+      graphics.lineStyle(6, 0xffffff, 1).strokePath();
+      this.scene.tweens.add({ targets: graphics, alpha: { from: 0, to: 1 }, duration: 70, delay: bolt * 90, yoyo: true, hold: 70, onComplete: () => graphics.destroy() });
+    }
+  }
+
+  private mirror(target: Phaser.Math.Vector2): void {
+    this.flash(0xd8c6ff, 0.26, 1250);
+    for (let index = 0; index < 20; index += 1) {
+      const shard = this.scene.add.polygon(target.x, target.y, [0, -34, 17, -5, 8, 38, -14, 12], index % 2 ? 0xb99cff : 0xe9f7ff, 0.36).setStrokeStyle(2, 0xffffff, 0.8).setDepth(265).setBlendMode(Phaser.BlendModes.ADD);
+      const angle = Math.PI * 2 * index / 20;
+      this.scene.tweens.add({ targets: shard, x: target.x + Math.cos(angle) * Phaser.Math.Between(120, 390), y: target.y + Math.sin(angle) * Phaser.Math.Between(90, 240), angle: Phaser.Math.Between(-480, 480), alpha: 0, scale: 0.3, duration: 920 + index * 18, ease: "Cubic.Out", onComplete: () => shard.destroy() });
+    }
+  }
+
+  private cleanse(target: Phaser.Math.Vector2): void {
+    this.flash(0x9dffc1, 0.2, 1100);
+    for (let ring = 0; ring < 5; ring += 1) {
+      const halo = this.scene.add.circle(target.x, target.y + 40, 28, 0x9dffc1, 0).setStrokeStyle(8 - ring, ring % 2 ? 0xffffff : 0x76ffb4, 0.85).setDepth(262).setBlendMode(Phaser.BlendModes.ADD);
+      this.scene.tweens.add({ targets: halo, scale: 3.5 + ring * 0.55, y: halo.y - ring * 18, alpha: 0, duration: 850, delay: ring * 100, ease: "Cubic.Out", onComplete: () => halo.destroy() });
+    }
+  }
+
+  private prismShift(): void {
+    const { width, height } = this.scene.scale;
+    const colors = [0xff4055, 0x49a8ff, 0x39de91, 0xffd650];
+    colors.forEach((color, index) => {
+      const band = this.scene.add.rectangle(width / 2, height / 2, width * 1.5, height * 0.18, color, 0).setDepth(260).setAngle(-18 + index * 12).setBlendMode(Phaser.BlendModes.ADD);
+      this.scene.tweens.add({ targets: band, fillAlpha: 0.24, x: width / 2 + (index - 1.5) * 90, yoyo: true, duration: 310, delay: index * 75, onComplete: () => band.destroy() });
+    });
+  }
+
+  private rewind(target: Phaser.Math.Vector2): void {
+    this.flash(0x5ff0b1, 0.18, 1050);
+    for (let ring = 0; ring < 4; ring += 1) {
+      const clock = this.scene.add.circle(target.x, target.y + 35, 48 + ring * 24, 0x071a1a, 0.12).setStrokeStyle(5, ring % 2 ? 0xffffff : 0x5ff0b1, 0.82).setDepth(263).setBlendMode(Phaser.BlendModes.ADD);
+      clock.setScale(0.25).setAngle(120);
+      this.scene.tweens.add({ targets: clock, scale: 1.2, angle: -360, alpha: 0, duration: 980, delay: ring * 85, ease: "Cubic.Out", onComplete: () => clock.destroy() });
     }
   }
 }

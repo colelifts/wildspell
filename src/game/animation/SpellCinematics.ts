@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { premiumCardTexture } from "./CardVisuals";
 import { CARD_NAMES } from "../rules/cards";
 import type { CardKind } from "../rules/types";
 
@@ -26,8 +27,9 @@ export class SpellCinematics {
     this.active = true;
     const color = COLORS[kind] ?? 0xffffff;
     const { width, height } = this.scene.scale;
-    const veil = this.scene.add.rectangle(width / 2, height / 2, width, height, color, 0).setDepth(300);
-    const title = this.scene.add.text(width / 2, height * 0.18, CARD_NAMES[kind].toUpperCase(), {
+    const veil = this.scene.add.rectangle(width / 2, height / 2, width, height, 0x02030b, 0).setDepth(300);
+    const colorVeil = this.scene.add.rectangle(width / 2, height / 2, width, height, color, 0).setDepth(301).setBlendMode(Phaser.BlendModes.ADD);
+    const title = this.scene.add.text(width / 2, height * 0.13, CARD_NAMES[kind].toUpperCase(), {
       fontFamily: '"Trebuchet MS", sans-serif',
       fontSize: "54px",
       fontStyle: "bold",
@@ -35,26 +37,32 @@ export class SpellCinematics {
       stroke: "#071126",
       strokeThickness: 12
     }).setOrigin(0.5).setAlpha(0).setScale(0.45).setDepth(330);
-    this.scene.cameras.main.shake(kind === "wild4" || kind === "arsonist" ? 520 : 260, 0.008);
-    this.scene.tweens.add({ targets: veil, fillAlpha: kind === "stormcall" ? 0.5 : 0.25, yoyo: true, duration: 220 });
+    const reveal = this.cardReveal(kind, color);
+    this.scene.cameras.main.shake(kind === "wild4" || kind === "arsonist" ? 620 : 320, 0.009);
+    this.scene.tweens.add({ targets: veil, fillAlpha: 0.62, duration: 180 });
+    this.scene.tweens.add({ targets: colorVeil, fillAlpha: kind === "stormcall" ? 0.34 : 0.16, yoyo: true, duration: 260 });
     this.scene.tweens.add({ targets: title, alpha: 1, scale: 1, duration: 260, ease: "Back.Out" });
 
-    if (kind === "whirlwind") this.whirlwind(from, to, color);
-    else if (kind === "freeze" || kind === "frostbite") this.iceWave(from, to, color);
-    else if (kind === "stormcall") this.lightning(to, color);
-    else if (kind === "mirror") this.mirrorShards(width / 2, height / 2, color);
-    else if (kind === "cleanse") this.healingRings(from, color);
-    else this.projectileBurst(from, to, color, kind === "wild4" ? 4 : kind === "draw2" ? 2 : 1);
+    this.scene.time.delayedCall(360, () => {
+      if (kind === "whirlwind") this.whirlwind(from, to, color);
+      else if (kind === "freeze" || kind === "frostbite") this.iceWave(from, to, color);
+      else if (kind === "stormcall") this.lightning(to, color);
+      else if (kind === "mirror") this.mirrorShards(width / 2, height / 2, color);
+      else if (kind === "cleanse") this.healingRings(from, color);
+      else this.projectileBurst(from, to, color, kind === "wild4" ? 4 : kind === "draw2" ? 2 : 1);
+    });
 
     await new Promise<void>((resolve) => {
-      this.scene.time.delayedCall(920, () => {
+      this.scene.time.delayedCall(1460, () => {
         this.scene.tweens.add({
-          targets: [title, veil],
+          targets: [title, veil, colorVeil, reveal],
           alpha: 0,
-          duration: 220,
+          duration: 260,
           onComplete: () => {
             title.destroy();
             veil.destroy();
+            colorVeil.destroy();
+            reveal.destroy(true);
             this.active = false;
             resolve();
           }
@@ -63,15 +71,49 @@ export class SpellCinematics {
     });
   }
 
+  private cardReveal(kind: CardKind, color: number): Phaser.GameObjects.Container {
+    const { width, height } = this.scene.scale;
+    const cardWidth = height > width ? 184 : 224;
+    const cardHeight = cardWidth * 1.5;
+    const root = this.scene.add.container(width / 2, height * 0.5).setDepth(328).setAlpha(0).setScale(0.32).setAngle(-8);
+    const glowOuter = this.scene.add.rectangle(0, 0, cardWidth + 42, cardHeight + 42, color, 0.12).setRounded(28).setStrokeStyle(7, color, 0.75).setBlendMode(Phaser.BlendModes.ADD);
+    const glowInner = this.scene.add.rectangle(0, 0, cardWidth + 16, cardHeight + 16, 0x070813, 0.9).setRounded(20).setStrokeStyle(4, 0xffe7a6, 0.95);
+    const premium = premiumCardTexture(kind);
+    let face: Phaser.GameObjects.GameObject;
+    if (premium) {
+      const sprite = this.scene.add.sprite(0, 0, premium.texture, Phaser.Math.Between(0, 47)).setDisplaySize(cardWidth, cardHeight);
+      sprite.play({ key: premium.animation, startFrame: Phaser.Math.Between(0, 47) });
+      face = sprite;
+    } else {
+      const panel = this.scene.add.rectangle(0, 0, cardWidth, cardHeight, 0x090c1c, 1).setRounded(16).setStrokeStyle(5, color, 1);
+      const sigil = this.scene.add.circle(0, -24, cardWidth * 0.28, color, 0.18).setStrokeStyle(6, color, 0.9).setBlendMode(Phaser.BlendModes.ADD);
+      const name = this.scene.add.text(0, cardHeight * 0.28, CARD_NAMES[kind].toUpperCase(), { fontFamily: "Georgia, serif", fontSize: `${Math.max(18, cardWidth * 0.1)}px`, fontStyle: "bold", color: "#fff4d6", stroke: "#060713", strokeThickness: 7, align: "center", wordWrap: { width: cardWidth * 0.8 } }).setOrigin(0.5);
+      const fallback = this.scene.add.container(0, 0, [panel, sigil, name]);
+      face = fallback;
+    }
+    root.add([glowOuter, glowInner, face]);
+    this.scene.tweens.add({ targets: root, alpha: 1, scale: 1, angle: 0, duration: 330, ease: "Back.Out" });
+    this.scene.tweens.add({ targets: glowOuter, scale: 1.12, alpha: 0.04, duration: 420, yoyo: true, repeat: 2, ease: "Sine.InOut" });
+    this.scene.time.delayedCall(690, () => this.scene.tweens.add({ targets: root, x: width * 0.24, y: height * 0.54, scale: 0.64, angle: -4, duration: 300, ease: "Cubic.InOut" }));
+    return root;
+  }
+
   private projectileBurst(from: Phaser.Math.Vector2, to: Phaser.Math.Vector2, color: number, count: number): void {
     for (let index = 0; index < count; index += 1) {
-      const orb = this.scene.add.circle(from.x, from.y, 12 + index * 2, color, 1).setDepth(320).setBlendMode(Phaser.BlendModes.ADD);
-      orb.setStrokeStyle(5, 0xffffff, 0.9);
+      const orb = this.scene.add.container(from.x, from.y).setDepth(320);
+      const outer = this.scene.add.circle(0, 0, 28 + index * 3, color, 0.22).setBlendMode(Phaser.BlendModes.ADD);
+      const core = this.scene.add.circle(0, 0, 14 + index * 2, color, 0.95).setStrokeStyle(5, 0xffffff, 0.9).setBlendMode(Phaser.BlendModes.ADD);
+      const whiteHot = this.scene.add.circle(-4, -4, 5 + index, 0xffffff, 0.92).setBlendMode(Phaser.BlendModes.ADD);
+      orb.add([outer, core, whiteHot]);
+      for (let trail = 0; trail < 10; trail += 1) {
+        const ember = this.scene.add.circle(from.x, from.y, 3 + trail % 3, trail % 2 ? color : 0xffe19a, 0.9).setDepth(319).setBlendMode(Phaser.BlendModes.ADD);
+        this.scene.tweens.add({ targets: ember, x: to.x + (index - (count - 1) / 2) * 30 - 18 - trail * 9, y: to.y + Math.sin(index) * 45 + Phaser.Math.Between(-18, 18), alpha: 0, scale: 0.15, duration: 440 + index * 70 + trail * 18, ease: "Cubic.In", onComplete: () => ember.destroy() });
+      }
       this.scene.tweens.add({
         targets: orb,
         x: to.x + (index - (count - 1) / 2) * 30,
         y: to.y + Math.sin(index) * 45,
-        scale: 1.8,
+        scale: 1.35,
         duration: 430 + index * 70,
         ease: "Cubic.In",
         onComplete: () => this.burst(orb.x, orb.y, color, orb)
@@ -117,7 +159,7 @@ export class SpellCinematics {
     }
   }
 
-  private burst(x: number, y: number, color: number, source: Phaser.GameObjects.Arc): void {
+  private burst(x: number, y: number, color: number, source: Phaser.GameObjects.GameObject): void {
     source.destroy();
     for (let index = 0; index < 18; index += 1) {
       const spark = this.scene.add.circle(x, y, 3 + (index % 3), index % 2 ? color : 0xffffff, 1).setDepth(325).setBlendMode(Phaser.BlendModes.ADD);

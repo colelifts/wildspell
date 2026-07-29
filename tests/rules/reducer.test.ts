@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { buildDeck } from "../../src/game/rules/deck";
 import { illegalReason, isLegalCard } from "../../src/game/rules/legalMoves";
-import { createGame, reduceGame, resolveChallenge } from "../../src/game/rules/reducer";
+import { advanceRound, createGame, reduceGame, resolveChallenge, restartMatch } from "../../src/game/rules/reducer";
 import type { Card, CardColor, CardKind, GameState } from "../../src/game/rules/types";
 
 let serial = 0;
@@ -200,5 +200,40 @@ describe("Final Card", () => {
     const resolved = resolveChallenge(called, 900, 500);
     expect(resolved.phase).toBe("playing");
     expect(resolved.hands[0]).toHaveLength(1);
+  });
+});
+
+describe("round and match flow", () => {
+  it("scores the rival hand and advances automatically into a fresh round", () => {
+    const finisher = card("red", "number", 8);
+    const state = stateWith([[finisher], [card("blue", "number", 7), card("wild", "wild4")]], card("red", "number", 3));
+    const won = reduceGame(state, { type: "play", player: 0, cardId: finisher.id }).state;
+    expect(won.phase).toBe("round-over");
+    expect(won.scores[0]).toBe(57);
+    expect(won.roundWinner).toBe(0);
+
+    const next = advanceRound(won);
+    expect(next.phase).toBe("playing");
+    expect(next.roundNumber).toBe(2);
+    expect(next.scores).toEqual([57, 0]);
+    expect(next.hands[0]).toHaveLength(7);
+    expect(next.hands[1]).toHaveLength(7);
+    expect(next.turn).toBe(0);
+  });
+
+  it("ends the match at the target score and rematches with clean scores", () => {
+    const finisher = card("red", "number", 8);
+    const state = stateWith([[finisher], [card("wild", "wild4")]], card("red", "number", 3));
+    state.scores = [175, 0];
+    const won = reduceGame(state, { type: "play", player: 0, cardId: finisher.id }).state;
+    expect(won.phase).toBe("match-over");
+    expect(won.scores[0]).toBe(225);
+    expect(won.events).toContainEqual({ type: "match-won", actor: 0 });
+
+    const rematch = restartMatch(won);
+    expect(rematch.phase).toBe("playing");
+    expect(rematch.roundNumber).toBe(1);
+    expect(rematch.scores).toEqual([0, 0]);
+    expect(rematch.targetScore).toBe(200);
   });
 });

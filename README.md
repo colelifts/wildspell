@@ -1,6 +1,6 @@
 # WildSpell: The Final Draw
 
-WildSpell is a cinematic fantasy card duel rebuilt with Vite, TypeScript, and Phaser 3. The current branch contains a playable solo arena, deterministic Wild and Classic rules, animated LPC characters, spell cutscenes, four AI levels, three Final Card challenges, responsive desktop/mobile layouts, and replaceable audio hooks.
+WildSpell is a cinematic fantasy card duel rebuilt with Vite, TypeScript, and Phaser 3. The current build contains a playable solo arena, deterministic Wild and Classic rules, animated high-detail Cole and Gabby characters, spell cutscenes, four AI levels, three Final Card challenges, responsive desktop/mobile layouts, full round-to-match progression, and replaceable audio hooks.
 
 ## Run locally
 
@@ -23,9 +23,10 @@ npm run test:e2e
 - Number, Skip, Reverse, +2, +4, Prism, Arsonist, Freeze, Whirlwind, Stormcall, Frostbite, Mirror, and Cleanse cards
 - +2/+4 draw-stack handling, burn and frost locks, forced Stormcall color, and persistent status indicators
 - Easy, Normal, Hard, and Nightmare seeded AI policies
-- Animated Cole and Skeleton LPC sheets using inspected frame counts
+- Animated high-detail Cole and Gabby pose systems with spell and status reactions
 - Card dealing, hover/play feedback, ambient particles, character actions, and spell-specific full-screen cinematics
 - Three real timed Final Card challenges: Rune Memory, Spell Timing, and Arcane Clash
+- Automatic round transitions, scoring to 200 points, match victory, and rematch
 - Landscape and portrait arena compositions with reduced-motion and audio settings
 
 ## Optional audio

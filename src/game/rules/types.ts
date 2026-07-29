@@ -42,7 +42,8 @@ export type GameEvent =
   | { type: "invalid"; actor: number; reason: string }
   | { type: "turn"; actor: number }
   | { type: "final-card"; actor: number; success: boolean }
-  | { type: "round-won"; actor: number };
+  | { type: "round-won"; actor: number }
+  | { type: "match-won"; actor: number };
 
 export interface GameState {
   ruleset: Ruleset;
@@ -54,6 +55,7 @@ export interface GameState {
   currentColor: Exclude<CardColor, "wild">;
   turn: 0 | 1;
   turnNumber: number;
+  roundNumber: number;
   drawStack: { amount: number; kind: "draw2" | "wild4" | null };
   statuses: [PlayerStatus, PlayerStatus];
   finalCalled: [boolean, boolean];

@@ -73,4 +73,6 @@ The first visual gate is captured in `artifacts/rebuild/` for desktop and mobile
 - [x] Rebuild Spell Timing as a three-round moving-target challenge with readable hit feedback and mobile-sized controls.
 - [x] Rebuild Arcane Clash as a five-prompt reaction challenge with pointer and keyboard controls and leak-free listener cleanup.
 - [x] Add deterministic desktop/mobile challenge previews and visual regression evidence under `artifacts/challenges/`.
+- [x] Add real round scoring, a visible 200-point match target, automatic fresh-round dealing, match victory, and rematch flow.
+- [x] Add responsive desktop/mobile result presentations and browser evidence under `artifacts/results/`.
 - [ ] Continue the full non-audio polish, multiplayer, accessibility, and acceptance-checklist pass.

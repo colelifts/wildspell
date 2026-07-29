@@ -76,8 +76,8 @@
 - [ ] Cleanse clears statuses
 - [ ] Color picker works
 - [ ] Drawn-card play/pass works
-- [ ] Round scoring
-- [ ] Match target score
+- [x] Round scoring
+- [x] Match target score
 
 ## Final Card
 

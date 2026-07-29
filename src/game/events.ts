@@ -1,11 +1,14 @@
 import type { CardColor, Difficulty, GameEvent, GameState, Ruleset } from "./rules/types";
 import type { ChallengeType } from "./challenges/ChallengeDirector";
 
+export type ResultPreview = "round" | "match";
+
 export interface StartMatchDetail {
   playerName: string;
   difficulty: Difficulty;
   ruleset: Ruleset;
   challengePreview?: ChallengeType;
+  resultPreview?: ResultPreview;
 }
 
 export const gameBus = new EventTarget();

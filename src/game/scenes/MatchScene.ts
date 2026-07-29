@@ -10,7 +10,7 @@ import { gameBus, emitGameEvents, emitGameState, requestColor, type StartMatchDe
 import { chooseAiCard, chooseAiColor } from "../rules/ai";
 import { CARD_GLYPHS, CARD_NAMES } from "../rules/cards";
 import { illegalReason, isLegalCard, legalCards } from "../rules/legalMoves";
-import { createGame, reduceGame, resolveChallenge } from "../rules/reducer";
+import { advanceRound, createGame, reduceGame, resolveChallenge, restartMatch } from "../rules/reducer";
 import type { Card, CardColor, CardKind, GameEvent, GameState } from "../rules/types";
 import { guidanceFor } from "../ui/GuidanceDirector";
 
@@ -58,12 +58,20 @@ export class MatchScene extends Phaser.Scene {
   private portrait = false;
   private listeners: Array<[string, EventListener]> = [];
   private forcedResolutionTimer?: Phaser.Time.TimerEvent;
+  private roundTransitionTimer?: Phaser.Time.TimerEvent;
+  private resultOverlayActive = false;
 
   constructor() { super("MatchScene"); }
 
   init(data: StartMatchDetail): void {
     this.startDetail = data;
     this.state = createGame([data.playerName, "Gabby"], data.ruleset, data.difficulty, Date.now() >>> 0);
+    if (data.resultPreview) {
+      this.state.roundNumber = 2;
+      this.state.roundWinner = 0;
+      this.state.scores = data.resultPreview === "match" ? [225, 145] : [85, 45];
+      this.state.phase = data.resultPreview === "match" ? "match-over" : "round-over";
+    }
     this.registry.set("seed", this.state.rngSeed);
   }
 
@@ -94,6 +102,7 @@ export class MatchScene extends Phaser.Scene {
     this.cinematics = new SpellCinematics(this);
     this.challenges = new ChallengeDirector(this);
     this.bindControls();
+    if (this.startDetail.resultPreview) this.game.canvas.dataset.resultState = `active:${this.startDetail.resultPreview}`;
     this.renderState(true);
     if (this.startDetail.challengePreview) {
       this.busy = true;
@@ -115,6 +124,7 @@ export class MatchScene extends Phaser.Scene {
 
   shutdown(): void {
     this.forcedResolutionTimer?.remove(false);
+    this.roundTransitionTimer?.remove(false);
     for (const [name, listener] of this.listeners) gameBus.removeEventListener(name, listener);
     this.listeners = [];
   }
@@ -138,8 +148,8 @@ export class MatchScene extends Phaser.Scene {
     this.dynamicObjects = [];
     const top = this.state.discard.at(-1)!;
     this.addHud();
-    this.addNameplate(this.portrait ? 105 : -170, this.portrait ? 105 : 50, this.state.names[0], this.state.hands[0].length, this.state.statuses[0], false);
-    this.addNameplate(this.portrait ? 471 : 1194, this.portrait ? 105 : 50, this.state.names[1], this.state.hands[1].length, this.state.statuses[1], true);
+    this.addNameplate(this.portrait ? 105 : -170, this.portrait ? 105 : 50, this.state.names[0], this.state.hands[0].length, this.state.scores[0], this.state.statuses[0], false);
+    this.addNameplate(this.portrait ? 471 : 1194, this.portrait ? 105 : 50, this.state.names[1], this.state.hands[1].length, this.state.scores[1], this.state.statuses[1], true);
     this.addEnemyHand();
     this.addDrawPile();
     this.addCard(top, this.portrait ? 345 : 512, this.portrait ? 420 : 305, false, false, 0, this.portrait ? 1.08 : 1.06);
@@ -149,7 +159,8 @@ export class MatchScene extends Phaser.Scene {
     this.playerDirector.setPersistentPose(this.state.statuses[0].burn ? "burn" : "turn-ready");
     this.opponentDirector.setPersistentPose(this.state.statuses[1].burn ? "burn" : "turn-ready");
     emitGameState(this.state);
-    if (this.state.phase === "challenge" && !this.finalChallengeRunning) void this.runChallenge();
+    if ((this.state.phase === "round-over" || this.state.phase === "match-over") && !this.resultOverlayActive) this.showResultOverlay();
+    else if (this.state.phase === "challenge" && !this.finalChallengeRunning) void this.runChallenge();
     else if (this.state.phase === "playing" && !this.busy) {
       const active = this.state.turn;
       const mustDraw = !this.state.drawnCardId && legalCards(this.state, active).length === 0;
@@ -165,11 +176,86 @@ export class MatchScene extends Phaser.Scene {
     }
   }
 
+  private showResultOverlay(): void {
+    this.resultOverlayActive = true;
+    this.busy = true;
+    const winner = this.state.roundWinner ?? 0;
+    const playerWon = winner === 0;
+    const matchOver = this.state.phase === "match-over";
+    const width = this.scale.width;
+    const height = this.scale.height;
+    const portrait = this.portrait;
+    const root = this.add.container(0, 0).setDepth(650).setAlpha(0);
+    const backdrop = this.add.rectangle(width / 2, height / 2, width, height, 0x02040e, 0.9);
+    const washColor = playerWon ? 0x2f8cff : 0xb44cff;
+    const wash = this.add.circle(width / 2, height / 2, portrait ? 310 : 440, washColor, 0.13).setBlendMode(Phaser.BlendModes.ADD);
+    const panelWidth = portrait ? width - 52 : 700;
+    const panelHeight = portrait ? 470 : 390;
+    const panel = this.add.rectangle(width / 2, height / 2, panelWidth, panelHeight, 0x07142f, 0.98).setRounded(24).setStrokeStyle(5, matchOver ? 0xffdf7a : 0x9bc8ff, 1);
+    const inner = this.add.rectangle(width / 2, height / 2, panelWidth - 18, panelHeight - 18, 0x101f43, 0.38).setRounded(19).setStrokeStyle(2, washColor, 0.8);
+    const kicker = this.add.text(width / 2, height / 2 - (portrait ? 175 : 145), matchOver ? "ARCANE TOURNAMENT COMPLETE" : `ROUND ${this.state.roundNumber} COMPLETE`, {
+      fontFamily: '"Trebuchet MS", sans-serif', fontSize: portrait ? "17px" : "20px", fontStyle: "bold", color: "#9eeaff", letterSpacing: 2
+    }).setOrigin(0.5);
+    const title = this.add.text(width / 2, height / 2 - (portrait ? 112 : 88), matchOver ? (playerWon ? "MATCH CHAMPION" : "GABBY TRIUMPHS") : (playerWon ? "ROUND WON" : "ROUND LOST"), {
+      fontFamily: "Georgia, serif", fontSize: portrait ? "43px" : "56px", fontStyle: "bold", color: matchOver ? "#fff0a8" : "#ffffff", stroke: playerWon ? "#164fa8" : "#5e167f", strokeThickness: 10, align: "center"
+    }).setOrigin(0.5);
+    const winnerLine = this.add.text(width / 2, height / 2 - (portrait ? 44 : 20), `${this.state.names[winner]} CLAIMS THE ROUND`, {
+      fontFamily: '"Trebuchet MS", sans-serif', fontSize: portrait ? "16px" : "20px", fontStyle: "bold", color: "#d8e8ff"
+    }).setOrigin(0.5);
+    const scorePlate = this.add.rectangle(width / 2, height / 2 + (portrait ? 48 : 65), portrait ? panelWidth - 70 : 470, 82, 0x030a19, 0.82).setRounded(14).setStrokeStyle(2, 0x7898d4, 0.8);
+    const score = this.add.text(width / 2, scorePlate.y, `${this.state.names[0]}  ${this.state.scores[0]}     —     ${this.state.scores[1]}  ${this.state.names[1]}`, {
+      fontFamily: '"Trebuchet MS", sans-serif', fontSize: portrait ? "21px" : "26px", fontStyle: "bold", color: "#fff2c2", align: "center"
+    }).setOrigin(0.5);
+    root.add([backdrop, wash, panel, inner, kicker, title, winnerLine, scorePlate, score]);
+
+    if (matchOver) {
+      const rematch = this.add.text(width / 2, height / 2 + (portrait ? 145 : 145), "REMATCH", {
+        fontFamily: '"Trebuchet MS", sans-serif', fontSize: portrait ? "25px" : "27px", fontStyle: "bold", backgroundColor: "#9c4be8", color: "#ffffff", padding: { x: 48, y: 16 }
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+      rematch.on("pointerover", () => rematch.setScale(1.06));
+      rematch.on("pointerout", () => rematch.setScale(1));
+      rematch.on("pointerdown", () => {
+        if (this.startDetail.resultPreview) this.game.canvas.dataset.resultState = "complete:match";
+        this.state = restartMatch(this.state);
+        this.resultOverlayActive = false;
+        this.busy = false;
+        this.renderState(true);
+      });
+      root.add(rematch);
+    } else {
+      const nextRound = this.add.text(width / 2, height / 2 + (portrait ? 145 : 145), `ROUND ${this.state.roundNumber + 1} BEGINS…`, {
+        fontFamily: '"Trebuchet MS", sans-serif', fontSize: portrait ? "20px" : "23px", fontStyle: "bold", color: "#a9ffd9"
+      }).setOrigin(0.5);
+      root.add(nextRound);
+      this.roundTransitionTimer?.remove(false);
+      this.roundTransitionTimer = this.time.delayedCall(3000, () => {
+        this.roundTransitionTimer = undefined;
+        if (this.startDetail.resultPreview) this.game.canvas.dataset.resultState = "complete:round";
+        this.state = advanceRound(this.state);
+        this.resultOverlayActive = false;
+        this.busy = false;
+        this.renderState(true);
+      });
+    }
+
+    if (playerWon) {
+      this.playerDirector.play("victory");
+      this.opponentDirector.play("defeat");
+    } else {
+      this.playerDirector.play("defeat");
+      this.opponentDirector.play("victory");
+    }
+    this.dynamicObjects.push(root);
+    this.tweens.add({ targets: root, alpha: 1, duration: 260 });
+    this.tweens.add({ targets: panel, scale: { from: 0.88, to: 1 }, duration: 420, ease: "Back.Out" });
+    this.tweens.add({ targets: wash, scale: 1.16, alpha: 0.05, duration: 900, yoyo: true, repeat: -1, ease: "Sine.InOut" });
+  }
+
   private addHud(): void {
     const colorName = this.state.currentColor.toUpperCase();
     const turn = this.state.turn === 0 ? "YOUR TURN" : "RIVAL THINKING";
     const guide = guidanceFor(this.state, 0);
-    const hud = this.add.text(this.scale.width / 2, this.portrait ? 22 : 19, `${turn}   •   ${colorName} MAGIC   •   ROUND ${this.state.turnNumber}`, {
+    const hud = this.add.text(this.scale.width / 2, this.portrait ? 22 : 19, `${turn}   •   ${colorName} MAGIC   •   ROUND ${this.state.roundNumber}`, {
       fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "15px" : "17px", fontStyle: "bold", color: "#fff2bd", stroke: "#081127", strokeThickness: 5
     }).setOrigin(0.5).setDepth(30);
     const guideY = this.portrait ? 175 : 94;
@@ -180,12 +266,12 @@ export class MatchScene extends Phaser.Scene {
     if (this.state.drawStack.amount) this.tweens.add({ targets: stack, scale: 1.08, alpha: 0.72, duration: 430, yoyo: true, repeat: -1 });
   }
 
-  private addNameplate(x: number, y: number, name: string, count: number, status: GameState["statuses"][number], alignRight: boolean): void {
+  private addNameplate(x: number, y: number, name: string, count: number, score: number, status: GameState["statuses"][number], alignRight: boolean): void {
     const plate = this.add.rectangle(x, y, 210, 58, 0x08142c, 0.92).setStrokeStyle(3, alignRight ? 0xbe6cff : 0x55dcff).setDepth(24);
     const anchor = alignRight ? x + 88 : x - 88;
     const origin = alignRight ? 1 : 0;
     const label = this.add.text(anchor, y - 17, name, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: "15px", fontStyle: "bold", color: "#ffffff" }).setOrigin(origin, 0).setDepth(25);
-    const detail = this.add.text(anchor, y + 3, `${count} CARDS  •  ${status.burn ? `BURN ${status.burn}` : status.stormcall ? "STORMBOUND" : status.frozenCardIds.length ? "FROST-LOCKED" : "READY"}`, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: "10px", color: status.burn ? "#ff9a6f" : "#aee9ff" }).setOrigin(origin, 0).setDepth(25);
+    const detail = this.add.text(anchor, y + 3, `${count} CARDS  •  ${score} PTS  •  ${status.burn ? `BURN ${status.burn}` : status.stormcall ? "STORMBOUND" : status.frozenCardIds.length ? "FROST-LOCKED" : "READY"}`, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: "9px", color: status.burn ? "#ff9a6f" : "#aee9ff" }).setOrigin(origin, 0).setDepth(25);
     this.dynamicObjects.push(plate, label, detail);
   }
 

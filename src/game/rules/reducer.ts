@@ -173,6 +173,7 @@ export function createGame(names: [string, string], ruleset: Ruleset, difficulty
     currentColor: first.color as GameState["currentColor"],
     turn: 0,
     turnNumber: 1,
+    roundNumber: 1,
     drawStack: { amount: 0, kind: null },
     statuses: [emptyStatus(), emptyStatus()],
     finalCalled: [false, false],
@@ -270,16 +271,37 @@ export function reduceGame(current: GameState, command: GameCommand): CommandRes
 
   if (state.hands[command.player].length === 0) {
     state.roundWinner = command.player;
-    state.phase = "round-over";
     const points = state.hands[other(command.player)].reduce((sum, item) => sum + cardPoints(item), 0);
     state.scores[command.player] += points;
     emit(state, { type: "round-won", actor: command.player });
+    if (state.scores[command.player] >= state.targetScore) {
+      state.phase = "match-over";
+      emit(state, { type: "match-won", actor: command.player });
+    } else state.phase = "round-over";
   } else if (!keepsTurn && state.phase === "playing") {
     finishTurnStatuses(state, command.player, card.color);
     state.turnNumber += 1;
     emit(state, { type: "turn", actor: state.turn });
   }
   return { accepted: true, state };
+}
+
+export function advanceRound(current: GameState): GameState {
+  if (current.phase !== "round-over" || current.roundWinner == null) return cloneState(current);
+  const starter = current.roundWinner;
+  const next = createGame(current.names, current.ruleset, current.difficulty, current.rngSeed);
+  next.scores = [...current.scores] as [number, number];
+  next.targetScore = current.targetScore;
+  next.roundNumber = current.roundNumber + 1;
+  next.turn = starter;
+  next.events = [{ type: "turn", actor: starter }];
+  return next;
+}
+
+export function restartMatch(current: GameState): GameState {
+  const next = createGame(current.names, current.ruleset, current.difficulty, current.rngSeed);
+  next.targetScore = current.targetScore;
+  return next;
 }
 
 export function resolveChallenge(current: GameState, playerScore: number, opponentScore: number): GameState {

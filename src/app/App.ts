@@ -1,5 +1,5 @@
 import { audioManager } from "../game/audio/AudioManager";
-import { gameBus } from "../game/events";
+import { gameBus, type ResultPreview } from "../game/events";
 import type { ChallengeType } from "../game/challenges/ChallengeDirector";
 import { illegalReason } from "../game/rules/legalMoves";
 import type { Difficulty, GameEvent, GameState, Ruleset } from "../game/rules/types";
@@ -147,7 +147,9 @@ export class App {
     this.root.querySelector('[data-screen="game"]')?.classList.remove("hidden");
     const requestedChallenge = new URLSearchParams(window.location.search).get("challenge");
     const challengePreview = (["rune-memory", "spell-timing", "arcane-clash"] as ChallengeType[]).find((type) => type === requestedChallenge);
-    this.game.start({ playerName, difficulty, ruleset, ...(challengePreview ? { challengePreview } : {}) });
+    const requestedResult = new URLSearchParams(window.location.search).get("result");
+    const resultPreview = (["round", "match"] as ResultPreview[]).find((type) => type === requestedResult);
+    this.game.start({ playerName, difficulty, ruleset, ...(challengePreview ? { challengePreview } : {}), ...(resultPreview ? { resultPreview } : {}) });
     audioManager.playSfx("deal");
   }
 
@@ -224,6 +226,7 @@ export class App {
     if (event.type === "final-card") this.showToast(event.success ? "FINAL CARD CALLED — challenge the rival!" : "Missed call! Draw two.");
     if (event.type === "cards-drawn" && event.actor === 0) this.showToast(`Drew ${event.count}: ${event.reason}.`);
     if (event.type === "round-won") this.showToast(event.actor === 0 ? "ROUND WON! The crowd erupts." : "Gabby takes the round.");
+    if (event.type === "match-won") this.showToast(event.actor === 0 ? "MATCH CHAMPION! The arena is yours." : "Gabby wins the tournament. Demand a rematch.");
   }
 
   private openSettings(): void { this.root.querySelector("#settings-modal")?.classList.remove("hidden"); }

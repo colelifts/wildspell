@@ -4,7 +4,7 @@ import { illegalReason } from "./legalMoves";
 import { randomIndex, shuffleSeeded } from "./random";
 import type { Card, CardKind, CommandResult, Difficulty, GameCommand, GameEvent, GameState, PlayerStatus, Ruleset } from "./types";
 
-const emptyStatus = (): PlayerStatus => ({ burn: 0, burnedCardIds: [], frozenCardIds: [], stormcall: false });
+const emptyStatus = (): PlayerStatus => ({ burn: 0, burnedCardIds: [], frozenCardIds: [], frozen: false, stormcall: false });
 const other = (player: 0 | 1): 0 | 1 => (player === 0 ? 1 : 0);
 
 function cloneState(state: GameState): GameState {
@@ -36,21 +36,39 @@ function drawCards(state: GameState, player: 0 | 1, count: number, reason: strin
   emit(state, { type: "cards-drawn", actor: player, count: drawn, reason });
 }
 
-function drawUntilPlayable(state: GameState, player: 0 | 1): boolean {
-  let drawn = 0;
+function drawOne(state: GameState, player: 0 | 1): boolean {
   state.drawnCardId = null;
-  while (true) {
-    refill(state);
-    const card = state.drawPile.pop();
-    if (!card) break;
+  refill(state);
+  const card = state.drawPile.pop();
+  if (card) {
     state.hands[player].push(card);
-    drawn += 1;
     state.drawnCardId = card.id;
-    if (!illegalReason(state, card, player)) break;
-    state.drawnCardId = null;
+    if (illegalReason(state, card, player)) state.drawnCardId = null;
   }
-  emit(state, { type: "cards-drawn", actor: player, count: drawn, reason: "until playable" });
+  emit(state, { type: "cards-drawn", actor: player, count: card ? 1 : 0, reason: "one-card draw" });
   return Boolean(state.drawnCardId);
+}
+
+function clearFreezeWhenTurnBegins(state: GameState, player: 0 | 1): void {
+  state.statuses[player].frozen = false;
+}
+
+function settleDrawStackIfUncountered(state: GameState): void {
+  if (!state.drawStack.amount || !state.drawStack.kind) return;
+  const target = state.turn;
+  const status = state.statuses[target];
+  const counter = state.hands[target].some((candidate) =>
+    candidate.kind === state.drawStack.kind
+    && !status.burnedCardIds.includes(candidate.id)
+    && !status.frozenCardIds.includes(candidate.id));
+  if (counter) return;
+  const amount = state.drawStack.amount;
+  drawCards(state, target, amount, `automatic +${amount} stack`);
+  state.drawStack = { amount: 0, kind: null };
+  finishTurnStatuses(state, target, null);
+  state.turn = other(target);
+  state.turnNumber += 1;
+  emit(state, { type: "turn", actor: state.turn });
 }
 
 function chooseColor(hand: Card[]): "red" | "blue" | "green" | "yellow" {
@@ -97,6 +115,7 @@ function applySpell(state: GameState, card: Card, player: 0 | 1, chosen?: "red" 
 
   switch (spell) {
     case "freeze":
+      state.statuses[target].frozen = true;
       state.turn = player;
       emit(state, { type: "status", actor: target, status: "frozen" });
       return true;
@@ -221,10 +240,11 @@ export function reduceGame(current: GameState, command: GameCommand): CommandRes
       state.turn = other(command.player);
       state.turnNumber += 1;
     } else {
-      const foundPlayable = drawUntilPlayable(state, command.player);
+      const foundPlayable = drawOne(state, command.player);
       if (!foundPlayable) {
         finishTurnStatuses(state, command.player, null);
         state.turn = other(command.player);
+        clearFreezeWhenTurnBegins(state, state.turn);
         state.turnNumber += 1;
       }
     }
@@ -237,6 +257,7 @@ export function reduceGame(current: GameState, command: GameCommand): CommandRes
     state.drawnCardId = null;
     finishTurnStatuses(state, command.player, null);
     state.turn = other(command.player);
+    clearFreezeWhenTurnBegins(state, state.turn);
     state.turnNumber += 1;
     emit(state, { type: "turn", actor: state.turn });
     return { accepted: true, state };
@@ -258,14 +279,19 @@ export function reduceGame(current: GameState, command: GameCommand): CommandRes
   emit(state, { type: "card-played", actor: command.player, target: other(command.player), card });
   const keepsTurn = card.kind === "number" ? false : applySpell(state, card, command.player, command.colorChoice);
   if (card.kind === "number") state.turn = other(command.player);
+  if (card.kind === "draw2" || card.kind === "wild4") settleDrawStackIfUncountered(state);
+
+  if (!keepsTurn) {
+    finishTurnStatuses(state, command.player, card.color);
+    clearFreezeWhenTurnBegins(state, state.turn);
+    state.turnNumber += 1;
+  }
 
   if (state.hands[command.player].length === 1) {
-    if (!state.finalCalled[command.player]) {
-      drawCards(state, command.player, 2, "missed Final Card call");
-      emit(state, { type: "final-card", actor: command.player, success: false });
-    } else if (state.ruleset === "wild") {
+    if (state.ruleset === "wild") {
       state.phase = "challenge";
       state.challengeOwner = command.player;
+      emit(state, { type: "final-card", actor: command.player, success: true });
     }
   }
   state.finalCalled[command.player] = false;
@@ -279,11 +305,7 @@ export function reduceGame(current: GameState, command: GameCommand): CommandRes
       state.phase = "match-over";
       emit(state, { type: "match-won", actor: command.player });
     } else state.phase = "round-over";
-  } else if (!keepsTurn && state.phase === "playing") {
-    finishTurnStatuses(state, command.player, card.color);
-    state.turnNumber += 1;
-    emit(state, { type: "turn", actor: state.turn });
-  }
+  } else if (!keepsTurn && state.phase === "playing") emit(state, { type: "turn", actor: state.turn });
   return { accepted: true, state };
 }
 

@@ -43,8 +43,8 @@ function testCard(id: string, color: Card["color"], kind: Card["kind"], value?: 
 function controlledState(): GameState {
   const state = createGame(["Cole", "Gabby"], "wild", "normal", 424242);
   state.hands = [
-    [testCard("host-chaos", "wild", "wild4"), testCard("host-arcane", "red", "draw2"), testCard("host-red-7", "red", "number", 7), testCard("host-green-2", "green", "number", 2)],
-    [testCard("guest-arcane", "blue", "draw2"), testCard("guest-blue-4", "blue", "number", 4), testCard("guest-yellow-8", "yellow", "number", 8)]
+    [testCard("host-chaos", "wild", "wild4"), testCard("host-chaos-counter", "wild", "wild4"), testCard("host-red-7", "red", "number", 7), testCard("host-green-2", "green", "number", 2)],
+    [testCard("guest-chaos", "wild", "wild4"), testCard("guest-blue-4", "blue", "number", 4), testCard("guest-yellow-8", "yellow", "number", 8)]
   ];
   state.discard = [testCard("top-red-3", "red", "number", 3)];
   state.currentColor = "red";
@@ -67,7 +67,7 @@ async function answerArcaneClash(page: Page): Promise<void> {
   }
 }
 
-test("two browsers synchronize color, mixed stacks, reconnect, challenge, and round transition", async ({ browser, page }, testInfo) => {
+test("two browsers synchronize color, same-type stacks, reconnect, challenge, and round transition", async ({ browser, page }, testInfo) => {
   test.setTimeout(90_000);
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(`host: ${error.message}`));
@@ -102,7 +102,7 @@ test("two browsers synchronize color, mixed stacks, reconnect, challenge, and ro
     await expect(hostCanvas).toHaveAttribute("data-online-revision", String(revision), { timeout: 15_000 });
     await expect(guestCanvas).toHaveAttribute("data-online-revision", String(revision), { timeout: 15_000 });
 
-    await page.getByRole("button", { name: /Play Wild Chaos \+4/i }).focus();
+    await page.locator('[data-card-id="host-chaos"]').focus();
     await page.keyboard.press("Enter");
     await page.locator('#color-modal:not(.hidden) [data-color="blue"]').click();
     await expect(hostCanvas).toHaveAttribute("data-online-color", "blue", { timeout: 15_000 });
@@ -111,10 +111,11 @@ test("two browsers synchronize color, mixed stacks, reconnect, challenge, and ro
     await expect(guestCanvas).toHaveAttribute("data-online-stack", "4", { timeout: 15_000 });
 
     await guest.waitForTimeout(2_200);
-    await guest.getByRole("button", { name: /Play blue Arcane \+2/i }).focus();
+    await guest.locator('[data-card-id="guest-chaos"]').focus();
     await guest.keyboard.press("Enter");
-    await expect(hostCanvas).toHaveAttribute("data-online-stack", "6", { timeout: 15_000 });
-    await expect(guestCanvas).toHaveAttribute("data-online-stack", "6", { timeout: 15_000 });
+    await guest.locator('#color-modal:not(.hidden) [data-color="red"]').click();
+    await expect(hostCanvas).toHaveAttribute("data-online-stack", "8", { timeout: 15_000 });
+    await expect(guestCanvas).toHaveAttribute("data-online-stack", "8", { timeout: 15_000 });
     await page.screenshot({ path: `artifacts/online/host-${testInfo.project.name}.png`, fullPage: true });
     await guest.screenshot({ path: `artifacts/online/guest-${testInfo.project.name}.png`, fullPage: true });
 
@@ -128,7 +129,7 @@ test("two browsers synchronize color, mixed stacks, reconnect, challenge, and ro
     await guest.getByRole("button", { name: "JOIN PRIVATE DUEL" }).click();
     guestCanvas = guest.locator("canvas");
     await expect(guestCanvas).toHaveAttribute("data-online-slot", "1", { timeout: 20_000 });
-    await expect(guestCanvas).toHaveAttribute("data-online-stack", "6", { timeout: 20_000 });
+    await expect(guestCanvas).toHaveAttribute("data-online-stack", "8", { timeout: 20_000 });
     await expect.poll(async () => Number(await guestCanvas.getAttribute("data-online-revision")), { timeout: 15_000 }).toBeGreaterThanOrEqual(stackedRevision);
     await guest.screenshot({ path: `artifacts/online/reconnect-${testInfo.project.name}.png`, fullPage: true });
 

@@ -9,7 +9,7 @@ function flipEvent(event: GameEvent): GameEvent {
   return next;
 }
 
-const emptyStatus = (): PlayerStatus => ({ burn: 0, burnedCardIds: [], frozenCardIds: [], stormcall: false });
+const emptyStatus = (): PlayerStatus => ({ burn: 0, burnedCardIds: [], frozenCardIds: [], frozen: false, stormcall: false });
 
 export function hydrateGameState(raw: GameState): GameState {
   const state = structuredClone(raw);
@@ -20,6 +20,7 @@ export function hydrateGameState(raw: GameState): GameState {
     burn: value?.burn ?? 0,
     burnedCardIds: value?.burnedCardIds ?? [],
     frozenCardIds: value?.frozenCardIds ?? [],
+    frozen: value?.frozen ?? false,
     stormcall: value?.stormcall ?? false
   });
   state.hands = [state.hands?.[0] ?? [], state.hands?.[1] ?? []];

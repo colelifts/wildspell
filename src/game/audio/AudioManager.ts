@@ -13,13 +13,16 @@ interface AudioSettings {
   voiceVolume: number;
 }
 
-const defaults: AudioSettings = { music: true, sfx: true, voices: true, musicVolume: 0.34, sfxVolume: 0.72, voiceVolume: 0.82 };
+const defaults: AudioSettings = { music: true, sfx: true, voices: true, musicVolume: 0.08, sfxVolume: 0.58, voiceVolume: 0.72 };
 
 export class AudioManager {
   private manifest: AudioManifest = { music: {}, sfx: {}, voices: {} };
   private cache = new Map<string, HTMLAudioElement>();
   private currentMusic?: HTMLAudioElement;
-  settings: AudioSettings = { ...defaults, ...JSON.parse(localStorage.getItem("wildspell.audio") ?? "{}") };
+  settings: AudioSettings = (() => {
+    const saved = JSON.parse(localStorage.getItem("wildspell.audio") ?? "{}") as Partial<AudioSettings>;
+    return { ...defaults, ...saved, musicVolume: Math.min(saved.musicVolume ?? defaults.musicVolume, 0.08) };
+  })();
 
   async preload(): Promise<void> {
     try {

@@ -56,7 +56,7 @@
 - [ ] Legal-card clicking bug fixed
 - [ ] Clear illegal-move reason
 - [ ] Classic stacking
-- [ ] Wild mixed stacking
+- [x] Same-type +2/+4 counter stacking with automatic resolution
 - [ ] Deck recycling
 - [ ] Burn 1
 - [ ] Burn 2 maximum
@@ -85,17 +85,17 @@
 
 ## Audio
 
-- [ ] No browser speech synthesis
+- [x] No browser speech synthesis
 - [x] No generated chiptune placeholder
 - [x] Menu music hook
 - [x] Battle music hook
 - [x] Challenge music hook
 - [ ] Victory music hook
-- [ ] SFX preloaded
+- [x] SFX preloaded
 - [ ] Voice lines preloaded
-- [ ] Music ducking
-- [ ] Missing file fallback
-- [ ] Settings persist
+- [x] Music ducking
+- [x] Missing file fallback
+- [x] Settings persist
 
 ## AI
 

@@ -25,7 +25,9 @@ npm run test:e2e
 - Easy, Normal, Hard, and Nightmare seeded AI policies
 - Animated high-detail Cole and Gabby pose systems with spell and status reactions
 - Card dealing, hover/play feedback, ambient particles, character actions, and spell-specific full-screen cinematics
-- Three real timed Final Card challenges: Rune Memory, Spell Timing, and Arcane Clash
+- Three real timed Final Card challenges—Rune Memory, Spell Timing, and Arcane Clash—trigger automatically at one card
+- One-card draw turns; a playable drawn card may be cast, otherwise the turn passes
+- Automatic +2/+4 resolution with same-type counters and persistent locked Burn/freeze states
 - Automatic round transitions, scoring to 200 points, match victory, and rematch
 - Landscape and portrait arena compositions with reduced-motion and audio settings
 - Device-density-aware Phaser rendering that keeps cards, character linework, and HUD text sharp on 2K/Retina displays
@@ -33,7 +35,7 @@ npm run test:e2e
 
 ## Audio
 
-Cole's supplied menu, battle, and Final Card minigame music is installed and switches automatically with the game state. Sound-effect, voice, and victory-music hooks remain replaceable and safely ignore missing optional files listed in `assets/sfx/README.txt` and `assets/voices/README.txt`.
+Cole's supplied menu, battle, and Final Card minigame music is installed and switches automatically with the game state. Twenty-five generated card, spell, status, challenge, and interface effects are preloaded; music and effects have independent volume controls. Voice and victory-music hooks remain replaceable and safely ignore missing optional files listed in `assets/voices/README.txt`.
 
 ## Firebase online beta
 

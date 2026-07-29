@@ -45,7 +45,7 @@ export class App {
                     <label>RULESET<select id="ruleset"><option value="wild" selected>Wild Mode</option><option value="classic">Classic Mode</option></select></label>
                   </div>
                   <button class="primary-cta" id="start-solo" data-testid="start-solo"><span>⚔</span> ENTER THE ARENA <span>⚔</span></button>
-                  <p class="mode-note">Wild Mode unleashes status spells, mixed draw stacks, and Final Card challenges.</p>
+                  <p class="mode-note">Wild Mode unleashes status spells, same-type draw counters, and automatic Final Card challenges.</p>
                 </div>
                 <div class="tab-panel" data-panel="online">
                   <div class="online-banner"><span>✦</span><div><b>FIREBASE ARENA</b><small>Private rooms, invite codes, presence, and reconnect</small></div></div>
@@ -98,7 +98,9 @@ export class App {
         <div class="modal hidden" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
           <div class="modal-panel rune-frame settings-panel"><span class="modal-kicker">ARCANE CONTROLS</span><h2 id="settings-title">Settings</h2>
             <label class="toggle-row"><span><b>Music</b><small>Battle and menu score</small></span><input id="music-toggle" type="checkbox" checked /></label>
+            <label class="volume-row"><span>Music volume</span><input id="music-volume" type="range" min="0" max="0.3" step="0.01" value="0.08" /></label>
             <label class="toggle-row"><span><b>Sound effects</b><small>Cards, spells, and impacts</small></span><input id="sfx-toggle" type="checkbox" checked /></label>
+            <label class="volume-row"><span>Effects volume</span><input id="sfx-volume" type="range" min="0" max="1" step="0.01" value="0.58" /></label>
             <label class="toggle-row"><span><b>Voice hooks</b><small>Preloaded supplied voice lines</small></span><input id="voice-toggle" type="checkbox" checked /></label>
             <label class="toggle-row"><span><b>Reduced motion</b><small>Shorter camera and UI movement</small></span><input id="motion-toggle" type="checkbox" /></label>
             <button class="primary-cta compact" id="close-settings">DONE</button>
@@ -129,6 +131,8 @@ export class App {
     this.root.querySelector("#sfx-toggle")?.addEventListener("change", (event) => audioManager.save({ sfx: (event.target as HTMLInputElement).checked }));
     this.root.querySelector("#voice-toggle")?.addEventListener("change", (event) => audioManager.save({ voices: (event.target as HTMLInputElement).checked }));
     this.root.querySelector("#motion-toggle")?.addEventListener("change", (event) => document.documentElement.classList.toggle("reduced-motion", (event.target as HTMLInputElement).checked));
+    this.root.querySelector("#music-volume")?.addEventListener("input", (event) => audioManager.save({ musicVolume: Number((event.target as HTMLInputElement).value) }));
+    this.root.querySelector("#sfx-volume")?.addEventListener("input", (event) => audioManager.save({ sfxVolume: Number((event.target as HTMLInputElement).value) }));
     this.root.querySelector("#create-room")?.addEventListener("click", () => void this.createOnlineRoom());
     this.root.querySelector("#quick-match")?.addEventListener("click", () => void this.quickMatch());
     this.root.querySelector("#join-room")?.addEventListener("click", () => void this.joinOnlineRoom());
@@ -307,13 +311,29 @@ export class App {
   }
 
   private reactToEvent(event: GameEvent): void {
-    if (event.type === "final-card") this.showToast(event.success ? "FINAL CARD CALLED — challenge the rival!" : "Missed call! Draw two.");
-    if (event.type === "cards-drawn" && event.actor === 0) this.showToast(`Drew ${event.count}: ${event.reason}.`);
-    if (event.type === "round-won") this.showToast(event.actor === 0 ? "ROUND WON! The crowd erupts." : "Gabby takes the round.");
+    if (event.type === "final-card") {
+      audioManager.playSfx("final-card");
+      this.showToast(event.success ? "FINAL CARD — challenge the rival!" : "Final Card challenge lost.");
+    }
+    if (event.type === "cards-drawn") {
+      audioManager.playSfx(event.reason === "Burn" ? "burn-tick" : "draw");
+      if (event.actor === 0) this.showToast(`Drew ${event.count}: ${event.reason}.`);
+    }
+    if (event.type === "round-won") {
+      audioManager.playSfx(event.actor === 0 ? "win" : "lose");
+      this.showToast(event.actor === 0 ? "ROUND WON! The crowd erupts." : "Gabby takes the round.");
+    }
     if (event.type === "match-won") this.showToast(event.actor === 0 ? "MATCH CHAMPION! The arena is yours." : "Gabby wins the tournament. Demand a rematch.");
   }
 
-  private openSettings(): void { this.root.querySelector("#settings-modal")?.classList.remove("hidden"); }
+  private openSettings(): void {
+    (this.root.querySelector("#music-toggle") as HTMLInputElement).checked = audioManager.settings.music;
+    (this.root.querySelector("#sfx-toggle") as HTMLInputElement).checked = audioManager.settings.sfx;
+    (this.root.querySelector("#voice-toggle") as HTMLInputElement).checked = audioManager.settings.voices;
+    (this.root.querySelector("#music-volume") as HTMLInputElement).value = String(audioManager.settings.musicVolume);
+    (this.root.querySelector("#sfx-volume") as HTMLInputElement).value = String(audioManager.settings.sfxVolume);
+    this.root.querySelector("#settings-modal")?.classList.remove("hidden");
+  }
   private closeSettings(): void { this.root.querySelector("#settings-modal")?.classList.add("hidden"); }
 
   private showToast(message: string): void {

@@ -26,7 +26,7 @@ Updated: 2026-07-28
 - [x] 5 — Spell-specific cinematics and persistent status effects
 - [x] 6 — Three timed 5–10 second Final Card challenges
 - [x] 7 — Four seeded AI difficulties
-- [ ] 8 — Firebase rooms, matchmaking, presence, projections, and reconnect (private rooms, atomic quick matchmaking, guest perspectives, reducer-validated turns, presence, reconnect, mixed-stack/color/challenge/round synchronization tests are complete; hardened authenticated rules remain)
+- [ ] 8 — Firebase rooms, matchmaking, presence, projections, and reconnect (private rooms, atomic quick matchmaking, guest perspectives, reducer-validated turns, presence, reconnect, same-type stack/color/challenge/round synchronization tests are complete; hardened authenticated rules remain)
 - [x] 9 — Preloaded replaceable audio pipeline with missing-file fallbacks
 - [ ] 10 — Responsive polish, accessibility, evidence, and deployment (high-density desktop/mobile rendering, evidence, and live hosting are complete; reduced-motion and final accessibility audits remain)
 
@@ -81,7 +81,7 @@ The first visual gate is captured in `artifacts/rebuild/` for desktop and mobile
 - [x] Replace browser-upscaled 1024×576 rendering with a device-density-aware backing canvas and high-resolution Phaser text.
 - [x] Increase desktop camera scale, hand-card scale, nameplate type size, deck-count contrast, and disabled-control legibility.
 - [x] Add a dedicated 2048-pixel clarity assertion and proof image under `artifacts/clarity/`.
-- [x] Prove atomic Quick Match pairing plus synchronized color choice, mixed +4/+2 stacking, reconnect, Final Card scoring, and round transition in two desktop/mobile browsers.
+- [x] Prove atomic Quick Match pairing plus synchronized color choice, same-type +2/+4 counter stacks, reconnect, Final Card scoring, and round transition in two desktop/mobile browsers.
 - [x] Narrow the live deck to the five approved animated specials: Arsonist, Freeze, Whirlwind, Arcane +2, and Chaos +4.
 - [x] Install Cole's supplied menu, battle, and minigame music with automatic scene switching.
 - [x] Replace the noisy galaxy card back with a simplified violet-and-gold eclipse design generated for thumbnail readability.

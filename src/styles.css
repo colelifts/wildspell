@@ -557,6 +557,7 @@ select:focus {
   cursor: not-allowed;
 }
 .final-button {
+  display: none;
   width: 94px;
   height: 94px;
   border: 5px solid #ffe178;
@@ -649,6 +650,23 @@ select:focus {
 .toggle-row input {
   width: 22px;
   height: 22px;
+}
+.game-controls .final-button {
+  display: none;
+}
+.volume-row {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 0 13px;
+  color: #bfd7f5;
+  font: 600 12px "Space Grotesk";
+  border-bottom: 1px solid #ffffff0d;
+}
+.volume-row input {
+  width: 100%;
+  accent-color: #8a67ff;
 }
 .settings-panel .primary-cta {
   margin-top: 20px;

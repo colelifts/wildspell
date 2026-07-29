@@ -11,7 +11,7 @@ test("opens the rebuilt menu and enters the Phaser arena", async ({ page }, test
   const canvas = page.locator("canvas");
   await expect(canvas).toBeVisible();
   await expect(canvas).toHaveAttribute("data-match-ready", "true", { timeout: 15_000 });
-  await expect(page.getByRole("button", { name: "FINAL CARD!" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "FINAL CARD!" })).toBeHidden();
   await expect(page.getByRole("button", { name: "END TURN" })).toHaveCount(0);
   // The premium character and arena textures are intentionally high resolution.
   // Wait for Phaser's first fully rendered match frame before capturing evidence.

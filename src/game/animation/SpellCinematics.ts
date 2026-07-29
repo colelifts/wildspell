@@ -140,6 +140,8 @@ export class SpellCinematics {
 
   private whirlwind(from: Phaser.Math.Vector2, to: Phaser.Math.Vector2, color: number): void {
     const centerX = (from.x + to.x) / 2;
+    const centerY = (from.y + to.y) / 2;
+    this.scene.cameras.main.shake(880, 0.014);
     for (let ring = 0; ring < 9; ring += 1) {
       const ribbon = this.scene.add.ellipse(centerX, to.y + 105 - ring * 24, 90 + ring * 36, 22 + ring * 5, 0x06191b, 0.04).setStrokeStyle(6 - ring * 0.35, ring % 2 ? 0xffffff : color, 0.82).setDepth(320 + ring).setBlendMode(Phaser.BlendModes.ADD).setScale(0.18).setAngle(ring % 2 ? -8 : 8);
       this.scene.tweens.add({ targets: ribbon, scale: 1, angle: ring % 2 ? 350 : -350, alpha: 0, duration: 720 + ring * 65, delay: ring * 22, ease: "Cubic.Out", onComplete: () => ribbon.destroy() });
@@ -151,6 +153,24 @@ export class SpellCinematics {
       streak.setPosition(centerX + Math.cos(angle) * radius, to.y + 80 + Math.sin(angle) * radius * 0.35).setAngle(Phaser.Math.RadToDeg(angle));
       this.scene.tweens.add({ targets: streak, x: centerX + Math.cos(angle + 4.6) * radius * 0.25, y: to.y - 180 + Math.sin(angle) * 35, angle: streak.angle + 600, alpha: 0, scaleX: 0.15, duration: 690 + index * 19, onComplete: () => streak.destroy() });
     }
+    for (let index = 0; index < 6; index += 1) {
+      const beginsLeft = index % 2 === 0;
+      const card = this.scene.add.image(beginsLeft ? from.x : to.x, (beginsLeft ? from.y : to.y) + (index - 2.5) * 10, CARD_BACK_KEY)
+        .setDisplaySize(72, 108).setDepth(338 + index).setAngle(beginsLeft ? -18 : 18).setScale(0.42);
+      this.scene.tweens.add({
+        targets: card,
+        x: beginsLeft ? to.x : from.x,
+        y: beginsLeft ? to.y : from.y,
+        angle: beginsLeft ? 720 : -720,
+        scale: 0.78,
+        duration: 900,
+        delay: index * 65,
+        ease: "Sine.InOut",
+        onComplete: () => card.destroy()
+      });
+    }
+    const vortex = this.scene.add.circle(centerX, centerY, 42, 0x07191a, 0.35).setStrokeStyle(9, color, 0.95).setDepth(337).setBlendMode(Phaser.BlendModes.ADD).setScale(0.15);
+    this.scene.tweens.add({ targets: vortex, scale: 3.6, angle: 720, alpha: 0, duration: 1050, ease: "Cubic.Out", onComplete: () => vortex.destroy() });
   }
 
   private fireSurge(from: Phaser.Math.Vector2, to: Phaser.Math.Vector2): void {

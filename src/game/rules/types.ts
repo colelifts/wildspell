@@ -28,6 +28,7 @@ export interface PlayerStatus {
   burn: 0 | 1 | 2;
   burnedCardIds: string[];
   frozenCardIds: string[];
+  frozen: boolean;
   stormcall: boolean;
 }
 

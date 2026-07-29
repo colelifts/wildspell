@@ -46,6 +46,17 @@ describe("legal moves", () => {
     state.statuses[0].frozenCardIds = [frozen.id];
     expect(illegalReason(state, frozen, 0)).toContain("frost-locked");
   });
+
+  it("locks a burned card and allows +2/+4 from any discard color", () => {
+    const burned = card("red", "number", 2);
+    const plusTwo = card("blue", "draw2");
+    const plusFour = card("wild", "wild4");
+    const state = stateWith([[burned, plusTwo, plusFour], []], card("green", "number", 8));
+    state.statuses[0].burnedCardIds = [burned.id];
+    expect(illegalReason(state, burned, 0)).toContain("burning");
+    expect(illegalReason(state, plusTwo, 0)).toBeNull();
+    expect(illegalReason(state, plusFour, 0)).toBeNull();
+  });
 });
 
 describe("turn spells", () => {
@@ -55,36 +66,64 @@ describe("turn spells", () => {
     expect(result.accepted).toBe(true);
     expect(result.state.turn).toBe(0);
   });
+
+  it("keeps the target visibly frozen until the skipped turn has passed", () => {
+    const freeze = card("red", "freeze");
+    const followUp = card("red", "number", 4);
+    let state = stateWith([[freeze, followUp, card("blue", "number", 1)], [card("green", "number", 2)]]);
+    state = reduceGame(state, { type: "play", player: 0, cardId: freeze.id }).state;
+    expect(state.statuses[1].frozen).toBe(true);
+    state = reduceGame(state, { type: "play", player: 0, cardId: followUp.id }).state;
+    expect(state.statuses[1].frozen).toBe(false);
+    expect(state.turn).toBe(1);
+  });
 });
 
 describe("draw stacking", () => {
-  it("allows same-type classic stacks and makes the next player take the full amount", () => {
+  it("allows same-type stacks and automatically makes an unprotected player take the full amount", () => {
     const first = card("red", "draw2");
     const second = card("blue", "draw2");
     let state = stateWith([[first, card("green", "number", 1)], [second, card("yellow", "number", 2)]], card("red", "number", 4), "classic");
     state = reduceGame(state, { type: "play", player: 0, cardId: first.id }).state;
     expect(state.drawStack.amount).toBe(2);
-    state = reduceGame(state, { type: "play", player: 1, cardId: second.id }).state;
-    expect(state.drawStack.amount).toBe(4);
     const before = state.hands[0].length;
-    state = reduceGame(state, { type: "draw", player: 0 }).state;
+    state = reduceGame(state, { type: "play", player: 1, cardId: second.id }).state;
     expect(state.hands[0]).toHaveLength(before + 4);
     expect(state.drawStack.amount).toBe(0);
     expect(state.turn).toBe(1);
   });
 
-  it("rejects mixed stacks in Classic and permits them in Wild", () => {
+  it("rejects mixed stacks in both modes", () => {
     const plusFour = card("wild", "wild4");
     const classic = stateWith([[plusFour], []], card("red", "draw2"), "classic");
     classic.drawStack = { amount: 2, kind: "draw2" };
-    expect(illegalReason(classic, plusFour, 0)).toContain("Classic Mode");
+    expect(illegalReason(classic, plusFour, 0)).toContain("same draw spell");
     const wild = structuredClone(classic); wild.ruleset = "wild";
-    expect(illegalReason(wild, plusFour, 0)).toBeNull();
+    expect(illegalReason(wild, plusFour, 0)).toContain("same draw spell");
+  });
+
+  it("automatically draws +2 when the target has no +2 counter", () => {
+    const plusTwo = card("yellow", "draw2");
+    const state = stateWith([[plusTwo, card("green", "number", 1)], [card("red", "number", 9)]], card("blue", "number", 4));
+    const before = state.hands[1].length;
+    const result = reduceGame(state, { type: "play", player: 0, cardId: plusTwo.id });
+    expect(result.state.hands[1]).toHaveLength(before + 2);
+    expect(result.state.drawStack.amount).toBe(0);
+    expect(result.state.turn).toBe(0);
   });
 });
 
 describe("automatic forced draws", () => {
-  it("draws through unusable cards until the first legal card", () => {
+  it("lets the player cast the single card they draw when it is playable", () => {
+    const playable = card("red", "number", 7);
+    const state = stateWith([[card("green", "number", 1)], [card("yellow", "number", 3)]], card("red", "number", 5));
+    state.drawPile = [playable];
+    const result = reduceGame(state, { type: "draw", player: 0 });
+    expect(result.state.drawnCardId).toBe(playable.id);
+    expect(result.state.turn).toBe(0);
+  });
+
+  it("draws exactly one card and ends the turn when it is unusable", () => {
     const bad = card("blue", "number", 2);
     const playable = card("red", "number", 7);
     const state = stateWith([[card("green", "number", 1)], [card("yellow", "number", 3)]], card("red", "number", 5));
@@ -92,10 +131,10 @@ describe("automatic forced draws", () => {
     const result = reduceGame(state, { type: "draw", player: 0 });
     expect(result.accepted).toBe(true);
     expect(result.state.hands[0].map((item) => item.id)).toContain(bad.id);
-    expect(result.state.hands[0].map((item) => item.id)).toContain(playable.id);
-    expect(result.state.drawnCardId).toBe(playable.id);
-    expect(result.state.turn).toBe(0);
-    expect(result.state.events).toContainEqual(expect.objectContaining({ type: "cards-drawn", count: 2, reason: "until playable" }));
+    expect(result.state.hands[0].map((item) => item.id)).not.toContain(playable.id);
+    expect(result.state.drawnCardId).toBeNull();
+    expect(result.state.turn).toBe(1);
+    expect(result.state.events).toContainEqual(expect.objectContaining({ type: "cards-drawn", count: 1, reason: "one-card draw" }));
   });
 
   it("ends the turn when the available deck contains no legal card", () => {
@@ -122,9 +161,10 @@ describe("Wild statuses and spells", () => {
     let state = stateWith([[arsonist, card("green", "number", 1), card("yellow", "number", 6)], [card("red", "number", 3), card("blue", "number", 4), card("green", "number", 9)]]);
     state = reduceGame(state, { type: "play", player: 0, cardId: arsonist.id }).state;
     expect(state.statuses[1].burn).toBe(1);
+    state.statuses[1].burnedCardIds = [state.hands[1][0]!.id];
     state.currentColor = "blue";
     state.discard.push(card("blue", "number", 8));
-    const blue = state.hands[1].find((item) => item.color === "blue")!;
+    const blue = state.hands[1].find((item) => item.color === "blue" && !state.statuses[1].burnedCardIds.includes(item.id))!;
     const before = state.hands[1].length;
     state = reduceGame(state, { type: "play", player: 1, cardId: blue.id }).state;
     expect(state.statuses[1].burn).toBe(2);
@@ -181,26 +221,23 @@ describe("Wild statuses and spells", () => {
   it("Cleanse clears every negative status and selects a color", () => {
     const cleanse = card("wild", "cleanse");
     let state = stateWith([[cleanse, card("red", "number", 1)], []]);
-    state.statuses[0] = { burn: 2, burnedCardIds: ["a", "b"], frozenCardIds: [cleanse.id], stormcall: true };
+    state.statuses[0] = { burn: 2, burnedCardIds: ["a", "b"], frozenCardIds: [cleanse.id], frozen: true, stormcall: true };
     state.statuses[0].frozenCardIds = [];
     state = reduceGame(state, { type: "play", player: 0, cardId: cleanse.id, colorChoice: "green" }).state;
-    expect(state.statuses[0]).toEqual({ burn: 0, burnedCardIds: [], frozenCardIds: [], stormcall: false });
+    expect(state.statuses[0]).toEqual({ burn: 0, burnedCardIds: [], frozenCardIds: [], frozen: false, stormcall: false });
     expect(state.currentColor).toBe("green");
   });
 });
 
 describe("Final Card", () => {
-  it("penalizes a missed call and starts a challenge after a successful call", () => {
+  it("automatically starts a challenge when a player reaches one card", () => {
     const playable = card("red", "number", 8);
     const spare = card("blue", "number", 2);
     const base = stateWith([[playable, spare], [card("green", "number", 3)]]);
-    const missed = reduceGame(base, { type: "play", player: 0, cardId: playable.id }).state;
-    expect(missed.hands[0]).toHaveLength(3);
-    let called = reduceGame(base, { type: "call-final", player: 0 }).state;
-    called = reduceGame(called, { type: "play", player: 0, cardId: playable.id }).state;
-    expect(called.phase).toBe("challenge");
-    expect(called.challengeOwner).toBe(0);
-    const resolved = resolveChallenge(called, 900, 500);
+    const challenged = reduceGame(base, { type: "play", player: 0, cardId: playable.id }).state;
+    expect(challenged.phase).toBe("challenge");
+    expect(challenged.challengeOwner).toBe(0);
+    const resolved = resolveChallenge(challenged, 900, 500);
     expect(resolved.phase).toBe("playing");
     expect(resolved.hands[0]).toHaveLength(1);
   });

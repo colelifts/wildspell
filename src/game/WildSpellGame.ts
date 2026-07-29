@@ -14,7 +14,7 @@ export class WildSpellGame {
     const virtualWidth = portrait ? 576 : Math.round(Phaser.Math.Clamp(576 * aspect, 960, 2048));
     const virtualHeight = portrait ? Math.round(Phaser.Math.Clamp(576 / aspect, 960, 1248)) : 576;
     const viewportScale = Math.max(viewportWidth / virtualWidth, viewportHeight / virtualHeight);
-    const renderScale = Math.min(portrait ? 2 : 3, Math.max(window.devicePixelRatio || 1, viewportScale));
+    const renderScale = Math.min(portrait ? 2 : 3, Math.ceil(Math.max(window.devicePixelRatio || 1, viewportScale)));
     const width = Math.round(virtualWidth * renderScale);
     const height = Math.round(virtualHeight * renderScale);
     this.game = new Phaser.Game({

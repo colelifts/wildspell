@@ -1,1 +1,13 @@
-Add: hover.ogg, click.ogg, deal.ogg, draw.ogg, play.ogg, invalid.ogg, freeze.ogg, fire.ogg, wind.ogg, lightning.ogg, stack.ogg, wild.ogg, challenge.ogg, win.ogg, lose.ogg
+WildSpell sound effects
+
+The files named mixkit-*.mp3 come from Mixkit's free sound-effect library and
+are used under the Mixkit Sound Effects Free License. Source pages:
+
+https://mixkit.co/free-sound-effects/spell/
+https://mixkit.co/free-sound-effects/card/
+https://mixkit.co/free-sound-effects/whoosh/
+https://mixkit.co/free-sound-effects/game/
+
+The older WAV files are original generated placeholders retained as development
+fallbacks. The shipped manifest uses the recorded Mixkit effects for cards,
+spells, challenges, wins, and losses.

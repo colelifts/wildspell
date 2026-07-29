@@ -89,4 +89,11 @@ The first visual gate is captured in `artifacts/rebuild/` for desktop and mobile
 - [x] Rebuild both nameplates as beveled supernatural-anime duel banners with identity seals and clear status hierarchy.
 - [x] Add laptop, QHD, and ultrawide responsive browser proofs under `artifacts/responsive/`.
 - [x] Upgrade the five approved spell reactions with staged, layered arena effects and proof frames under `artifacts/spells/`.
+- [x] Reduce Arcane +2 to four deck copies and Chaos +4 to two so counter chains stay exciting without bloating match length.
+- [x] Remove the manual Final Card call and trigger the one-card showdown automatically.
+- [x] Add a 3-2-1-CAST showdown intro, explicit trigger explanation, held score result, and winner/loser consequence screen.
+- [x] Prevent card inspection and match controls from covering an active minigame.
+- [x] Keep draw-spell counters fanned on the table with a prominent live stack total and counter-window label.
+- [x] Prevent Burn from selecting red cards and replace status badges with full-card looping fire, frost, cracks, and motes.
+- [x] Replace generated spell/card placeholders in the live manifest with licensed recorded Mixkit effects and preserve source/license notes.
 - [ ] Continue the full non-audio polish, multiplayer, accessibility, and acceptance-checklist pass.

@@ -148,6 +148,9 @@ export class MatchScene extends Phaser.Scene {
     if (this.onlineSession) void this.connectOnline();
     if (this.startDetail.challengePreview) {
       this.busy = true;
+      this.forcedResolutionTimer?.remove(false);
+      this.forcedResolutionTimer = undefined;
+      this.setChallengeUi(true);
       this.time.delayedCall(850, () => {
         const previewType = this.startDetail.challengePreview!;
         this.game.canvas.dataset.challengeState = `active:${previewType}`;
@@ -159,6 +162,7 @@ export class MatchScene extends Phaser.Scene {
           .finally(() => {
             void audioManager.playMusic("battle");
             this.busy = false;
+            this.setChallengeUi(false);
             this.renderState();
           });
       });
@@ -196,7 +200,6 @@ export class MatchScene extends Phaser.Scene {
       this.listeners.push([name, listener]);
     };
     on("draw", () => this.commit({ type: "draw", player: 0 }));
-    on("call-final", () => this.commit({ type: "call-final", player: 0 }));
     on("emote", () => this.playCharacter(0, "emote"));
     const playCardListener = ((event: CustomEvent<string>) => this.onCardRequested(event.detail)) as EventListener;
     gameBus.addEventListener("play-card", playCardListener);
@@ -279,6 +282,7 @@ export class MatchScene extends Phaser.Scene {
     this.addNameplate(this.portrait ? this.virtualWidth - 96 : this.virtualWidth - 105, this.portrait ? 92 : 31, this.state.names[1], this.state.hands[1].length, this.state.scores[1], this.state.statuses[1], true);
     this.addEnemyHand();
     this.addDrawPile();
+    if (this.state.drawStack.amount) this.addStackChain();
     this.addCard(top, this.portrait ? this.virtualWidth * 0.6 : this.virtualWidth / 2 + 66, this.portrait ? this.virtualHeight * 0.43 : 270, false, false, 0, this.portrait ? 1.02 : 0.78);
     this.addPlayerHand(initial);
     this.addStatusAuras();
@@ -294,7 +298,7 @@ export class MatchScene extends Phaser.Scene {
       const mustDraw = !this.state.drawnCardId && legalCards(this.state, active).length === 0;
       if (mustDraw && (!this.onlineSession || active === 0)) {
         this.forcedResolutionTimer?.remove(false);
-        this.forcedResolutionTimer = this.time.delayedCall(520, () => {
+        this.forcedResolutionTimer = this.time.delayedCall(850, () => {
           this.forcedResolutionTimer = undefined;
           if (this.state.phase === "playing" && !this.busy && !this.state.drawnCardId && legalCards(this.state, this.state.turn).length === 0) {
             this.commit({ type: "draw", player: this.state.turn });
@@ -302,6 +306,21 @@ export class MatchScene extends Phaser.Scene {
         });
       } else if (active === 1 && !this.onlineSession) this.time.delayedCall(900, () => void this.runAi());
     }
+  }
+
+  private addStackChain(): void {
+    const drawCards = this.state.discard.filter((card) => card.kind === this.state.drawStack.kind).slice(-4, -1);
+    const baseX = this.portrait ? this.virtualWidth * 0.6 : this.virtualWidth / 2 + 66;
+    const baseY = this.portrait ? this.virtualHeight * 0.43 : 270;
+    drawCards.forEach((card, index) => {
+      const behind = this.addCard(card, baseX - 42 - index * 25, baseY - 8 - index * 4, false, false, -8 - index * 3, this.portrait ? 0.86 : 0.66);
+      behind.container.setDepth(8 + index);
+    });
+    const counter = this.add.text(baseX, baseY - (this.portrait ? 132 : 104), `COUNTER WINDOW  •  +${this.state.drawStack.amount} WAITING`, {
+      fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "13px" : "15px", fontStyle: "bold", color: "#fff0a6", stroke: "#4d146f", strokeThickness: 6
+    }).setOrigin(0.5).setDepth(32);
+    this.tweens.add({ targets: counter, scale: { from: 1, to: 1.08 }, duration: 520, yoyo: true, repeat: -1 });
+    this.dynamicObjects.push(counter);
   }
 
   private showResultOverlay(): void {
@@ -520,12 +539,27 @@ export class MatchScene extends Phaser.Scene {
         const locked = this.add.text(0, 54, "BURNED • LOCKED", { fontFamily: '"Trebuchet MS", sans-serif', fontSize: "10px", fontStyle: "bold", color: "#fff3d0", backgroundColor: "#5a0804dd", padding: { x: 6, y: 4 } }).setOrigin(0.5);
         container.add([burnWash, burn, locked]);
         this.tweens.add({ targets: [burnWash, burn], alpha: { from: 0.48, to: 0.9 }, scale: { from: 0.96, to: 1.04 }, duration: 420, yoyo: true, repeat: -1 });
+        for (let index = 0; index < 9; index += 1) {
+          const flame = this.add.ellipse(-48 + index * 12, 66 + (index % 3) * 5, 13 + (index % 2) * 7, 35 + (index % 3) * 8, index % 2 ? 0xffb21c : 0xff3d12, 0.86)
+            .setBlendMode(Phaser.BlendModes.ADD).setAngle(index % 2 ? 12 : -12);
+          container.add(flame);
+          this.tweens.add({ targets: flame, y: 20 - (index % 4) * 10, x: flame.x + (index % 2 ? 7 : -7), alpha: 0.12, scaleX: 0.35, duration: 520 + index * 55, delay: index * 60, repeat: -1 });
+        }
       }
       if (this.state?.statuses[0].frozenCardIds.includes(card.id)) {
         const frostWash = this.add.rectangle(0, 0, 106, 159, 0x65d7ff, 0.33).setRounded(10).setBlendMode(Phaser.BlendModes.SCREEN);
         const frost = this.add.text(0, -9, "❄", { fontSize: "62px", color: "#e4fdff", stroke: "#26618d", strokeThickness: 6 }).setOrigin(0.5).setAlpha(0.92);
         const locked = this.add.text(0, 54, "FROZEN • LOCKED", { fontFamily: '"Trebuchet MS", sans-serif', fontSize: "10px", fontStyle: "bold", color: "#efffff", backgroundColor: "#123d66dd", padding: { x: 6, y: 4 } }).setOrigin(0.5);
         container.add([frostWash, frost, locked]);
+        const cracks = this.add.graphics();
+        cracks.lineStyle(2, 0xd9fbff, 0.9);
+        [[-48,-66,-10,-25],[-10,-25,-37,5],[-10,-25,18,4],[48,-50,14,-9],[14,-9,45,24],[-45,38,-8,15],[-8,15,20,54]].forEach(([x1,y1,x2,y2]) => cracks.lineBetween(x1!, y1!, x2!, y2!));
+        container.add(cracks);
+        for (let index = 0; index < 7; index += 1) {
+          const mote = this.add.circle(-45 + index * 15, 72 - (index % 3) * 18, 2 + (index % 2), 0xe9ffff, 0.9).setBlendMode(Phaser.BlendModes.ADD);
+          container.add(mote);
+          this.tweens.add({ targets: mote, y: -74, x: mote.x + (index % 2 ? 8 : -8), alpha: 0.05, duration: 1050 + index * 90, delay: index * 100, repeat: -1 });
+        }
       }
     }
     container.add(frame);
@@ -617,6 +651,14 @@ export class MatchScene extends Phaser.Scene {
       fontFamily: '"Trebuchet MS", sans-serif', fontSize: "7px", fontStyle: "bold", color: "#eef7ff", align: "center", wordWrap: { width: 92 }
     }).setOrigin(0.5);
     container.add([plate, rule, badge, glyph, title, effect]);
+    const aura = this.add.rectangle(0, 0, 104, 158, color, 0.035).setRounded(11).setStrokeStyle(2, color, 0.5).setBlendMode(Phaser.BlendModes.ADD);
+    container.addAt(aura, 1);
+    this.tweens.add({ targets: aura, alpha: { from: 0.04, to: 0.24 }, scale: { from: 0.98, to: 1.035 }, duration: card.kind === "arsonist" ? 430 : 760, yoyo: true, repeat: -1 });
+    for (let index = 0; index < 4; index += 1) {
+      const spark = this.add.circle(index % 2 ? 48 : -48, -55 + index * 35, 1.8, color, 0.9).setBlendMode(Phaser.BlendModes.ADD);
+      container.add(spark);
+      this.tweens.add({ targets: spark, y: spark.y - 38, alpha: 0.05, duration: 650 + index * 160, repeat: -1, delay: index * 130 });
+    }
   }
 
   private onCardRequested(cardId: string): void {
@@ -642,7 +684,7 @@ export class MatchScene extends Phaser.Scene {
   }
 
   private commit(command: Parameters<typeof reduceGame>[1], from = new Phaser.Math.Vector2(430, 285), to = new Phaser.Math.Vector2(590, 240)): void {
-    if (this.busy && command.type !== "call-final") return;
+    if (this.busy) return;
     if (this.onlineSession) {
       const preview = reduceGame(this.state, command);
       if (!preview.accepted) {
@@ -701,8 +743,7 @@ export class MatchScene extends Phaser.Scene {
   private async runAi(): Promise<void> {
     if (this.onlineSession || this.busy || this.state.turn !== 1 || this.state.phase !== "playing") return;
     this.busy = true;
-    await new Promise<void>((resolve) => this.time.delayedCall(520, resolve));
-    if (this.state.hands[1].length === 2) this.state = reduceGame(this.state, { type: "call-final", player: 1 }).state;
+    await new Promise<void>((resolve) => this.time.delayedCall(980, resolve));
     const card = chooseAiCard(this.state);
     this.busy = false;
     if (!card) {
@@ -784,32 +825,72 @@ export class MatchScene extends Phaser.Scene {
     }
     this.finalChallengeRunning = true;
     this.busy = true;
+    this.setChallengeUi(true);
+    this.cardInspection?.destroy(true);
+    this.cardInspection = undefined;
+    this.inspectedCardId = undefined;
+    this.game.canvas.dataset.challengeState = "countdown";
     audioManager.playSfx("challenge");
     void audioManager.playMusic("challenge");
     const types: ChallengeType[] = ["rune-memory", "spell-timing", "arcane-clash"];
     const type = types[this.state.turnNumber % types.length]!;
+    this.game.canvas.dataset.challengeState = `active:${type}`;
     const result = await this.challenges.start(type);
     const ranges = { easy: [260, 520], normal: [430, 680], hard: [590, 790], nightmare: [700, 900] } as const;
     const [low, high] = ranges[this.state.difficulty];
     const aiScore = Math.round(low + ((this.state.rngSeed % 1000) / 1000) * (high - low));
+    const challengeOwner = this.state.challengeOwner ?? 0;
     this.state = resolveChallenge(this.state, result.score, aiScore);
     const finalResult = this.state.events.find((event): event is Extract<GameEvent, { type: "final-card" }> => event.type === "final-card");
     if (finalResult) {
       const winner = finalResult.success ? finalResult.actor : 1 - finalResult.actor;
       this.playerDirector.play(winner === 0 ? "victory" : "defeat", finalResult.success ? 1300 : 1500);
       this.opponentDirector.play(winner === 1 ? "victory" : "defeat", finalResult.success ? 1300 : 1500);
+      await this.showChallengeOutcome(result.score, aiScore, winner === 0, challengeOwner);
     }
     gameBus.dispatchEvent(new CustomEvent("toast", { detail: `${CARD_NAMES.prism}: You ${result.score} • Rival ${aiScore}` }));
     this.finalChallengeRunning = false;
     this.busy = false;
+    this.setChallengeUi(false);
     void audioManager.playMusic("battle");
     this.renderState();
+  }
+
+  private showChallengeOutcome(playerScore: number, rivalScore: number, playerWon: boolean, challengeOwner: 0 | 1): Promise<void> {
+    const { width, height } = virtualViewport(this);
+    const root = this.add.container(0, 0).setDepth(700).setAlpha(0);
+    const color = playerWon ? 0x49e7bd : 0xff557c;
+    const backdrop = this.add.rectangle(width / 2, height / 2, width, height, 0x02030b, 0.94);
+    const burst = this.add.circle(width / 2, height / 2, this.portrait ? 250 : 340, color, 0.12).setBlendMode(Phaser.BlendModes.ADD);
+    const plate = this.add.rectangle(width / 2, height / 2, this.portrait ? width - 54 : 680, this.portrait ? 390 : 340, 0x090d22, 0.98).setRounded(22).setStrokeStyle(6, color, 1);
+    const kicker = this.add.text(width / 2, height / 2 - 115, "ARCANE SHOWDOWN COMPLETE", { fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "15px" : "18px", fontStyle: "bold", color: "#ffdda1", letterSpacing: 2 }).setOrigin(0.5);
+    const title = this.add.text(width / 2, height / 2 - 55, playerWon ? "YOU WIN" : "GABBY WINS", { fontFamily: "Georgia, serif", fontSize: this.portrait ? "54px" : "68px", fontStyle: "bold", color: playerWon ? "#b9ffe8" : "#ffb1c2", stroke: playerWon ? "#075645" : "#6b1230", strokeThickness: 11 }).setOrigin(0.5);
+    const score = this.add.text(width / 2, height / 2 + 28, `YOU  ${playerScore}     VS     ${rivalScore}  GABBY`, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "20px" : "25px", fontStyle: "bold", color: "#ffffff" }).setOrigin(0.5);
+    const consequenceText = challengeOwner === 0
+      ? (playerWon ? "REWARD: Your final card stays safe." : "CONSEQUENCE: You draw 2 cards.")
+      : (playerWon ? "CONSEQUENCE: Gabby draws 2 cards." : "REWARD: Gabby's final card stays safe.");
+    const consequence = this.add.text(width / 2, height / 2 + 91, consequenceText, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "17px" : "21px", fontStyle: "bold", color: playerWon ? "#8fffd8" : "#ff9caf" }).setOrigin(0.5);
+    root.add([backdrop, burst, plate, kicker, title, score, consequence]);
+    this.tweens.add({ targets: root, alpha: 1, duration: 260 });
+    this.tweens.add({ targets: burst, scale: 1.35, alpha: 0.03, duration: 850, yoyo: true, repeat: -1 });
+    return new Promise((resolve) => this.time.delayedCall(2750, () => {
+      this.tweens.add({ targets: root, alpha: 0, duration: 260, onComplete: () => { root.destroy(true); resolve(); } });
+    }));
+  }
+
+  private setChallengeUi(active: boolean): void {
+    document.querySelector(".game-controls")?.classList.toggle("hidden", active);
+    document.querySelector("#accessible-hand")?.classList.toggle("hidden", active);
   }
 
   private async runOnlineChallenge(): Promise<void> {
     if (!this.onlineSession || this.finalChallengeRunning) return;
     this.finalChallengeRunning = true;
     this.busy = true;
+    this.setChallengeUi(true);
+    this.cardInspection?.destroy(true);
+    this.cardInspection = undefined;
+    this.inspectedCardId = undefined;
     void audioManager.playMusic("challenge");
     const types: ChallengeType[] = ["rune-memory", "spell-timing", "arcane-clash"];
     const type = types[this.state.turnNumber % types.length]!;
@@ -828,6 +909,7 @@ export class MatchScene extends Phaser.Scene {
       gameBus.dispatchEvent(new CustomEvent("toast", { detail: error instanceof Error ? error.message : "Challenge synchronization failed." }));
     } finally {
       this.busy = false;
+      if (this.state.phase !== "challenge") this.setChallengeUi(false);
       void audioManager.playMusic("battle");
     }
   }

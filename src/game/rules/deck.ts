@@ -13,11 +13,11 @@ export function buildDeck(ruleset: Ruleset, seed = 0xc01ecafe): { cards: Card[];
     for (let value = 1; value <= 9; value += 1) {
       cards.push(makeCard(color, "number", serial++, value), makeCard(color, "number", serial++, value));
     }
-    for (const kind of ["freeze", "draw2"] as const) {
-      cards.push(makeCard(color, kind, serial++), makeCard(color, kind, serial++));
-    }
+    cards.push(makeCard(color, "freeze", serial++), makeCard(color, "freeze", serial++));
+    // Draw spells are powerful and extend matches, so each color gets only one +2.
+    cards.push(makeCard(color, "draw2", serial++));
   }
-  for (let index = 0; index < 4; index += 1) {
+  for (let index = 0; index < 2; index += 1) {
     cards.push(makeCard("wild", "wild4", serial++));
   }
   if (ruleset === "wild") {

@@ -10,8 +10,9 @@ for (const challenge of ["rune-memory", "spell-timing", "arcane-clash"] as const
     const canvas = page.locator("canvas");
     await expect(canvas).toBeVisible();
     await expect(canvas).toHaveAttribute("data-challenge-state", `active:${challenge}`, { timeout: 12_000 });
+    await expect(page.locator(".game-controls")).toBeHidden();
     // Keep the capture inside each challenge's interactive window.
-    await page.waitForTimeout(challenge === "rune-memory" ? 5_000 : 900);
+    await page.waitForTimeout(challenge === "rune-memory" ? 9_000 : 4_200);
     await page.screenshot({ path: `artifacts/challenges/${challenge}-${testInfo.project.name}.png`, fullPage: true });
 
     if (challenge === "rune-memory") {
@@ -27,7 +28,7 @@ for (const challenge of ["rune-memory", "spell-timing", "arcane-clash"] as const
         await page.waitForTimeout(360);
       }
     }
-    await expect(canvas).toHaveAttribute("data-challenge-state", new RegExp(`^complete:${challenge}:\\d+$`), { timeout: 5_000 });
+    await expect(canvas).toHaveAttribute("data-challenge-state", new RegExp(`^complete:${challenge}:\\d+$`), { timeout: 8_000 });
     expect(pageErrors).toEqual([]);
   });
 }

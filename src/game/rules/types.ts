@@ -60,7 +60,6 @@ export interface GameState {
   roundNumber: number;
   drawStack: { amount: number; kind: "draw2" | "wild4" | null };
   statuses: [PlayerStatus, PlayerStatus];
-  finalCalled: [boolean, boolean];
   challengeOwner: 0 | 1 | null;
   drawnCardId: string | null;
   lastSpecial: CardKind | null;
@@ -75,8 +74,7 @@ export interface GameState {
 export type GameCommand =
   | { type: "play"; player: 0 | 1; cardId: string; colorChoice?: Exclude<CardColor, "wild"> }
   | { type: "draw"; player: 0 | 1 }
-  | { type: "pass"; player: 0 | 1 }
-  | { type: "call-final"; player: 0 | 1 };
+  | { type: "pass"; player: 0 | 1 };
 
 export interface CommandResult {
   accepted: boolean;

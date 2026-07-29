@@ -84,7 +84,6 @@ export class App {
           <div id="game-canvas"></div>
           <div class="game-controls" aria-label="Match controls">
             <button id="draw-button" class="control-button draw"><span>✦</span><b>DRAW</b></button>
-            <button id="final-button" class="final-button"><span>FINAL</span><strong>CARD!</strong></button>
             <button id="emote-button" class="control-button icon" aria-label="Emote">☄</button>
             <button id="game-settings" class="control-button icon" aria-label="Settings">⚙</button>
             <button id="exit-match" class="control-button icon danger" aria-label="Leave match">×</button>
@@ -121,7 +120,6 @@ export class App {
     }));
     this.root.querySelector("#start-solo")?.addEventListener("click", () => this.startSolo());
     this.root.querySelector("#draw-button")?.addEventListener("click", () => gameBus.dispatchEvent(new Event("draw")));
-    this.root.querySelector("#final-button")?.addEventListener("click", () => gameBus.dispatchEvent(new Event("call-final")));
     this.root.querySelector("#emote-button")?.addEventListener("click", () => gameBus.dispatchEvent(new Event("emote")));
     this.root.querySelector("#exit-match")?.addEventListener("click", () => this.exitMatch());
     this.root.querySelector("#open-settings")?.addEventListener("click", () => this.openSettings());
@@ -291,11 +289,10 @@ export class App {
 
   private updateState(state: GameState): void {
     this.state = state;
+    this.root.querySelector(".game-controls")?.classList.toggle("hidden", state.phase === "challenge");
+    this.root.querySelector("#accessible-hand")?.classList.toggle("hidden", state.phase === "challenge");
     const draw = this.root.querySelector<HTMLButtonElement>("#draw-button")!;
-    const final = this.root.querySelector<HTMLButtonElement>("#final-button")!;
     draw.disabled = state.turn !== 0 || state.phase !== "playing" || Boolean(state.drawnCardId) || state.hands[0].some((card) => !illegalReason(state, card, 0));
-    final.disabled = state.turn !== 0 || state.hands[0].length !== 2;
-    final.classList.toggle("called", state.finalCalled[0]);
     const hand = this.root.querySelector<HTMLElement>("#accessible-hand")!;
     hand.replaceChildren(...state.hands[0].map((card) => {
       const button = document.createElement("button");

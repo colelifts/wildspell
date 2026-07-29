@@ -25,7 +25,6 @@ export function hydrateGameState(raw: GameState): GameState {
   });
   state.hands = [state.hands?.[0] ?? [], state.hands?.[1] ?? []];
   state.statuses = [status(state.statuses?.[0]), status(state.statuses?.[1])];
-  state.finalCalled = [state.finalCalled?.[0] ?? false, state.finalCalled?.[1] ?? false];
   state.scores = [state.scores?.[0] ?? 0, state.scores?.[1] ?? 0];
   state.drawPile = state.drawPile ?? [];
   state.discard = state.discard ?? [];
@@ -48,7 +47,6 @@ export function stateForSlot(state: GameState, slot: 0 | 1): GameState {
   next.names = [hydrated.names[1], hydrated.names[0]];
   next.hands = [structuredClone(hydrated.hands[1]), structuredClone(hydrated.hands[0])];
   next.statuses = [structuredClone(hydrated.statuses[1]), structuredClone(hydrated.statuses[0])];
-  next.finalCalled = [hydrated.finalCalled[1], hydrated.finalCalled[0]];
   next.scores = [hydrated.scores[1], hydrated.scores[0]];
   next.turn = flip(hydrated.turn);
   next.roundWinner = hydrated.roundWinner == null ? null : flip(hydrated.roundWinner);

@@ -22,22 +22,28 @@ export class ChallengeDirector {
     const startedAt = Date.now();
     const { width, height } = virtualViewport(this.scene);
     const portrait = height > width;
-    const background = this.scene.add.rectangle(width / 2, height / 2, width, height, 0x02040e, 0.96);
-    const colorWash = this.scene.add.rectangle(width / 2, height / 2, width, height, 0x5427a5, 0.1).setBlendMode(Phaser.BlendModes.ADD);
+    const background = this.scene.add.rectangle(width / 2, height / 2, width, height, 0x02030a, 0.985);
+    const colorWash = this.scene.add.rectangle(width / 2, height / 2, width, height, 0x8b1fff, 0.14).setBlendMode(Phaser.BlendModes.ADD);
     const portraitFrameHeight = Math.min(980, height - 50);
     const frame = this.scene.add.rectangle(width / 2, height / 2, Math.min(820, width - 30), portrait ? portraitFrameHeight : 500, 0x091631, 0.98).setStrokeStyle(5, 0xf4cb68);
     const innerFrame = this.scene.add.rectangle(width / 2, height / 2, Math.min(800, width - 50), portrait ? portraitFrameHeight - 20 : 480, 0x0b1d41, 0.35).setStrokeStyle(2, 0x8f6cff, 0.8);
-    const header = this.scene.add.text(width / 2, portrait ? height * 0.16 : 92, "FINAL CARD", {
+    const header = this.scene.add.text(width / 2, portrait ? height * 0.14 : 72, "ARCANE SHOWDOWN", {
       fontFamily: "Georgia, serif", fontSize: portrait ? "43px" : "52px", fontStyle: "bold", color: "#fff0b3", stroke: "#3d155f", strokeThickness: 10
     }).setOrigin(0.5);
-    const subtitle = this.scene.add.text(width / 2, portrait ? height * 0.21 : 145, this.challengeName(type), {
+    const trigger = this.scene.add.text(width / 2, portrait ? height * 0.195 : 126, "TRIGGERED: A DUELIST REACHED ONE CARD", {
+      fontFamily: '"Trebuchet MS", sans-serif', fontSize: portrait ? "13px" : "15px", fontStyle: "bold", color: "#ff8fa7", letterSpacing: 2
+    }).setOrigin(0.5);
+    const subtitle = this.scene.add.text(width / 2, portrait ? height * 0.235 : 160, this.challengeName(type), {
       fontFamily: '"Trebuchet MS", sans-serif', fontSize: portrait ? "18px" : "22px", fontStyle: "bold", color: "#9eeaff", letterSpacing: 3
     }).setOrigin(0.5);
     const leftSeal = this.scene.add.circle(portrait ? 58 : width / 2 - 360, portrait ? height * 0.18 : 120, 28, 0x713fc0, 0.2).setStrokeStyle(4, 0xc9a6ff, 0.9);
     const rightSeal = this.scene.add.circle(portrait ? width - 58 : width / 2 + 360, portrait ? height * 0.18 : 120, 28, 0x713fc0, 0.2).setStrokeStyle(4, 0xc9a6ff, 0.9);
-    this.layer = this.scene.add.container(0, 0, [background, colorWash, frame, innerFrame, header, subtitle, leftSeal, rightSeal]).setDepth(500).setAlpha(0);
+    const rays = Array.from({ length: 16 }, (_, index) => this.scene.add.rectangle(width / 2, height / 2, Math.max(width, height) * 0.72, index % 2 ? 3 : 7, index % 2 ? 0xd9b6ff : 0xff3f78, 0.16)
+      .setOrigin(0, 0.5).setAngle(index * 22.5).setBlendMode(Phaser.BlendModes.ADD));
+    this.layer = this.scene.add.container(0, 0, [background, colorWash, ...rays, frame, innerFrame, header, trigger, subtitle, leftSeal, rightSeal]).setDepth(500).setAlpha(0);
     this.scene.tweens.add({ targets: this.layer, alpha: 1, duration: 220 });
     this.scene.tweens.add({ targets: [leftSeal, rightSeal], angle: 360, scale: 1.15, duration: 1400, yoyo: true, repeat: -1, ease: "Sine.InOut" });
+    this.scene.tweens.add({ targets: rays, angle: "+=10", alpha: { from: 0.08, to: 0.25 }, duration: 1150, yoyo: true, repeat: -1, ease: "Sine.InOut" });
 
     return new Promise((resolve) => {
       const finish = (score: number) => {
@@ -49,7 +55,7 @@ export class ChallengeDirector {
           fontFamily: '"Trebuchet MS", sans-serif', fontSize: portrait ? "31px" : "42px", fontStyle: "bold", color: "#adffe2", stroke: "#071126", strokeThickness: 10
         }).setOrigin(0.5).setDepth(526).setScale(0.7).setAlpha(0);
         this.scene.tweens.add({ targets: [bannerPlate, banner], alpha: 1, scale: 1, duration: 230, ease: "Back.Out" });
-        const resultTimer = this.scene.time.delayedCall(820, () => {
+        const resultTimer = this.scene.time.delayedCall(1350, () => {
           banner.destroy();
           bannerPlate.destroy();
           this.destroy();
@@ -57,9 +63,26 @@ export class ChallengeDirector {
         });
         this.cleanup.push(() => resultTimer.remove(false));
       };
-      if (type === "rune-memory") this.runeMemory(finish);
-      else if (type === "spell-timing") this.spellTiming(finish);
-      else this.arcaneClash(finish);
+      const countdownPlate = this.scene.add.circle(width / 2, height / 2, portrait ? 102 : 116, 0x120721, 0.96).setStrokeStyle(7, 0xffd76f, 1);
+      const countdown = this.scene.add.text(width / 2, height / 2, "3", {
+        fontFamily: "Georgia, serif", fontSize: portrait ? "112px" : "132px", fontStyle: "bold", color: "#fff2bb", stroke: "#6e164f", strokeThickness: 13
+      }).setOrigin(0.5);
+      const ready = this.scene.add.text(width / 2, height / 2 + (portrait ? 142 : 154), "FOCUS YOUR CURSE", {
+        fontFamily: '"Trebuchet MS", sans-serif', fontSize: portrait ? "17px" : "20px", fontStyle: "bold", color: "#f0caff", letterSpacing: 3
+      }).setOrigin(0.5);
+      this.add(countdownPlate); this.add(countdown); this.add(ready);
+      ["3", "2", "1", "CAST!"].forEach((label, index) => this.schedule(500 + index * 780, () => {
+        countdown.setText(label).setFontSize(label === "CAST!" ? (portrait ? 52 : 62) : (portrait ? 112 : 132)).setScale(0.5).setAlpha(1);
+        countdownPlate.setScale(0.7).setAlpha(1);
+        this.scene.tweens.add({ targets: [countdown, countdownPlate], scale: 1.15, duration: 300, ease: "Back.Out" });
+        this.scene.tweens.add({ targets: [countdown, countdownPlate], alpha: label === "CAST!" ? 0 : 0.35, delay: 420, duration: 250 });
+      }));
+      this.schedule(3600, () => {
+        countdown.destroy(); countdownPlate.destroy(); ready.destroy();
+        if (type === "rune-memory") this.runeMemory(finish);
+        else if (type === "spell-timing") this.spellTiming(finish);
+        else this.arcaneClash(finish);
+      });
     });
   }
 

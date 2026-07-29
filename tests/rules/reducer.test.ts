@@ -20,8 +20,8 @@ function stateWith(hands: [Card[], Card[]], top = card("red", "number", 5), rule
 
 describe("deck", () => {
   it("builds deterministic Classic and Wild decks", () => {
-    expect(buildDeck("classic", 7).cards).toHaveLength(96);
-    expect(buildDeck("wild", 7).cards).toHaveLength(100);
+    expect(buildDeck("classic", 7).cards).toHaveLength(90);
+    expect(buildDeck("wild", 7).cards).toHaveLength(94);
     expect(buildDeck("wild", 7).cards.map((item) => item.id)).toEqual(buildDeck("wild", 7).cards.map((item) => item.id));
     const liveSpecials = [...new Set(buildDeck("wild", 7).cards.filter((item) => item.kind !== "number").map((item) => item.kind))].sort();
     expect(liveSpecials).toEqual(["arsonist", "draw2", "freeze", "whirlwind", "wild4"]);
@@ -161,6 +161,7 @@ describe("Wild statuses and spells", () => {
     let state = stateWith([[arsonist, card("green", "number", 1), card("yellow", "number", 6)], [card("red", "number", 3), card("blue", "number", 4), card("green", "number", 9)]]);
     state = reduceGame(state, { type: "play", player: 0, cardId: arsonist.id }).state;
     expect(state.statuses[1].burn).toBe(1);
+    expect(state.statuses[1].burnedCardIds.every((id) => state.hands[1].find((item) => item.id === id)?.color !== "red")).toBe(true);
     state.statuses[1].burnedCardIds = [state.hands[1][0]!.id];
     state.currentColor = "blue";
     state.discard.push(card("blue", "number", 8));
@@ -169,7 +170,8 @@ describe("Wild statuses and spells", () => {
     state = reduceGame(state, { type: "play", player: 1, cardId: blue.id }).state;
     expect(state.statuses[1].burn).toBe(2);
     expect(state.hands[1]).toHaveLength(before);
-    expect(state.statuses[1].burnedCardIds).toHaveLength(2);
+    expect(state.statuses[1].burnedCardIds).toHaveLength(1);
+    expect(state.statuses[1].burnedCardIds.every((id) => state.hands[1].find((item) => item.id === id)?.color !== "red")).toBe(true);
   });
 
   it("playing red removes one Burn", () => {

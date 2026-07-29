@@ -57,11 +57,11 @@ export class SpellCinematics {
     });
 
     await new Promise<void>((resolve) => {
-      this.scene.time.delayedCall(1460, () => {
+      this.scene.time.delayedCall(1880, () => {
         this.scene.tweens.add({
           targets: [title, veil, colorVeil, reveal],
           alpha: 0,
-          duration: 260,
+          duration: 320,
           onComplete: () => {
             title.destroy();
             veil.destroy();
@@ -98,7 +98,7 @@ export class SpellCinematics {
     root.add([glowOuter, glowInner, face]);
     this.scene.tweens.add({ targets: root, alpha: 1, scale: 1, angle: 0, duration: 330, ease: "Back.Out" });
     this.scene.tweens.add({ targets: glowOuter, scale: 1.12, alpha: 0.04, duration: 420, yoyo: true, repeat: 2, ease: "Sine.InOut" });
-    this.scene.time.delayedCall(690, () => this.scene.tweens.add({ targets: root, x: width * 0.24, y: height * 0.54, scale: 0.64, angle: -4, duration: 300, ease: "Cubic.InOut" }));
+    this.scene.time.delayedCall(860, () => this.scene.tweens.add({ targets: root, x: width * 0.24, y: height * 0.54, scale: 0.64, angle: -4, duration: 380, ease: "Cubic.InOut" }));
     return root;
   }
 

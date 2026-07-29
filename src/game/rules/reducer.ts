@@ -77,8 +77,10 @@ function chooseColor(hand: Card[]): "red" | "blue" | "green" | "yellow" {
   return (Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "red") as keyof typeof counts;
 }
 
-function markRandomCards(state: GameState, player: 0 | 1, count: number): string[] {
-  const choices = state.hands[player].filter((card) => !state.statuses[player].frozenCardIds.includes(card.id));
+function markRandomCards(state: GameState, player: 0 | 1, count: number, effect: "burn" | "frost" = "frost"): string[] {
+  const choices = state.hands[player].filter((card) =>
+    !state.statuses[player].frozenCardIds.includes(card.id)
+    && (effect !== "burn" || card.color !== "red"));
   const selected: string[] = [];
   while (choices.length && selected.length < count) {
     const [index, seed] = randomIndex(state.rngSeed, choices.length);
@@ -100,7 +102,7 @@ function finishTurnStatuses(state: GameState, player: 0 | 1, playedColor: Card["
       drawCards(state, player, status.burn, "Burn");
       status.burn = Math.min(2, status.burn + 1) as 0 | 1 | 2;
     }
-    status.burnedCardIds = markRandomCards(state, player, status.burn);
+    status.burnedCardIds = markRandomCards(state, player, status.burn, "burn");
   }
   status.frozenCardIds = [];
 }
@@ -134,7 +136,7 @@ function applySpell(state: GameState, card: Card, player: 0 | 1, chosen?: "red" 
     case "arsonist": {
       const status = state.statuses[target];
       status.burn = Math.min(2, status.burn + 1) as 0 | 1 | 2;
-      status.burnedCardIds = markRandomCards(state, target, status.burn);
+      status.burnedCardIds = markRandomCards(state, target, status.burn, "burn");
       emit(state, { type: "status", actor: target, status: "burn", amount: status.burn });
       break;
     }
@@ -196,7 +198,6 @@ export function createGame(names: [string, string], ruleset: Ruleset, difficulty
     roundNumber: 1,
     drawStack: { amount: 0, kind: null },
     statuses: [emptyStatus(), emptyStatus()],
-    finalCalled: [false, false],
     challengeOwner: null,
     drawnCardId: null,
     lastSpecial: null,
@@ -220,13 +221,6 @@ export function reduceGame(current: GameState, command: GameCommand): CommandRes
   state.events = [];
   if (command.player !== state.turn) return reject(current, command.player, `Wait for ${state.names[state.turn]}.`);
   if (state.phase !== "playing") return reject(current, command.player, "The arena is resolving another action.");
-
-  if (command.type === "call-final") {
-    if (state.hands[command.player].length !== 2) return reject(current, command.player, "Call Final Card only when you have exactly two cards.");
-    state.finalCalled[command.player] = true;
-    emit(state, { type: "final-card", actor: command.player, success: true });
-    return { accepted: true, state };
-  }
 
   if (command.type === "draw") {
     if (state.drawnCardId) return reject(current, command.player, "Play or pass the card you already drew.");
@@ -294,8 +288,6 @@ export function reduceGame(current: GameState, command: GameCommand): CommandRes
       emit(state, { type: "final-card", actor: command.player, success: true });
     }
   }
-  state.finalCalled[command.player] = false;
-
   if (state.hands[command.player].length === 0) {
     state.roundWinner = command.player;
     const points = state.hands[other(command.player)].reduce((sum, item) => sum + cardPoints(item), 0);

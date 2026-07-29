@@ -57,4 +57,4 @@ The first visual gate is captured in `artifacts/rebuild/` for desktop and mobile
 - [x] Lock Gabby's supplied character identity, costume, proportions, and animation style.
 - [x] Create Gabby's transparent turn-ready, card-play, light-cast, heavy-cast, hurt, frozen, Burn, Whirlwind, Final Card, victory, and defeat poses.
 - [x] Add Gabby's reusable entrance, breathing, anticipation, impact, recovery, persistent-status, victory, and defeat animation director for the future second-player flow.
-- [ ] Receive and build the premium Skeleton/AI opponent character pack.
+- [x] Replace the Skeleton/AI opponent with Gabby and connect her complete pose set to live AI turns, spells, reactions, Final Card, victory, and defeat.

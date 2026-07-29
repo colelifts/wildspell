@@ -50,6 +50,7 @@ export class MatchScene extends Phaser.Scene {
   private playerSprite!: Phaser.GameObjects.Image;
   private opponentSprite!: Phaser.GameObjects.Image;
   private cardInspection?: Phaser.GameObjects.Container;
+  private inspectedCardId?: string;
   private dynamicObjects: Phaser.GameObjects.GameObject[] = [];
   private busy = false;
   private finalChallengeRunning = false;
@@ -117,6 +118,7 @@ export class MatchScene extends Phaser.Scene {
   private renderState(initial = false): void {
     this.cardInspection?.destroy(true);
     this.cardInspection = undefined;
+    this.inspectedCardId = undefined;
     for (const object of this.dynamicObjects) object.destroy();
     this.dynamicObjects = [];
     const top = this.state.discard.at(-1)!;
@@ -214,10 +216,20 @@ export class MatchScene extends Phaser.Scene {
       });
       view.container.on("pointerout", () => {
         this.tweens.add({ targets: view.container, y, scale: cardScale, angle, duration: 150 });
-        this.cardInspection?.destroy(true);
-        this.cardInspection = undefined;
+        if (!this.portrait || this.inspectedCardId !== card.id) {
+          this.cardInspection?.destroy(true);
+          this.cardInspection = undefined;
+        }
       });
-      view.container.on("pointerdown", () => this.onCardSelected(view));
+      view.container.on("pointerdown", () => {
+        if (this.portrait && premiumCardTexture(card.kind) && this.inspectedCardId !== card.id) {
+          this.inspectedCardId = card.id;
+          this.showCardInspection(card);
+          this.tweens.add({ targets: view.container, y: y - 34, scale: cardScale * 1.14, angle: 0, duration: 150, ease: "Back.Out" });
+          return;
+        }
+        this.onCardSelected(view);
+      });
     });
   }
 
@@ -234,8 +246,8 @@ export class MatchScene extends Phaser.Scene {
     } else {
       const premium = premiumCardTexture(card.kind);
       if (premium) {
-        const face = this.add.sprite(0, 0, premium.texture, Phaser.Math.Between(0, 47)).setDisplaySize(110, 165);
-        face.play({ key: premium.animation, startFrame: Phaser.Math.Between(0, 47) });
+        const face = this.add.sprite(0, 0, premium.texture, premium.animation ? Phaser.Math.Between(0, 47) : 0).setDisplaySize(110, 165);
+        if (premium.animation) face.play({ key: premium.animation, startFrame: Phaser.Math.Between(0, 47) });
         container.add(face);
       } else if (card.kind === "number") {
         this.addNumberCardFace(container, card);
@@ -416,9 +428,10 @@ export class MatchScene extends Phaser.Scene {
     const root = this.add.container(this.scale.width / 2, y).setDepth(520).setAlpha(0).setScale(0.72);
     const shadow = this.add.rectangle(10, 12, width + 18, height + 18, 0x000000, 0.72).setRounded(18);
     const halo = this.add.rectangle(0, 0, width + 12, height + 12, SPELL_COLORS[card.kind] ?? 0xb887ff, 0.15).setRounded(16).setStrokeStyle(4, 0xffe49a, 0.98).setBlendMode(Phaser.BlendModes.ADD);
-    const face = this.add.sprite(0, 0, premium.texture, Phaser.Math.Between(0, 47)).setDisplaySize(width, height);
-    face.play({ key: premium.animation, startFrame: Phaser.Math.Between(0, 47) });
-    const label = this.add.text(0, height / 2 + 24, `${CARD_NAMES[card.kind].toUpperCase()}  •  RELEASE TO RETURN`, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "12px" : "14px", fontStyle: "bold", color: "#fff4c9", stroke: "#070b18", strokeThickness: 5 }).setOrigin(0.5);
+    const face = this.add.sprite(0, 0, premium.texture, premium.animation ? Phaser.Math.Between(0, 47) : 0).setDisplaySize(width, height);
+    if (premium.animation) face.play({ key: premium.animation, startFrame: Phaser.Math.Between(0, 47) });
+    const instruction = this.portrait ? "TAP THE CARD AGAIN TO CAST" : "MOVE AWAY TO RETURN";
+    const label = this.add.text(0, height / 2 + 24, `${CARD_NAMES[card.kind].toUpperCase()}  •  ${instruction}`, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "12px" : "14px", fontStyle: "bold", color: "#fff4c9", stroke: "#070b18", strokeThickness: 5 }).setOrigin(0.5);
     root.add([shadow, halo, face, label]);
     this.cardInspection = root;
     this.tweens.add({ targets: root, alpha: 1, scale: 1, y: y - 8, duration: 180, ease: "Back.Out" });

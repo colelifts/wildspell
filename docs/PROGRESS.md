@@ -68,4 +68,5 @@ The first visual gate is captured in `artifacts/rebuild/` for desktop and mobile
 - [x] Add full-size animated inspection previews for premium special cards.
 - [x] Separate guidance and player plates so they no longer cover the central play field.
 - [x] Add full-card cinematic reveals and layered arena reactions for every current spell family.
+- [x] Replace the remaining Rewind, Prism Shift, Stormcall, Frostbite, Mirror Trick, and Cleanse fallback faces with high-resolution unified card designs.
 - [ ] Continue the full non-audio polish, multiplayer, accessibility, and acceptance-checklist pass.

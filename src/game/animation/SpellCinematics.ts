@@ -81,8 +81,8 @@ export class SpellCinematics {
     const premium = premiumCardTexture(kind);
     let face: Phaser.GameObjects.GameObject;
     if (premium) {
-      const sprite = this.scene.add.sprite(0, 0, premium.texture, Phaser.Math.Between(0, 47)).setDisplaySize(cardWidth, cardHeight);
-      sprite.play({ key: premium.animation, startFrame: Phaser.Math.Between(0, 47) });
+      const sprite = this.scene.add.sprite(0, 0, premium.texture, premium.animation ? Phaser.Math.Between(0, 47) : 0).setDisplaySize(cardWidth, cardHeight);
+      if (premium.animation) sprite.play({ key: premium.animation, startFrame: Phaser.Math.Between(0, 47) });
       face = sprite;
     } else {
       const panel = this.scene.add.rectangle(0, 0, cardWidth, cardHeight, 0x090c1c, 1).setRounded(16).setStrokeStyle(5, color, 1);

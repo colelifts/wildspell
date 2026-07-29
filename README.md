@@ -35,9 +35,9 @@ The game safely runs without media files. Add files using the exact names listed
 
 ## Firebase online beta
 
-Copy `.env.example` to `.env.local` and add the public browser configuration for your Firebase project. Private-room creation, invite-code joining, anonymous authentication, matchmaking queue entries, presence heartbeats, and reconnect-ready room subscriptions are implemented.
+The deployed build uses the original WildSpell public Firebase project by default. Private-room creation, invite URLs, room-code joining, quick matchmaking, presence, reconnect, local-first guest perspective, hidden rival hands, and atomic reducer-validated turns are implemented.
 
-Authoritative synchronized turns and hardened production database rules are not complete in this milestone. The checked-in `firebase-rules.json` remains suitable only for isolated development. Do not use it for ranked or untrusted public play.
+To use a different Firebase project, copy `.env.example` to `.env.local` and provide its public browser configuration. The original project does not currently expose working Firebase Authentication, so its checked-in database rules intentionally support guest play and should be treated as casual/untrusted rather than ranked security.
 
 ## Evidence and architecture
 

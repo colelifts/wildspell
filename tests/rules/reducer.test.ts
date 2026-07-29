@@ -3,6 +3,7 @@ import { buildDeck } from "../../src/game/rules/deck";
 import { illegalReason, isLegalCard } from "../../src/game/rules/legalMoves";
 import { advanceRound, createGame, reduceGame, resolveChallenge, restartMatch } from "../../src/game/rules/reducer";
 import type { Card, CardColor, CardKind, GameState } from "../../src/game/rules/types";
+import { hydrateGameState, stateForSlot } from "../../src/game/multiplayer/perspective";
 
 let serial = 0;
 const card = (color: CardColor, kind: CardKind, value?: number): Card => ({ id: `test-${serial++}`, color, kind, ...(value == null ? {} : { value }) });
@@ -235,5 +236,38 @@ describe("round and match flow", () => {
     expect(rematch.roundNumber).toBe(1);
     expect(rematch.scores).toEqual([0, 0]);
     expect(rematch.targetScore).toBe(200);
+  });
+});
+
+describe("online perspective", () => {
+  it("restores arrays and null fields omitted by Firebase serialization", () => {
+    const state = stateWith([[card("red", "number", 1)], [card("blue", "number", 2)]]);
+    const serialized = JSON.parse(JSON.stringify(state)) as GameState;
+    delete (serialized.statuses[0] as Partial<GameState["statuses"][0]>).burnedCardIds;
+    delete (serialized.statuses[0] as Partial<GameState["statuses"][0]>).frozenCardIds;
+    delete (serialized.drawStack as Partial<GameState["drawStack"]>).kind;
+    const hydrated = hydrateGameState(serialized);
+    expect(hydrated.statuses[0].burnedCardIds).toEqual([]);
+    expect(hydrated.statuses[0].frozenCardIds).toEqual([]);
+    expect(hydrated.drawStack.kind).toBeNull();
+    expect(() => illegalReason(hydrated, hydrated.hands[0][0]!, 0)).not.toThrow();
+  });
+
+  it("maps guest state and semantic actors into a local-player-first view", () => {
+    const state = stateWith([[card("red", "number", 1)], [card("blue", "number", 2), card("green", "number", 3)]]);
+    state.names = ["Cole", "Gabby"];
+    state.scores = [40, 70];
+    state.turn = 1;
+    state.roundWinner = 0;
+    state.challengeOwner = 1;
+    state.events = [{ type: "card-played", actor: 1, target: 0, card: state.hands[1][0]! }];
+    const guest = stateForSlot(state, 1);
+    expect(guest.names).toEqual(["Gabby", "Cole"]);
+    expect(guest.hands.map((hand) => hand.length)).toEqual([2, 1]);
+    expect(guest.scores).toEqual([70, 40]);
+    expect(guest.turn).toBe(0);
+    expect(guest.roundWinner).toBe(1);
+    expect(guest.challengeOwner).toBe(0);
+    expect(guest.events[0]).toEqual(expect.objectContaining({ actor: 0, target: 1 }));
   });
 });

@@ -11,8 +11,11 @@ import { chooseAiCard, chooseAiColor } from "../rules/ai";
 import { CARD_GLYPHS, CARD_NAMES } from "../rules/cards";
 import { illegalReason, isLegalCard, legalCards } from "../rules/legalMoves";
 import { advanceRound, createGame, reduceGame, resolveChallenge, restartMatch } from "../rules/reducer";
-import type { Card, CardColor, CardKind, GameEvent, GameState } from "../rules/types";
+import type { Card, CardColor, CardKind, GameCommand, GameEvent, GameState } from "../rules/types";
 import { guidanceFor } from "../ui/GuidanceDirector";
+import { advanceRoomRound, commitRoomCommand, resolveRoomChallengeTimeout, restartRoomMatch, submitChallengeScore, subscribeRoom, type RoomSession } from "../multiplayer/roomService";
+import { stateForSlot } from "../multiplayer/perspective";
+import type { RoomRecord } from "../multiplayer/protocol";
 
 const CARD_COLORS: Record<CardColor, number> = {
   red: 0xe84855,
@@ -44,8 +47,8 @@ export class MatchScene extends Phaser.Scene {
   private state!: GameState;
   private cinematics!: SpellCinematics;
   private arena!: ReactiveArena;
-  private playerDirector!: PremiumPlayerDirector;
-  private opponentDirector!: PremiumGabbyDirector;
+  private playerDirector!: PremiumPlayerDirector | PremiumGabbyDirector;
+  private opponentDirector!: PremiumPlayerDirector | PremiumGabbyDirector;
   private challenges!: ChallengeDirector;
   private playerSprite!: Phaser.GameObjects.Image;
   private opponentSprite!: Phaser.GameObjects.Image;
@@ -60,12 +63,19 @@ export class MatchScene extends Phaser.Scene {
   private forcedResolutionTimer?: Phaser.Time.TimerEvent;
   private roundTransitionTimer?: Phaser.Time.TimerEvent;
   private resultOverlayActive = false;
+  private onlineSession?: RoomSession;
+  private onlineRevision = -1;
+  private onlineUnsubscribe?: () => void;
 
   constructor() { super("MatchScene"); }
 
   init(data: StartMatchDetail): void {
     this.startDetail = data;
-    this.state = createGame([data.playerName, "Gabby"], data.ruleset, data.difficulty, Date.now() >>> 0);
+    this.onlineSession = data.online?.session;
+    this.onlineRevision = data.online?.room.revision ?? -1;
+    this.state = data.online?.room.state
+      ? stateForSlot(data.online.room.state, data.online.session.slot)
+      : createGame([data.playerName, "Gabby"], data.ruleset, data.difficulty, Date.now() >>> 0);
     if (data.resultPreview) {
       this.state.roundNumber = 2;
       this.state.roundWinner = 0;
@@ -95,15 +105,19 @@ export class MatchScene extends Phaser.Scene {
     this.add.rectangle(width / 2, this.portrait ? 74 : 38, width, this.portrait ? 148 : 76, 0x061020, 0.72).setDepth(5);
 
     createPremiumCardAnimations(this);
-    this.playerDirector = new PremiumPlayerDirector(this);
-    this.playerSprite = this.playerDirector.create(this.portrait ? 102 : 118, this.portrait ? 650 : 425, this.portrait ? 390 : 455);
-    this.opponentDirector = new PremiumGabbyDirector(this);
-    this.opponentSprite = this.opponentDirector.create(this.portrait ? 475 : 902, this.portrait ? 650 : 425, this.portrait ? 375 : 440);
+    const guestPerspective = this.onlineSession?.slot === 1;
+    this.playerDirector = guestPerspective ? new PremiumGabbyDirector(this) : new PremiumPlayerDirector(this);
+    this.playerSprite = this.playerDirector.create(this.portrait ? 102 : 118, this.portrait ? 650 : 425, this.portrait ? (guestPerspective ? 375 : 390) : (guestPerspective ? 440 : 455));
+    this.opponentDirector = guestPerspective ? new PremiumPlayerDirector(this) : new PremiumGabbyDirector(this);
+    this.opponentSprite = this.opponentDirector.create(this.portrait ? 475 : 902, this.portrait ? 650 : 425, this.portrait ? (guestPerspective ? 390 : 375) : (guestPerspective ? 455 : 440));
     this.cinematics = new SpellCinematics(this);
     this.challenges = new ChallengeDirector(this);
     this.bindControls();
     if (this.startDetail.resultPreview) this.game.canvas.dataset.resultState = `active:${this.startDetail.resultPreview}`;
+    if (this.onlineSession) this.syncOnlineDataset();
     this.renderState(true);
+    this.game.canvas.dataset.matchReady = "true";
+    if (this.onlineSession) void this.connectOnline();
     if (this.startDetail.challengePreview) {
       this.busy = true;
       this.time.delayedCall(850, () => {
@@ -125,6 +139,8 @@ export class MatchScene extends Phaser.Scene {
   shutdown(): void {
     this.forcedResolutionTimer?.remove(false);
     this.roundTransitionTimer?.remove(false);
+    this.onlineUnsubscribe?.();
+    this.onlineUnsubscribe = undefined;
     for (const [name, listener] of this.listeners) gameBus.removeEventListener(name, listener);
     this.listeners = [];
   }
@@ -138,6 +154,66 @@ export class MatchScene extends Phaser.Scene {
     on("draw", () => this.commit({ type: "draw", player: 0 }));
     on("call-final", () => this.commit({ type: "call-final", player: 0 }));
     on("emote", () => this.playCharacter(0, "emote"));
+    const playCardListener = ((event: CustomEvent<string>) => this.onCardRequested(event.detail)) as EventListener;
+    gameBus.addEventListener("play-card", playCardListener);
+    this.listeners.push(["play-card", playCardListener]);
+  }
+
+  private async connectOnline(): Promise<void> {
+    if (!this.onlineSession) return;
+    try {
+      this.onlineUnsubscribe = await subscribeRoom(this.onlineSession.code, (room) => this.applyOnlineRoom(room));
+    } catch (error) {
+      gameBus.dispatchEvent(new CustomEvent("toast", { detail: error instanceof Error ? error.message : "Online arena disconnected." }));
+    }
+  }
+
+  private applyOnlineRoom(room: RoomRecord | null): void {
+    if (!room?.state || !this.onlineSession) return;
+    if (room.revision <= this.onlineRevision) {
+      this.syncOnlineDataset(room);
+      return;
+    }
+    this.onlineRevision = room.revision;
+    this.state = stateForSlot(room.state, this.onlineSession.slot);
+    this.busy = false;
+    if (this.state.phase !== "challenge") this.finalChallengeRunning = false;
+    if (this.state.phase !== "round-over" && this.state.phase !== "match-over") this.resultOverlayActive = false;
+    this.syncOnlineDataset(room);
+    emitGameEvents(this.state.events);
+
+    const spell = this.state.events.find((event): event is Extract<GameEvent, { type: "spell" }> => event.type === "spell");
+    const played = this.state.events.find((event): event is Extract<GameEvent, { type: "card-played" }> => event.type === "card-played");
+    if (played) {
+      audioManager.playSfx("play");
+      this.playCharacter(played.actor, spell ? "spellcast" : "slash");
+    }
+    this.renderState();
+    if (spell) {
+      const actor = spell.actor === 0 ? this.playerSprite : this.opponentSprite;
+      const target = spell.target === 0 ? this.playerSprite : this.opponentSprite;
+      const from = new Phaser.Math.Vector2(actor.x, actor.y - 120);
+      const to = new Phaser.Math.Vector2(target.x, target.y - 120);
+      this.busy = true;
+      this.arena.react(spell.spell, to, this.state.drawStack.amount);
+      if (spell.target === 0) this.playPlayerReaction(spell.spell);
+      else this.playOpponentReaction(spell.spell);
+      void this.cinematics.play(spell.spell, from, to).finally(() => {
+        this.busy = false;
+        this.renderState();
+      });
+    }
+  }
+
+  private syncOnlineDataset(room?: RoomRecord): void {
+    if (!this.onlineSession) return;
+    this.game.canvas.dataset.onlineRoom = this.onlineSession.code;
+    this.game.canvas.dataset.onlineSlot = String(this.onlineSession.slot);
+    this.game.canvas.dataset.onlineRevision = String(room?.revision ?? this.onlineRevision);
+    this.game.canvas.dataset.onlineTurn = String(this.state.turn);
+    this.game.canvas.dataset.onlinePhase = this.state.phase;
+    this.game.canvas.dataset.onlineHand = String(this.state.hands[0].length);
+    this.game.canvas.dataset.onlineRivalHand = String(this.state.hands[1].length);
   }
 
   private renderState(initial = false): void {
@@ -158,13 +234,14 @@ export class MatchScene extends Phaser.Scene {
     this.arena.sync(this.state);
     this.playerDirector.setPersistentPose(this.state.statuses[0].burn ? "burn" : "turn-ready");
     this.opponentDirector.setPersistentPose(this.state.statuses[1].burn ? "burn" : "turn-ready");
+    this.syncOnlineDataset();
     emitGameState(this.state);
     if ((this.state.phase === "round-over" || this.state.phase === "match-over") && !this.resultOverlayActive) this.showResultOverlay();
     else if (this.state.phase === "challenge" && !this.finalChallengeRunning) void this.runChallenge();
     else if (this.state.phase === "playing" && !this.busy) {
       const active = this.state.turn;
       const mustDraw = !this.state.drawnCardId && legalCards(this.state, active).length === 0;
-      if (mustDraw) {
+      if (mustDraw && (!this.onlineSession || active === 0)) {
         this.forcedResolutionTimer?.remove(false);
         this.forcedResolutionTimer = this.time.delayedCall(520, () => {
           this.forcedResolutionTimer = undefined;
@@ -172,7 +249,7 @@ export class MatchScene extends Phaser.Scene {
             this.commit({ type: "draw", player: this.state.turn });
           }
         });
-      } else if (active === 1) this.time.delayedCall(900, () => void this.runAi());
+      } else if (active === 1 && !this.onlineSession) this.time.delayedCall(900, () => void this.runAi());
     }
   }
 
@@ -215,6 +292,12 @@ export class MatchScene extends Phaser.Scene {
       rematch.on("pointerover", () => rematch.setScale(1.06));
       rematch.on("pointerout", () => rematch.setScale(1));
       rematch.on("pointerdown", () => {
+        if (this.onlineSession) {
+          void restartRoomMatch(this.onlineSession).catch((error) => {
+            gameBus.dispatchEvent(new CustomEvent("toast", { detail: error instanceof Error ? error.message : "Rematch could not start." }));
+          });
+          return;
+        }
         if (this.startDetail.resultPreview) this.game.canvas.dataset.resultState = "complete:match";
         this.state = restartMatch(this.state);
         this.resultOverlayActive = false;
@@ -230,6 +313,12 @@ export class MatchScene extends Phaser.Scene {
       this.roundTransitionTimer?.remove(false);
       this.roundTransitionTimer = this.time.delayedCall(3000, () => {
         this.roundTransitionTimer = undefined;
+        if (this.onlineSession) {
+          void advanceRoomRound(this.onlineSession).catch((error) => {
+            gameBus.dispatchEvent(new CustomEvent("toast", { detail: error instanceof Error ? error.message : "The next round could not start." }));
+          });
+          return;
+        }
         if (this.startDetail.resultPreview) this.game.canvas.dataset.resultState = "complete:round";
         this.state = advanceRound(this.state);
         this.resultOverlayActive = false;
@@ -434,6 +523,19 @@ export class MatchScene extends Phaser.Scene {
     } else this.playCard(view.card);
   }
 
+  private onCardRequested(cardId: string): void {
+    if (this.busy) return;
+    const card = this.state.hands[0].find((item) => item.id === cardId);
+    if (!card) return;
+    const reason = illegalReason(this.state, card, 0);
+    if (reason) {
+      gameBus.dispatchEvent(new CustomEvent("toast", { detail: reason }));
+      return;
+    }
+    if (card.color === "wild" || card.kind === "cleanse") requestColor((color) => this.playCard(card, color));
+    else this.playCard(card);
+  }
+
   private playCard(card: Card, colorChoice?: Exclude<CardColor, "wild">): void {
     const start = new Phaser.Math.Vector2(this.playerSprite.x, this.playerSprite.y - 120);
     const target = new Phaser.Math.Vector2(this.opponentSprite.x, this.opponentSprite.y - 120);
@@ -442,6 +544,21 @@ export class MatchScene extends Phaser.Scene {
 
   private commit(command: Parameters<typeof reduceGame>[1], from = new Phaser.Math.Vector2(430, 285), to = new Phaser.Math.Vector2(590, 240)): void {
     if (this.busy && command.type !== "call-final") return;
+    if (this.onlineSession) {
+      const preview = reduceGame(this.state, command);
+      if (!preview.accepted) {
+        audioManager.playSfx("invalid");
+        gameBus.dispatchEvent(new CustomEvent("toast", { detail: preview.reason }));
+        return;
+      }
+      const onlineCommand = { ...command, player: this.onlineSession.slot } as GameCommand;
+      this.busy = true;
+      void commitRoomCommand(this.onlineSession, onlineCommand).catch((error) => {
+        this.busy = false;
+        gameBus.dispatchEvent(new CustomEvent("toast", { detail: error instanceof Error ? error.message : "The online move was rejected." }));
+      });
+      return;
+    }
     const result = reduceGame(this.state, command);
     this.state = result.state;
     emitGameEvents(this.state.events);
@@ -484,7 +601,7 @@ export class MatchScene extends Phaser.Scene {
   }
 
   private async runAi(): Promise<void> {
-    if (this.busy || this.state.turn !== 1 || this.state.phase !== "playing") return;
+    if (this.onlineSession || this.busy || this.state.turn !== 1 || this.state.phase !== "playing") return;
     this.busy = true;
     await new Promise<void>((resolve) => this.time.delayedCall(520, resolve));
     if (this.state.hands[1].length === 2) this.state = reduceGame(this.state, { type: "call-final", player: 1 }).state;
@@ -562,6 +679,10 @@ export class MatchScene extends Phaser.Scene {
   }
 
   private async runChallenge(): Promise<void> {
+    if (this.onlineSession) {
+      await this.runOnlineChallenge();
+      return;
+    }
     this.finalChallengeRunning = true;
     this.busy = true;
     audioManager.playSfx("challenge");
@@ -582,5 +703,26 @@ export class MatchScene extends Phaser.Scene {
     this.finalChallengeRunning = false;
     this.busy = false;
     this.renderState();
+  }
+
+  private async runOnlineChallenge(): Promise<void> {
+    if (!this.onlineSession || this.finalChallengeRunning) return;
+    this.finalChallengeRunning = true;
+    this.busy = true;
+    const types: ChallengeType[] = ["rune-memory", "spell-timing", "arcane-clash"];
+    const type = types[this.state.turnNumber % types.length]!;
+    try {
+      const result = await this.challenges.start(type);
+      gameBus.dispatchEvent(new CustomEvent("toast", { detail: `${result.score} arcane points submitted. Waiting for your rival…` }));
+      await submitChallengeScore(this.onlineSession, result.score);
+      this.time.delayedCall(10_500, () => {
+        if (this.onlineSession && this.state.phase === "challenge") void resolveRoomChallengeTimeout(this.onlineSession);
+      });
+    } catch (error) {
+      this.finalChallengeRunning = false;
+      gameBus.dispatchEvent(new CustomEvent("toast", { detail: error instanceof Error ? error.message : "Challenge synchronization failed." }));
+    } finally {
+      this.busy = false;
+    }
   }
 }

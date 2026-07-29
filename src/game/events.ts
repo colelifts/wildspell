@@ -1,5 +1,7 @@
 import type { CardColor, Difficulty, GameEvent, GameState, Ruleset } from "./rules/types";
 import type { ChallengeType } from "./challenges/ChallengeDirector";
+import type { RoomRecord } from "./multiplayer/protocol";
+import type { RoomSession } from "./multiplayer/roomService";
 
 export type ResultPreview = "round" | "match";
 
@@ -9,6 +11,7 @@ export interface StartMatchDetail {
   ruleset: Ruleset;
   challengePreview?: ChallengeType;
   resultPreview?: ResultPreview;
+  online?: { session: RoomSession; room: RoomRecord };
 }
 
 export const gameBus = new EventTarget();

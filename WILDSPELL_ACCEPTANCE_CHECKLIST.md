@@ -5,7 +5,7 @@
 - [ ] Bright magical tournament atmosphere
 - [ ] No giant dead/empty table composition
 - [ ] Cole and opponent are large and readable
-- [ ] Gabby renders correctly online
+- [x] Gabby renders correctly online
 - [ ] UI uses consistent premium pixel frames
 - [ ] Cards remain readable on desktop and mobile
 - [ ] Animated arena details do not distract from play
@@ -123,15 +123,15 @@
 
 ## Multiplayer
 
-- [ ] Create room
-- [ ] Join room
-- [ ] Invite URL
+- [x] Create room
+- [x] Join room
+- [x] Invite URL
 - [ ] Quick Match
-- [ ] Presence
-- [ ] Reconnect
-- [ ] Hidden hands
+- [x] Presence
+- [x] Reconnect
+- [x] Hidden hands
 - [ ] Host validation
-- [ ] Two-browser Playwright test
+- [x] Two-browser Playwright test
 - [ ] Color choice sync
 - [ ] Stack sync
 - [ ] Challenge sync

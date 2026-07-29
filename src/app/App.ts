@@ -6,13 +6,17 @@ import type { Difficulty, GameEvent, GameState, Ruleset } from "../game/rules/ty
 import { WildSpellGame } from "../game/WildSpellGame";
 import { firebaseConfigured } from "../game/multiplayer/firebase";
 import { findQuickMatch } from "../game/multiplayer/matchmaking";
-import { createRoom, joinRoom, type RoomSession } from "../game/multiplayer/roomService";
+import { createRoom, joinRoom, subscribeRoom, type RoomSession } from "../game/multiplayer/roomService";
+import type { RoomRecord } from "../game/multiplayer/protocol";
+import { CARD_NAMES } from "../game/rules/cards";
 
 export class App {
   private readonly game = new WildSpellGame();
   private state?: GameState;
   private toastTimer?: number;
   private roomSession?: RoomSession;
+  private roomUnsubscribe?: () => void;
+  private onlineStarted = false;
 
   constructor(private readonly root: HTMLElement) {}
 
@@ -49,7 +53,12 @@ export class App {
                   <div class="button-pair"><button class="secondary-cta" id="create-room">CREATE ROOM</button><button class="secondary-cta violet" id="quick-match">QUICK MATCH</button></div>
                   <label>ROOM SIGIL<input id="room-code" placeholder="ABC123" maxlength="6" /></label>
                   <button class="primary-cta compact" id="join-room">JOIN PRIVATE DUEL</button>
-                  <p class="mode-note" id="online-status">Online services activate when Firebase environment values are configured.</p>
+                  <p class="mode-note" id="online-status">Create a private arena or enter a six-rune invite code.</p>
+                  <section class="online-lobby hidden" id="online-lobby" aria-live="polite">
+                    <span class="lobby-kicker">PRIVATE ARENA</span>
+                    <div class="lobby-code-row"><strong id="lobby-code">------</strong><button id="copy-invite">COPY INVITE</button></div>
+                    <div class="lobby-duelists"><span><b id="lobby-player-0">HOST</b><small id="lobby-presence-0">WAITING</small></span><i>VS</i><span><b id="lobby-player-1">RIVAL</b><small id="lobby-presence-1">WAITING</small></span></div>
+                  </section>
                 </div>
                 <div class="tab-panel spellbook" data-panel="codex">
                   <article><i class="fire">♨</i><div><b>ARSONIST</b><span>Burn spreads when your rival fails to answer red.</span></div></article>
@@ -81,6 +90,7 @@ export class App {
             <button id="game-settings" class="control-button icon" aria-label="Settings">⚙</button>
             <button id="exit-match" class="control-button icon danger" aria-label="Leave match">×</button>
           </div>
+          <div class="accessible-hand" id="accessible-hand" role="group" aria-label="Your cards"></div>
         </section>
 
         <div class="modal hidden" id="color-modal" role="dialog" aria-modal="true" aria-labelledby="color-title">
@@ -123,6 +133,7 @@ export class App {
     this.root.querySelector("#create-room")?.addEventListener("click", () => void this.createOnlineRoom());
     this.root.querySelector("#quick-match")?.addEventListener("click", () => void this.quickMatch());
     this.root.querySelector("#join-room")?.addEventListener("click", () => void this.joinOnlineRoom());
+    this.root.querySelector("#copy-invite")?.addEventListener("click", () => void this.copyInvite());
 
     gameBus.addEventListener("state", ((event: CustomEvent<GameState>) => this.updateState(event.detail)) as EventListener);
     gameBus.addEventListener("toast", ((event: CustomEvent<string>) => this.showToast(event.detail)) as EventListener);
@@ -137,6 +148,13 @@ export class App {
         };
       });
     }) as EventListener);
+
+    const inviteCode = new URLSearchParams(window.location.search).get("room")?.trim().toUpperCase();
+    if (inviteCode) {
+      (this.root.querySelector("#room-code") as HTMLInputElement).value = inviteCode;
+      this.root.querySelector<HTMLButtonElement>('[data-tab="online"]')?.click();
+      this.root.querySelector<HTMLElement>("#online-status")!.textContent = `Invite ${inviteCode} loaded. Enter your name and join the duel.`;
+    }
   }
 
   private startSolo(): void {
@@ -155,6 +173,11 @@ export class App {
 
   private exitMatch(): void {
     this.game.destroy();
+    this.roomUnsubscribe?.();
+    this.roomUnsubscribe = undefined;
+    this.roomSession?.stopPresence();
+    this.roomSession = undefined;
+    this.onlineStarted = false;
     this.root.querySelector('[data-screen="game"]')?.classList.add("hidden");
     this.root.querySelector('[data-screen="menu"]')?.classList.remove("hidden");
     void audioManager.playMusic("menu");
@@ -172,7 +195,8 @@ export class App {
       const { name, ruleset } = this.onlineValues();
       this.roomSession = await createRoom(name, ruleset);
       (this.root.querySelector("#room-code") as HTMLInputElement).value = this.roomSession.code;
-      return `Room ${this.roomSession.code} is open. Share the sigil; synchronized combat is still in beta.`;
+      await this.watchOnlineRoom(this.roomSession);
+      return `Room ${this.roomSession.code} is open. Share the invite; the duel starts when your rival joins.`;
     });
   }
 
@@ -181,7 +205,8 @@ export class App {
       const { name } = this.onlineValues();
       const code = (this.root.querySelector("#room-code") as HTMLInputElement).value;
       this.roomSession = await joinRoom(code, name);
-      return `Joined room ${this.roomSession.code}. Presence is live; synchronized combat is still in beta.`;
+      await this.watchOnlineRoom(this.roomSession);
+      return `Joined room ${this.roomSession.code}. Synchronizing the arena…`;
     });
   }
 
@@ -190,10 +215,56 @@ export class App {
       const { name, ruleset } = this.onlineValues();
       this.roomSession = await findQuickMatch(name, ruleset);
       (this.root.querySelector("#room-code") as HTMLInputElement).value = this.roomSession.code;
+      await this.watchOnlineRoom(this.roomSession);
       return this.roomSession.slot === 0
         ? `Queued in room ${this.roomSession.code}. Waiting for a rival…`
-        : `Matched in room ${this.roomSession.code}. Presence is live; synchronized combat is still in beta.`;
+        : `Matched in room ${this.roomSession.code}. Synchronizing the arena…`;
     });
+  }
+
+  private async watchOnlineRoom(session: RoomSession): Promise<void> {
+    this.roomUnsubscribe?.();
+    this.onlineStarted = false;
+    this.root.querySelector("#online-lobby")?.classList.remove("hidden");
+    this.root.querySelector<HTMLElement>("#lobby-code")!.textContent = session.code;
+    this.roomUnsubscribe = await subscribeRoom(session.code, (room) => {
+      if (!room) {
+        this.root.querySelector<HTMLElement>("#online-status")!.textContent = "That room has closed.";
+        return;
+      }
+      this.updateLobby(room);
+      if (room.state && room.players?.[0] && room.players?.[1] && !this.onlineStarted) this.startOnlineMatch(session, room);
+    });
+  }
+
+  private updateLobby(room: RoomRecord): void {
+    for (const slot of [0, 1] as const) {
+      const player = room.players?.[slot];
+      const presence = room.presence?.[slot];
+      this.root.querySelector<HTMLElement>(`#lobby-player-${slot}`)!.textContent = player?.name ?? (slot === 0 ? "HOST" : "WAITING FOR RIVAL");
+      const status = this.root.querySelector<HTMLElement>(`#lobby-presence-${slot}`)!;
+      status.textContent = presence?.connected ? "CONNECTED" : player ? "RECONNECTING" : "NOT JOINED";
+      status.classList.toggle("connected", Boolean(presence?.connected));
+    }
+  }
+
+  private startOnlineMatch(session: RoomSession, room: RoomRecord): void {
+    if (!room.state || this.onlineStarted) return;
+    this.onlineStarted = true;
+    this.root.querySelector('[data-screen="menu"]')?.classList.add("hidden");
+    this.root.querySelector('[data-screen="game"]')?.classList.remove("hidden");
+    const playerName = room.players?.[session.slot]?.name ?? "Duelist";
+    this.game.start({ playerName, difficulty: "normal", ruleset: room.ruleset, online: { session, room } });
+    audioManager.playSfx("deal");
+  }
+
+  private async copyInvite(): Promise<void> {
+    if (!this.roomSession) return;
+    const invite = new URL(window.location.href);
+    invite.search = "";
+    invite.searchParams.set("room", this.roomSession.code);
+    await navigator.clipboard.writeText(invite.toString());
+    this.showToast("Invite link copied.");
   }
 
   private async withOnlineStatus(pending: string, action: () => Promise<string>): Promise<void> {
@@ -220,6 +291,18 @@ export class App {
     draw.disabled = state.turn !== 0 || state.phase !== "playing" || Boolean(state.drawnCardId) || state.hands[0].some((card) => !illegalReason(state, card, 0));
     final.disabled = state.turn !== 0 || state.hands[0].length !== 2;
     final.classList.toggle("called", state.finalCalled[0]);
+    const hand = this.root.querySelector<HTMLElement>("#accessible-hand")!;
+    hand.replaceChildren(...state.hands[0].map((card) => {
+      const button = document.createElement("button");
+      const name = card.kind === "number" ? `${card.color} ${card.value}` : `${card.color === "wild" ? "Wild" : card.color} ${CARD_NAMES[card.kind]}`;
+      button.textContent = name;
+      button.setAttribute("aria-label", `Play ${name}`);
+      button.dataset.cardId = card.id;
+      button.dataset.testid = "accessible-card";
+      button.disabled = state.turn !== 0 || state.phase !== "playing" || Boolean(illegalReason(state, card, 0));
+      button.addEventListener("click", () => gameBus.dispatchEvent(new CustomEvent("play-card", { detail: card.id })));
+      return button;
+    }));
   }
 
   private reactToEvent(event: GameEvent): void {

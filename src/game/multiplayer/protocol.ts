@@ -1,4 +1,5 @@
 import type { GameCommand, GameState, Ruleset } from "../rules/types";
+import type { ChallengeType } from "../challenges/ChallengeDirector";
 
 export const PROTOCOL_VERSION = 1;
 
@@ -18,6 +19,13 @@ export interface RoomRecord {
   players: Partial<Record<0 | 1, RoomPlayer>>;
   revision: number;
   state?: GameState;
+  challenge?: {
+    id: string;
+    type: ChallengeType;
+    startedAt: number;
+    scores: Partial<Record<0 | 1, number>>;
+  };
+  presence?: Partial<Record<0 | 1, PresenceRecord>>;
 }
 
 export interface CommandEnvelope {

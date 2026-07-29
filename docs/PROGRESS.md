@@ -26,7 +26,7 @@ Updated: 2026-07-28
 - [x] 5 — Spell-specific cinematics and persistent status effects
 - [x] 6 — Three timed 5–10 second Final Card challenges
 - [x] 7 — Four seeded AI difficulties
-- [ ] 8 — Firebase rooms, matchmaking, presence, projections, and reconnect (rooms, queue, presence, protocol, and subscription adapters implemented; authoritative synchronized turns remain)
+- [ ] 8 — Firebase rooms, matchmaking, presence, projections, and reconnect (live private rooms, invite URLs, guest perspectives, reducer-validated synchronized turns, presence, and reconnect are complete; deterministic challenge/round synchronization tests and hardened authenticated rules remain)
 - [x] 9 — Preloaded replaceable audio pipeline with missing-file fallbacks
 - [ ] 10 — Responsive polish, accessibility, evidence, and deployment (desktop/mobile evidence and reduced motion complete; hosting and final accessibility audit remain)
 
@@ -75,4 +75,7 @@ The first visual gate is captured in `artifacts/rebuild/` for desktop and mobile
 - [x] Add deterministic desktop/mobile challenge previews and visual regression evidence under `artifacts/challenges/`.
 - [x] Add real round scoring, a visible 200-point match target, automatic fresh-round dealing, match victory, and rematch flow.
 - [x] Add responsive desktop/mobile result presentations and browser evidence under `artifacts/results/`.
+- [x] Replace the Online Beta placeholder with live Firebase room creation/joining, synchronized turns, invite URLs, presence, and reconnect.
+- [x] Add local-first guest projections so Gabby/Cole identities, hands, actors, effects, and hidden rival cards render correctly from either seat.
+- [x] Add keyboard-accessible card controls and a real two-browser desktop/mobile synchronization test with reconnect evidence under `artifacts/online/`.
 - [ ] Continue the full non-audio polish, multiplayer, accessibility, and acceptance-checklist pass.

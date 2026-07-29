@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import type { CardKind, GameState } from "../rules/types";
+import { virtualViewport } from "../render/virtualViewport";
 
 const COLOR_MAGIC = {
   red: 0xff3e25,
@@ -17,7 +18,7 @@ export class ReactiveArena {
   constructor(private readonly scene: Phaser.Scene, private readonly portrait: boolean) {}
 
   create(backgroundKey: string): void {
-    const { width, height } = this.scene.scale;
+    const { width, height } = virtualViewport(this.scene);
     this.background = this.scene.add.image(width / 2, height / 2, backgroundKey)
       .setDisplaySize(this.portrait ? 1820 : 1600, this.portrait ? 1024 : 900)
       .setDepth(-30);
@@ -76,13 +77,14 @@ export class ReactiveArena {
   }
 
   private createAmbientParticles(): void {
+    const { width, height } = virtualViewport(this.scene);
     if (!this.scene.textures.exists("arena-mote")) {
       const graphics = this.scene.add.graphics();
       graphics.fillStyle(0xffffff, 1).fillCircle(3, 3, 3).generateTexture("arena-mote", 6, 6).destroy();
     }
-    this.scene.add.particles(this.scene.scale.width / 2, this.scene.scale.height * 0.52, "arena-mote", {
-      x: { min: -this.scene.scale.width * 0.5, max: this.scene.scale.width * 0.5 },
-      y: { min: -this.scene.scale.height * 0.45, max: this.scene.scale.height * 0.45 },
+    this.scene.add.particles(width / 2, height * 0.52, "arena-mote", {
+      x: { min: -width * 0.5, max: width * 0.5 },
+      y: { min: -height * 0.45, max: height * 0.45 },
       lifespan: { min: 3000, max: 6200 },
       speedY: { min: -16, max: -4 },
       speedX: { min: -7, max: 7 },
@@ -95,7 +97,7 @@ export class ReactiveArena {
   }
 
   private flash(color: number, alpha: number, duration: number): void {
-    const { width, height } = this.scene.scale;
+    const { width, height } = virtualViewport(this.scene);
     const veil = this.scene.add.rectangle(width / 2, height / 2, width, height, color, 0).setDepth(250).setBlendMode(Phaser.BlendModes.ADD);
     this.scene.tweens.add({ targets: veil, fillAlpha: alpha, duration: duration * 0.25, yoyo: true, hold: duration * 0.45, onComplete: () => veil.destroy() });
   }
@@ -104,7 +106,7 @@ export class ReactiveArena {
     this.flash(0x7ee9ff, 0.34, 1450);
     const frost = this.scene.add.graphics().setDepth(255);
     frost.lineStyle(8, 0xbef7ff, 0.7);
-    const { width, height } = this.scene.scale;
+    const { width, height } = virtualViewport(this.scene);
     for (let branch = 0; branch < 14; branch += 1) {
       const edgeX = branch % 2 ? 0 : width;
       const edgeY = (branch / 14) * height;
@@ -142,7 +144,7 @@ export class ReactiveArena {
   }
 
   private whirlwind(target: Phaser.Math.Vector2): void {
-    const centerX = this.scene.scale.width / 2;
+    const centerX = virtualViewport(this.scene).width / 2;
     const centerY = target.y + 45;
     this.scene.tweens.add({ targets: this.scene.cameras.main, rotation: 0.015, duration: 120, yoyo: true, repeat: 5 });
     for (let index = 0; index < 44; index += 1) {
@@ -156,8 +158,9 @@ export class ReactiveArena {
 
   private drawSpell(target: Phaser.Math.Vector2, count: number, color: number): void {
     this.flash(color, 0.2, 900);
+    const { width, height } = virtualViewport(this.scene);
     for (let index = 0; index < count; index += 1) {
-      const card = this.scene.add.rectangle(this.scene.scale.width / 2 + (index - (count - 1) / 2) * 42, this.scene.scale.height * 0.45, 48, 72, 0x100623, 0.96)
+      const card = this.scene.add.rectangle(width / 2 + (index - (count - 1) / 2) * 42, height * 0.45, 48, 72, 0x100623, 0.96)
         .setStrokeStyle(4, color, 1)
         .setDepth(270)
         .setAngle((index - (count - 1) / 2) * 18);
@@ -168,9 +171,10 @@ export class ReactiveArena {
   private chaos(target: Phaser.Math.Vector2, stackAmount: number): void {
     this.flash(0xb30d16, 0.38, 1700);
     this.scene.cameras.main.shake(680, 0.012);
+    const { width, height } = virtualViewport(this.scene);
     for (let index = 0; index < 4; index += 1) {
       const angle = (Math.PI * 2 * index) / 4 - Math.PI / 4;
-      const seal = this.scene.add.circle(this.scene.scale.width / 2 + Math.cos(angle) * 250, this.scene.scale.height * 0.46 + Math.sin(angle) * 165, 58, 0x250007, 0.72)
+      const seal = this.scene.add.circle(width / 2 + Math.cos(angle) * 250, height * 0.46 + Math.sin(angle) * 165, 58, 0x250007, 0.72)
         .setStrokeStyle(8, 0xff3c25, 1)
         .setDepth(265)
         .setScale(0.1);
@@ -210,7 +214,7 @@ export class ReactiveArena {
   }
 
   private prismShift(): void {
-    const { width, height } = this.scene.scale;
+    const { width, height } = virtualViewport(this.scene);
     const colors = [0xff4055, 0x49a8ff, 0x39de91, 0xffd650];
     colors.forEach((color, index) => {
       const band = this.scene.add.rectangle(width / 2, height / 2, width * 1.5, height * 0.18, color, 0).setDepth(260).setAngle(-18 + index * 12).setBlendMode(Phaser.BlendModes.ADD);

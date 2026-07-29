@@ -164,6 +164,7 @@ export function createGame(names: [string, string], ruleset: Ruleset, difficulty
     first = cards.pop()!;
   }
   return {
+    syncRevision: 0,
     ruleset,
     difficulty,
     names,

@@ -4,10 +4,10 @@
 
 - [ ] Bright magical tournament atmosphere
 - [ ] No giant dead/empty table composition
-- [ ] Cole and opponent are large and readable
+- [x] Cole and opponent are large and readable
 - [x] Gabby renders correctly online
 - [ ] UI uses consistent premium pixel frames
-- [ ] Cards remain readable on desktop and mobile
+- [x] Cards remain readable on desktop and mobile
 - [ ] Animated arena details do not distract from play
 - [ ] Reduced-motion mode works
 
@@ -126,25 +126,25 @@
 - [x] Create room
 - [x] Join room
 - [x] Invite URL
-- [ ] Quick Match
+- [x] Quick Match
 - [x] Presence
 - [x] Reconnect
 - [x] Hidden hands
 - [ ] Host validation
 - [x] Two-browser Playwright test
-- [ ] Color choice sync
-- [ ] Stack sync
-- [ ] Challenge sync
-- [ ] Round transition sync
+- [x] Color choice sync
+- [x] Stack sync
+- [x] Challenge sync
+- [x] Round transition sync
 
 ## Shipping
 
-- [ ] Vite production build passes
-- [ ] TypeScript passes
-- [ ] Vitest passes
+- [x] Vite production build passes
+- [x] TypeScript passes
+- [x] Vitest passes
 - [ ] Playwright passes
-- [ ] Desktop screenshots
-- [ ] Mobile screenshots
+- [x] Desktop screenshots
+- [x] Mobile screenshots
 - [ ] README deployment guide
 - [ ] Firebase rules documented
 - [ ] Vercel deployment verified

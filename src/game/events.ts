@@ -12,6 +12,7 @@ export interface StartMatchDetail {
   challengePreview?: ChallengeType;
   resultPreview?: ResultPreview;
   online?: { session: RoomSession; room: RoomRecord };
+  render?: { width: number; height: number; scale: number };
 }
 
 export const gameBus = new EventTarget();

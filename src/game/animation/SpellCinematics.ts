@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { premiumCardTexture } from "./CardVisuals";
 import { CARD_NAMES } from "../rules/cards";
 import type { CardKind } from "../rules/types";
+import { virtualViewport } from "../render/virtualViewport";
 
 const COLORS: Partial<Record<CardKind, number>> = {
   freeze: 0x78e8ff,
@@ -26,7 +27,7 @@ export class SpellCinematics {
     if (kind === "number" || this.active) return;
     this.active = true;
     const color = COLORS[kind] ?? 0xffffff;
-    const { width, height } = this.scene.scale;
+    const { width, height } = virtualViewport(this.scene);
     const veil = this.scene.add.rectangle(width / 2, height / 2, width, height, 0x02030b, 0).setDepth(300);
     const colorVeil = this.scene.add.rectangle(width / 2, height / 2, width, height, color, 0).setDepth(301).setBlendMode(Phaser.BlendModes.ADD);
     const title = this.scene.add.text(width / 2, height * 0.13, CARD_NAMES[kind].toUpperCase(), {
@@ -72,7 +73,7 @@ export class SpellCinematics {
   }
 
   private cardReveal(kind: CardKind, color: number): Phaser.GameObjects.Container {
-    const { width, height } = this.scene.scale;
+    const { width, height } = virtualViewport(this.scene);
     const cardWidth = height > width ? 184 : 224;
     const cardHeight = cardWidth * 1.5;
     const root = this.scene.add.container(width / 2, height * 0.5).setDepth(328).setAlpha(0).setScale(0.32).setAngle(-8);

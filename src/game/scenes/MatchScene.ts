@@ -16,6 +16,7 @@ import { guidanceFor } from "../ui/GuidanceDirector";
 import { advanceRoomRound, commitRoomCommand, resolveRoomChallengeTimeout, restartRoomMatch, submitChallengeScore, subscribeRoom, type RoomSession } from "../multiplayer/roomService";
 import { stateForSlot } from "../multiplayer/perspective";
 import type { RoomRecord } from "../multiplayer/protocol";
+import { virtualViewport } from "../render/virtualViewport";
 
 const CARD_COLORS: Record<CardColor, number> = {
   red: 0xe84855,
@@ -66,13 +67,22 @@ export class MatchScene extends Phaser.Scene {
   private onlineSession?: RoomSession;
   private onlineRevision = -1;
   private onlineUnsubscribe?: () => void;
+  private virtualWidth = 1024;
+  private virtualHeight = 576;
+  private renderScale = 1;
 
   constructor() { super("MatchScene"); }
 
   init(data: StartMatchDetail): void {
     this.startDetail = data;
+    this.virtualWidth = data.render?.width ?? 1024;
+    this.virtualHeight = data.render?.height ?? 576;
+    this.renderScale = data.render?.scale ?? 1;
+    this.registry.set("virtualWidth", this.virtualWidth);
+    this.registry.set("virtualHeight", this.virtualHeight);
+    this.registry.set("renderScale", this.renderScale);
     this.onlineSession = data.online?.session;
-    this.onlineRevision = data.online?.room.revision ?? -1;
+    this.onlineRevision = data.online?.room.state?.syncRevision ?? data.online?.room.revision ?? -1;
     this.state = data.online?.room.state
       ? stateForSlot(data.online.room.state, data.online.session.slot)
       : createGame([data.playerName, "Gabby"], data.ruleset, data.difficulty, Date.now() >>> 0);
@@ -94,10 +104,12 @@ export class MatchScene extends Phaser.Scene {
 
   create(): void {
     this.events.once(Phaser.Scenes.Events.SHUTDOWN, this.shutdown, this);
-    this.portrait = this.scale.height > this.scale.width;
-    const width = this.scale.width;
-    const height = this.scale.height;
-    this.cameras.main.setViewport(0, 0, width, height).setZoom(this.portrait ? 1 : 0.64).centerOn(width / 2, this.portrait ? height / 2 : 360);
+    this.portrait = this.virtualHeight > this.virtualWidth;
+    const width = this.virtualWidth;
+    const height = this.virtualHeight;
+    const originalText = this.add.text.bind(this.add);
+    this.add.text = ((x, y, text, style = {}) => originalText(x, y, text, { ...style, resolution: this.renderScale })) as typeof this.add.text;
+    this.cameras.main.setViewport(0, 0, this.scale.width, this.scale.height).setZoom((this.portrait ? 1 : 0.72) * this.renderScale).centerOn(width / 2, this.portrait ? height / 2 : 360);
     this.cameras.main.setBackgroundColor(0x07112c);
     this.arena = new ReactiveArena(this, this.portrait);
     this.arena.create("arena-premium");
@@ -170,11 +182,12 @@ export class MatchScene extends Phaser.Scene {
 
   private applyOnlineRoom(room: RoomRecord | null): void {
     if (!room?.state || !this.onlineSession) return;
-    if (room.revision <= this.onlineRevision) {
+    const revision = room.state.syncRevision ?? room.revision;
+    if (revision <= this.onlineRevision) {
       this.syncOnlineDataset(room);
       return;
     }
-    this.onlineRevision = room.revision;
+    this.onlineRevision = revision;
     this.state = stateForSlot(room.state, this.onlineSession.slot);
     this.busy = false;
     if (this.state.phase !== "challenge") this.finalChallengeRunning = false;
@@ -209,11 +222,17 @@ export class MatchScene extends Phaser.Scene {
     if (!this.onlineSession) return;
     this.game.canvas.dataset.onlineRoom = this.onlineSession.code;
     this.game.canvas.dataset.onlineSlot = String(this.onlineSession.slot);
-    this.game.canvas.dataset.onlineRevision = String(room?.revision ?? this.onlineRevision);
+    this.game.canvas.dataset.onlineRevision = String(room?.state?.syncRevision ?? this.onlineRevision);
     this.game.canvas.dataset.onlineTurn = String(this.state.turn);
     this.game.canvas.dataset.onlinePhase = this.state.phase;
+    this.game.canvas.dataset.onlineColor = this.state.currentColor;
+    this.game.canvas.dataset.onlineStack = String(this.state.drawStack.amount);
+    this.game.canvas.dataset.onlineRound = String(this.state.roundNumber);
+    if (this.state.phase === "round-over") this.game.canvas.dataset.onlineRoundResult = String(this.state.roundNumber);
     this.game.canvas.dataset.onlineHand = String(this.state.hands[0].length);
     this.game.canvas.dataset.onlineRivalHand = String(this.state.hands[1].length);
+    if (room?.challenge) this.game.canvas.dataset.onlineChallenge = `${room.challenge.id}:${room.challenge.type}`;
+    else if (this.state.phase !== "challenge") delete this.game.canvas.dataset.onlineChallenge;
   }
 
   private renderState(initial = false): void {
@@ -224,8 +243,8 @@ export class MatchScene extends Phaser.Scene {
     this.dynamicObjects = [];
     const top = this.state.discard.at(-1)!;
     this.addHud();
-    this.addNameplate(this.portrait ? 105 : -170, this.portrait ? 105 : 50, this.state.names[0], this.state.hands[0].length, this.state.scores[0], this.state.statuses[0], false);
-    this.addNameplate(this.portrait ? 471 : 1194, this.portrait ? 105 : 50, this.state.names[1], this.state.hands[1].length, this.state.scores[1], this.state.statuses[1], true);
+    this.addNameplate(this.portrait ? 105 : -70, this.portrait ? 105 : 50, this.state.names[0], this.state.hands[0].length, this.state.scores[0], this.state.statuses[0], false);
+    this.addNameplate(this.portrait ? 471 : 1094, this.portrait ? 105 : 50, this.state.names[1], this.state.hands[1].length, this.state.scores[1], this.state.statuses[1], true);
     this.addEnemyHand();
     this.addDrawPile();
     this.addCard(top, this.portrait ? 345 : 512, this.portrait ? 420 : 305, false, false, 0, this.portrait ? 1.08 : 1.06);
@@ -259,8 +278,7 @@ export class MatchScene extends Phaser.Scene {
     const winner = this.state.roundWinner ?? 0;
     const playerWon = winner === 0;
     const matchOver = this.state.phase === "match-over";
-    const width = this.scale.width;
-    const height = this.scale.height;
+    const { width, height } = virtualViewport(this);
     const portrait = this.portrait;
     const root = this.add.container(0, 0).setDepth(650).setAlpha(0);
     const backdrop = this.add.rectangle(width / 2, height / 2, width, height, 0x02040e, 0.9);
@@ -311,7 +329,7 @@ export class MatchScene extends Phaser.Scene {
       }).setOrigin(0.5);
       root.add(nextRound);
       this.roundTransitionTimer?.remove(false);
-      this.roundTransitionTimer = this.time.delayedCall(3000, () => {
+      this.roundTransitionTimer = this.time.delayedCall(this.onlineSession ? 7_000 : 3_000, () => {
         this.roundTransitionTimer = undefined;
         if (this.onlineSession) {
           void advanceRoomRound(this.onlineSession).catch((error) => {
@@ -344,23 +362,23 @@ export class MatchScene extends Phaser.Scene {
     const colorName = this.state.currentColor.toUpperCase();
     const turn = this.state.turn === 0 ? "YOUR TURN" : "RIVAL THINKING";
     const guide = guidanceFor(this.state, 0);
-    const hud = this.add.text(this.scale.width / 2, this.portrait ? 22 : 19, `${turn}   •   ${colorName} MAGIC   •   ROUND ${this.state.roundNumber}`, {
+    const hud = this.add.text(this.virtualWidth / 2, this.portrait ? 22 : 19, `${turn}   •   ${colorName} MAGIC   •   ROUND ${this.state.roundNumber}`, {
       fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "15px" : "17px", fontStyle: "bold", color: "#fff2bd", stroke: "#081127", strokeThickness: 5
     }).setOrigin(0.5).setDepth(30);
     const guideY = this.portrait ? 175 : 94;
-    const guidePlate = this.add.rectangle(this.scale.width / 2, guideY, this.portrait ? 520 : 640, this.portrait ? 52 : 42, 0x050b1d, 0.94).setStrokeStyle(2, 0xe4bd62, 1).setDepth(29);
-    const guideText = this.add.text(this.scale.width / 2, guideY, guide, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "12px" : "15px", fontStyle: "bold", color: "#f5f8ff", align: "center", wordWrap: { width: this.portrait ? 490 : 610 } }).setOrigin(0.5).setDepth(30);
-    const stack = this.add.text(this.scale.width / 2, this.portrait ? 220 : 132, this.state.drawStack.amount ? `ARCANE STACK  +${this.state.drawStack.amount}` : "", { fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "18px" : "24px", fontStyle: "bold", color: "#ffe472", stroke: "#6c2f9f", strokeThickness: 7 }).setOrigin(0.5).setDepth(30);
+    const guidePlate = this.add.rectangle(this.virtualWidth / 2, guideY, this.portrait ? 520 : 640, this.portrait ? 52 : 42, 0x050b1d, 0.94).setStrokeStyle(2, 0xe4bd62, 1).setDepth(29);
+    const guideText = this.add.text(this.virtualWidth / 2, guideY, guide, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "12px" : "15px", fontStyle: "bold", color: "#f5f8ff", align: "center", wordWrap: { width: this.portrait ? 490 : 610 } }).setOrigin(0.5).setDepth(30);
+    const stack = this.add.text(this.virtualWidth / 2, this.portrait ? 220 : 132, this.state.drawStack.amount ? `ARCANE STACK  +${this.state.drawStack.amount}` : "", { fontFamily: '"Trebuchet MS", sans-serif', fontSize: this.portrait ? "18px" : "24px", fontStyle: "bold", color: "#ffe472", stroke: "#6c2f9f", strokeThickness: 7 }).setOrigin(0.5).setDepth(30);
     this.dynamicObjects.push(hud, guidePlate, guideText, stack);
     if (this.state.drawStack.amount) this.tweens.add({ targets: stack, scale: 1.08, alpha: 0.72, duration: 430, yoyo: true, repeat: -1 });
   }
 
   private addNameplate(x: number, y: number, name: string, count: number, score: number, status: GameState["statuses"][number], alignRight: boolean): void {
-    const plate = this.add.rectangle(x, y, 210, 58, 0x08142c, 0.92).setStrokeStyle(3, alignRight ? 0xbe6cff : 0x55dcff).setDepth(24);
+    const plate = this.add.rectangle(x, y, 220, 64, 0x08142c, 0.95).setStrokeStyle(3, alignRight ? 0xbe6cff : 0x55dcff).setDepth(24);
     const anchor = alignRight ? x + 88 : x - 88;
     const origin = alignRight ? 1 : 0;
-    const label = this.add.text(anchor, y - 17, name, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: "15px", fontStyle: "bold", color: "#ffffff" }).setOrigin(origin, 0).setDepth(25);
-    const detail = this.add.text(anchor, y + 3, `${count} CARDS  •  ${score} PTS  •  ${status.burn ? `BURN ${status.burn}` : status.stormcall ? "STORMBOUND" : status.frozenCardIds.length ? "FROST-LOCKED" : "READY"}`, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: "9px", color: status.burn ? "#ff9a6f" : "#aee9ff" }).setOrigin(origin, 0).setDepth(25);
+    const label = this.add.text(anchor, y - 21, name, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: "16px", fontStyle: "bold", color: "#ffffff" }).setOrigin(origin, 0).setDepth(25);
+    const detail = this.add.text(anchor, y + 3, `${count} CARDS  •  ${score} PTS  •  ${status.burn ? `BURN ${status.burn}` : status.stormcall ? "STORMBOUND" : status.frozenCardIds.length ? "FROST-LOCKED" : "READY"}`, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: "11px", fontStyle: "bold", color: status.burn ? "#ff9a6f" : "#aee9ff" }).setOrigin(origin, 0).setDepth(25);
     this.dynamicObjects.push(plate, label, detail);
   }
 
@@ -368,7 +386,7 @@ export class MatchScene extends Phaser.Scene {
     const count = this.state.hands[1].length;
     const spacing = Math.min(this.portrait ? 32 : 35, (this.portrait ? 310 : 312) / Math.max(1, count - 1));
     for (let index = 0; index < count; index += 1) {
-      const x = this.scale.width / 2 + (index - (count - 1) / 2) * spacing;
+      const x = this.virtualWidth / 2 + (index - (count - 1) / 2) * spacing;
       const card = this.addCard(this.state.hands[1][index]!, x, (this.portrait ? 260 : 168) + Math.abs(index - (count - 1) / 2) * 1.6, true, false, (index - (count - 1) / 2) * 1.8, this.portrait ? 0.62 : 0.58);
       card.container.setDepth(11 + index);
     }
@@ -380,8 +398,12 @@ export class MatchScene extends Phaser.Scene {
     const deckY = this.portrait ? 420 : 305;
     const view = this.addCard(fake, deckX, deckY, true, false, -4, this.portrait ? 1.04 : 1.02);
     view.container.setInteractive(new Phaser.Geom.Rectangle(-55, -80, 110, 160), Phaser.Geom.Rectangle.Contains).on("pointerdown", () => this.commit({ type: "draw", player: 0 }));
-    const deckLabel = this.add.text(deckX, this.portrait ? 515 : 410, `${this.state.drawPile.length} IN DECK`, { fontSize: "12px", fontStyle: "bold", color: "#d6e6ff", stroke: "#061027", strokeThickness: 4 }).setOrigin(0.5).setDepth(30);
-    this.dynamicObjects.push(deckLabel);
+    const labelY = this.portrait ? 515 : 410;
+    const deckBadge = this.add.graphics().setDepth(29);
+    deckBadge.fillStyle(0x071226, 0.92).fillRoundedRect(deckX - 51, labelY - 12, 102, 24, 9);
+    deckBadge.lineStyle(1.5, 0x6bcfff, 0.72).strokeRoundedRect(deckX - 51, labelY - 12, 102, 24, 9);
+    const deckLabel = this.add.text(deckX, labelY, `${this.state.drawPile.length} IN DECK`, { fontFamily: '"Trebuchet MS", sans-serif', fontSize: "12px", fontStyle: "bold", color: "#f3f8ff" }).setOrigin(0.5).setDepth(30);
+    this.dynamicObjects.push(deckBadge, deckLabel);
     if (this.state.turn === 0 && !legalCards(this.state, 0).length) this.tweens.add({ targets: view.container, scale: 1.12, duration: 550, yoyo: true, repeat: -1 });
   }
 
@@ -390,10 +412,10 @@ export class MatchScene extends Phaser.Scene {
     const spacing = Math.min(this.portrait ? 70 : 94, (this.portrait ? 485 : 760) / Math.max(1, hand.length - 1));
     hand.forEach((card, index) => {
       const offset = index - (hand.length - 1) / 2;
-      const x = this.scale.width / 2 + offset * spacing;
+      const x = this.virtualWidth / 2 + offset * spacing;
       const y = (this.portrait ? 700 : 480) + Math.abs(offset) * 2.4;
       const angle = offset * 2.2;
-      const cardScale = this.portrait ? 0.9 : 0.98;
+      const cardScale = this.portrait ? 0.98 : 1.08;
       const playable = isLegalCard(this.state, card, 0);
       const view = this.addCard(card, x, initial ? (this.portrait ? 860 : 580) : y, false, playable, angle, cardScale);
       view.container.setDepth(80 + index);
@@ -510,7 +532,10 @@ export class MatchScene extends Phaser.Scene {
   }
 
   private onCardSelected(view: CardView): void {
-    if (this.busy) return;
+    if (this.busy) {
+      gameBus.dispatchEvent(new CustomEvent("toast", { detail: "The spell is still resolving. Your card is safe." }));
+      return;
+    }
     const reason = illegalReason(this.state, view.card, 0);
     if (reason) {
       audioManager.playSfx("invalid");
@@ -524,7 +549,10 @@ export class MatchScene extends Phaser.Scene {
   }
 
   private onCardRequested(cardId: string): void {
-    if (this.busy) return;
+    if (this.busy) {
+      gameBus.dispatchEvent(new CustomEvent("toast", { detail: "The spell is still resolving. Your card is safe." }));
+      return;
+    }
     const card = this.state.hands[0].find((item) => item.id === cardId);
     if (!card) return;
     const reason = illegalReason(this.state, card, 0);
@@ -643,7 +671,7 @@ export class MatchScene extends Phaser.Scene {
     const y = this.portrait ? 535 : 318;
     const width = this.portrait ? 178 : 215;
     const height = width * 1.5;
-    const root = this.add.container(this.scale.width / 2, y).setDepth(520).setAlpha(0).setScale(0.72);
+    const root = this.add.container(this.virtualWidth / 2, y).setDepth(520).setAlpha(0).setScale(0.72);
     const shadow = this.add.rectangle(10, 12, width + 18, height + 18, 0x000000, 0.72).setRounded(18);
     const halo = this.add.rectangle(0, 0, width + 12, height + 12, SPELL_COLORS[card.kind] ?? 0xb887ff, 0.15).setRounded(16).setStrokeStyle(4, 0xffe49a, 0.98).setBlendMode(Phaser.BlendModes.ADD);
     const face = this.add.sprite(0, 0, premium.texture, premium.animation ? Phaser.Math.Between(0, 47) : 0).setDisplaySize(width, height);
@@ -711,8 +739,10 @@ export class MatchScene extends Phaser.Scene {
     this.busy = true;
     const types: ChallengeType[] = ["rune-memory", "spell-timing", "arcane-clash"];
     const type = types[this.state.turnNumber % types.length]!;
+    this.game.canvas.dataset.challengeState = `active:${type}`;
     try {
       const result = await this.challenges.start(type);
+      this.game.canvas.dataset.challengeState = `submitted:${type}:${result.score}`;
       gameBus.dispatchEvent(new CustomEvent("toast", { detail: `${result.score} arcane points submitted. Waiting for your rival…` }));
       await submitChallengeScore(this.onlineSession, result.score);
       this.time.delayedCall(10_500, () => {
@@ -720,6 +750,7 @@ export class MatchScene extends Phaser.Scene {
       });
     } catch (error) {
       this.finalChallengeRunning = false;
+      this.game.canvas.dataset.challengeState = `error:${type}`;
       gameBus.dispatchEvent(new CustomEvent("toast", { detail: error instanceof Error ? error.message : "Challenge synchronization failed." }));
     } finally {
       this.busy = false;

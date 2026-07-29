@@ -28,6 +28,7 @@ npm run test:e2e
 - Three real timed Final Card challenges: Rune Memory, Spell Timing, and Arcane Clash
 - Automatic round transitions, scoring to 200 points, match victory, and rematch
 - Landscape and portrait arena compositions with reduced-motion and audio settings
+- Device-density-aware Phaser rendering that keeps cards, character linework, and HUD text sharp on 2K/Retina displays
 
 ## Optional audio
 
@@ -45,5 +46,6 @@ To use a different Firebase project, copy `.env.example` to `.env.local` and pro
 - Architecture: `docs/ARCHITECTURE.md`
 - Asset audit: `docs/ASSET_MANIFEST.md`
 - Desktop/mobile screenshots: `artifacts/rebuild/`
+- 2K clarity proof: `artifacts/clarity/arena-2k.png`
 
 Vite emits the deployable site to `dist/` with `npm run build`.

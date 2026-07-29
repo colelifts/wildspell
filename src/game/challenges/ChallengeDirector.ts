@@ -1,4 +1,5 @@
 import Phaser from "phaser";
+import { virtualViewport } from "../render/virtualViewport";
 
 export type ChallengeType = "rune-memory" | "spell-timing" | "arcane-clash";
 
@@ -19,7 +20,7 @@ export class ChallengeDirector {
     this.destroy();
     this.resolved = false;
     const startedAt = Date.now();
-    const { width, height } = this.scene.scale;
+    const { width, height } = virtualViewport(this.scene);
     const portrait = height > width;
     const background = this.scene.add.rectangle(width / 2, height / 2, width, height, 0x02040e, 0.96);
     const colorWash = this.scene.add.rectangle(width / 2, height / 2, width, height, 0x5427a5, 0.1).setBlendMode(Phaser.BlendModes.ADD);
@@ -87,7 +88,7 @@ export class ChallengeDirector {
   }
 
   private runeMemory(done: (score: number) => void): void {
-    const { width, height } = this.scene.scale;
+    const { width, height } = virtualViewport(this.scene);
     const portrait = height > width;
     const runes = ["◆", "●", "▲", "✦"];
     const palette = [0xff6b8b, 0x69b8ff, 0x73e6a5, 0xffdc72];
@@ -166,7 +167,7 @@ export class ChallengeDirector {
   }
 
   private spellTiming(done: (score: number) => void): void {
-    const { width, height } = this.scene.scale;
+    const { width, height } = virtualViewport(this.scene);
     const portrait = height > width;
     const trackWidth = portrait ? width - 82 : 610;
     const trackY = portrait ? 525 : 325;
@@ -231,7 +232,7 @@ export class ChallengeDirector {
   }
 
   private arcaneClash(done: (score: number) => void): void {
-    const { width, height } = this.scene.scale;
+    const { width, height } = virtualViewport(this.scene);
     const portrait = height > width;
     const directions = ["↑", "→", "↓", "←"];
     const keys = ["UP", "RIGHT", "DOWN", "LEFT"];

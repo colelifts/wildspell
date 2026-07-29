@@ -28,12 +28,6 @@ function playerSlot(room: RoomRecord, uid: string): 0 | 1 | null {
   return null;
 }
 
-async function incrementRevision(code: string): Promise<void> {
-  const services = await getFirebaseServices();
-  if (!services) return;
-  await runTransaction(ref(services.database, `rooms/${code}/revision`), (value: number | null) => (value ?? 0) + 1);
-}
-
 export interface RoomSession {
   code: string;
   slot: 0 | 1;
@@ -86,7 +80,6 @@ export async function joinRoom(codeInput: string, name: string): Promise<RoomSes
   const stateResult = await runTransaction(ref(services.database, `rooms/${code}/state`), (state: GameState | null) => state ?? createGame([first.name, second.name], latest.ruleset, "normal", roomSeed(code, latest.createdAt)));
   if (!stateResult.committed) throw new Error("The online match could not start.");
   await update(roomRef, { status: "playing", updatedAt: Date.now() });
-  if (!latest.state) await incrementRevision(code);
   const stopPresence = await attachPresence(services.database, code, slot, services.user.uid);
   return { code, slot, uid: services.user.uid, stopPresence };
 }
@@ -104,13 +97,14 @@ export async function commitRoomCommand(session: RoomSession, command: GameComma
       rejection = result.reason ?? rejection;
       return;
     }
+    result.state.syncRevision = (state.syncRevision ?? 0) + 1;
     return result.state;
   });
   const committedStateRaw = transaction.snapshot.val() as GameState | null;
   const committedState = committedStateRaw ? hydrateGameState(committedStateRaw) : null;
   if (!transaction.committed || !committedState) throw new Error(rejection);
-  await incrementRevision(session.code);
   await update(ref(services.database, `rooms/${session.code}`), {
+    revision: committedState.syncRevision,
     updatedAt: Date.now(),
     status: committedState.phase === "match-over" ? "complete" : "playing"
   });
@@ -131,11 +125,14 @@ export async function submitChallengeScore(session: RoomSession, score: number):
   if (scores?.[0] == null || scores?.[1] == null) return;
   const stateTransaction = await runTransaction(ref(services.database, `rooms/${session.code}/state`), (state: GameState | null) => {
     if (!state || state.phase !== "challenge") return;
-    return resolveChallenge(hydrateGameState(state), scores[0]!, scores[1]!);
+    const next = resolveChallenge(hydrateGameState(state), scores[0]!, scores[1]!);
+    next.syncRevision = (state.syncRevision ?? 0) + 1;
+    return next;
   });
   if (stateTransaction.committed) {
     await remove(challengeRef);
-    await incrementRevision(session.code);
+    const state = stateTransaction.snapshot.val() as GameState | null;
+    if (state) await update(ref(services.database, `rooms/${session.code}`), { revision: state.syncRevision, updatedAt: Date.now() });
   }
 }
 
@@ -148,29 +145,61 @@ export async function resolveRoomChallengeTimeout(session: RoomSession): Promise
   const scores = challenge.scores ?? {};
   const transaction = await runTransaction(ref(services.database, `rooms/${session.code}/state`), (state: GameState | null) => {
     if (!state || state.phase !== "challenge") return;
-    return resolveChallenge(hydrateGameState(state), scores[0] ?? 0, scores[1] ?? 0);
+    const next = resolveChallenge(hydrateGameState(state), scores[0] ?? 0, scores[1] ?? 0);
+    next.syncRevision = (state.syncRevision ?? 0) + 1;
+    return next;
   });
   if (transaction.committed) {
     await remove(challengeRef);
-    await incrementRevision(session.code);
+    const state = transaction.snapshot.val() as GameState | null;
+    if (state) await update(ref(services.database, `rooms/${session.code}`), { revision: state.syncRevision, updatedAt: Date.now() });
   }
 }
 
 export async function advanceRoomRound(session: RoomSession): Promise<void> {
   const services = await getFirebaseServices();
   if (!services) throw new Error("Firebase is unavailable.");
-  const transaction = await runTransaction(ref(services.database, `rooms/${session.code}/state`), (state: GameState | null) => state?.phase === "round-over" ? advanceRound(hydrateGameState(state)) : undefined);
-  if (transaction.committed) await incrementRevision(session.code);
+  const transaction = await runTransaction(ref(services.database, `rooms/${session.code}/state`), (state: GameState | null) => {
+    if (state?.phase !== "round-over") return;
+    const next = advanceRound(hydrateGameState(state));
+    next.syncRevision = (state.syncRevision ?? 0) + 1;
+    return next;
+  });
+  const state = transaction.snapshot.val() as GameState | null;
+  if (transaction.committed && state) await update(ref(services.database, `rooms/${session.code}`), { revision: state.syncRevision, updatedAt: Date.now() });
 }
 
 export async function restartRoomMatch(session: RoomSession): Promise<void> {
   const services = await getFirebaseServices();
   if (!services) throw new Error("Firebase is unavailable.");
-  const transaction = await runTransaction(ref(services.database, `rooms/${session.code}/state`), (state: GameState | null) => state?.phase === "match-over" ? restartMatch(hydrateGameState(state)) : undefined);
+  const transaction = await runTransaction(ref(services.database, `rooms/${session.code}/state`), (state: GameState | null) => {
+    if (state?.phase !== "match-over") return;
+    const next = restartMatch(hydrateGameState(state));
+    next.syncRevision = (state.syncRevision ?? 0) + 1;
+    return next;
+  });
   if (transaction.committed) {
-    await update(ref(services.database, `rooms/${session.code}`), { status: "playing", updatedAt: Date.now() });
-    await incrementRevision(session.code);
+    const state = transaction.snapshot.val() as GameState | null;
+    await update(ref(services.database, `rooms/${session.code}`), { status: "playing", revision: state?.syncRevision ?? 0, updatedAt: Date.now() });
   }
+}
+
+export async function abandonWaitingRoom(session: RoomSession): Promise<void> {
+  const services = await getFirebaseServices();
+  if (!services) return;
+  const roomRef = ref(services.database, `rooms/${session.code}`);
+  const room = (await get(roomRef)).val() as RoomRecord | null;
+  if (!room || room.hostUid !== session.uid || room.players?.[1] || room.status !== "waiting") return;
+  const transaction = await runTransaction(roomRef, (current: RoomRecord | null) => {
+    if (!current || current.hostUid !== session.uid || current.players?.[1] || current.status !== "waiting") return;
+    return null;
+  });
+  if (!transaction.committed) return;
+  session.stopPresence();
+  await runTransaction(ref(services.database, `matchmaking/${room.ruleset}`), (entry: { code?: string; uid?: string } | null) => {
+    if (entry?.code === session.code && entry.uid === session.uid) return null;
+    return;
+  });
 }
 
 export async function roomExists(code: string): Promise<boolean> {
@@ -182,7 +211,21 @@ export async function roomExists(code: string): Promise<boolean> {
 export async function subscribeRoom(code: string, listener: (room: RoomRecord | null) => void): Promise<Unsubscribe> {
   const services = await getFirebaseServices();
   if (!services) throw new Error("Firebase is unavailable.");
-  return onValue(ref(services.database, `rooms/${code.toUpperCase()}`), (snapshot) => listener(snapshot.val() as RoomRecord | null));
+  const roomRef = ref(services.database, `rooms/${code.toUpperCase()}`);
+  let stopped = false;
+  const unsubscribe = onValue(roomRef, (snapshot) => {
+    if (!stopped) listener(snapshot.val() as RoomRecord | null);
+  });
+  const reconcile = window.setInterval(() => {
+    void get(roomRef).then((snapshot) => {
+      if (!stopped) listener(snapshot.val() as RoomRecord | null);
+    }).catch(() => undefined);
+  }, 4_000);
+  return () => {
+    stopped = true;
+    window.clearInterval(reconcile);
+    unsubscribe();
+  };
 }
 
 export const firebaseServerTime = serverTimestamp;

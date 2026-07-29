@@ -26,9 +26,9 @@ Updated: 2026-07-28
 - [x] 5 — Spell-specific cinematics and persistent status effects
 - [x] 6 — Three timed 5–10 second Final Card challenges
 - [x] 7 — Four seeded AI difficulties
-- [ ] 8 — Firebase rooms, matchmaking, presence, projections, and reconnect (live private rooms, invite URLs, guest perspectives, reducer-validated synchronized turns, presence, and reconnect are complete; deterministic challenge/round synchronization tests and hardened authenticated rules remain)
+- [ ] 8 — Firebase rooms, matchmaking, presence, projections, and reconnect (private rooms, atomic quick matchmaking, guest perspectives, reducer-validated turns, presence, reconnect, mixed-stack/color/challenge/round synchronization tests are complete; hardened authenticated rules remain)
 - [x] 9 — Preloaded replaceable audio pipeline with missing-file fallbacks
-- [ ] 10 — Responsive polish, accessibility, evidence, and deployment (desktop/mobile evidence and reduced motion complete; hosting and final accessibility audit remain)
+- [ ] 10 — Responsive polish, accessibility, evidence, and deployment (high-density desktop/mobile rendering, evidence, and live hosting are complete; reduced-motion and final accessibility audits remain)
 
 ## Visual gate
 
@@ -78,4 +78,8 @@ The first visual gate is captured in `artifacts/rebuild/` for desktop and mobile
 - [x] Replace the Online Beta placeholder with live Firebase room creation/joining, synchronized turns, invite URLs, presence, and reconnect.
 - [x] Add local-first guest projections so Gabby/Cole identities, hands, actors, effects, and hidden rival cards render correctly from either seat.
 - [x] Add keyboard-accessible card controls and a real two-browser desktop/mobile synchronization test with reconnect evidence under `artifacts/online/`.
+- [x] Replace browser-upscaled 1024×576 rendering with a device-density-aware backing canvas and high-resolution Phaser text.
+- [x] Increase desktop camera scale, hand-card scale, nameplate type size, deck-count contrast, and disabled-control legibility.
+- [x] Add a dedicated 2048-pixel clarity assertion and proof image under `artifacts/clarity/`.
+- [x] Prove atomic Quick Match pairing plus synchronized color choice, mixed +4/+2 stacking, reconnect, Final Card scoring, and round transition in two desktop/mobile browsers.
 - [ ] Continue the full non-audio polish, multiplayer, accessibility, and acceptance-checklist pass.

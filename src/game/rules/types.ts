@@ -46,6 +46,7 @@ export type GameEvent =
   | { type: "match-won"; actor: number };
 
 export interface GameState {
+  syncRevision: number;
   ruleset: Ruleset;
   difficulty: Difficulty;
   names: [string, string];

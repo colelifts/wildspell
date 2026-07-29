@@ -503,6 +503,8 @@ select:focus {
   inset: 0;
   z-index: 1;
   display: block;
+  image-rendering: auto;
+  transform: translateZ(0);
 }
 .game-controls {
   position: absolute;
@@ -550,8 +552,8 @@ select:focus {
 }
 .control-button:disabled,
 .final-button:disabled {
-  opacity: 0.35;
-  filter: grayscale(1);
+  opacity: 0.58;
+  filter: saturate(0.6) brightness(0.84);
   cursor: not-allowed;
 }
 .final-button {

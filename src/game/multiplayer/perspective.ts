@@ -13,6 +13,7 @@ const emptyStatus = (): PlayerStatus => ({ burn: 0, burnedCardIds: [], frozenCar
 
 export function hydrateGameState(raw: GameState): GameState {
   const state = structuredClone(raw);
+  state.syncRevision = state.syncRevision ?? 0;
   const status = (value: Partial<PlayerStatus> | undefined): PlayerStatus => ({
     ...emptyStatus(),
     ...value,

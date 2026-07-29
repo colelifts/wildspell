@@ -1,5 +1,6 @@
 import { audioManager } from "../game/audio/AudioManager";
 import { gameBus } from "../game/events";
+import type { ChallengeType } from "../game/challenges/ChallengeDirector";
 import { illegalReason } from "../game/rules/legalMoves";
 import type { Difficulty, GameEvent, GameState, Ruleset } from "../game/rules/types";
 import { WildSpellGame } from "../game/WildSpellGame";
@@ -144,7 +145,9 @@ export class App {
     const ruleset = (this.root.querySelector("#ruleset") as HTMLSelectElement).value as Ruleset;
     this.root.querySelector('[data-screen="menu"]')?.classList.add("hidden");
     this.root.querySelector('[data-screen="game"]')?.classList.remove("hidden");
-    this.game.start({ playerName, difficulty, ruleset });
+    const requestedChallenge = new URLSearchParams(window.location.search).get("challenge");
+    const challengePreview = (["rune-memory", "spell-timing", "arcane-clash"] as ChallengeType[]).find((type) => type === requestedChallenge);
+    this.game.start({ playerName, difficulty, ruleset, ...(challengePreview ? { challengePreview } : {}) });
     audioManager.playSfx("deal");
   }
 

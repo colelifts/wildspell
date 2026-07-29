@@ -95,6 +95,21 @@ export class MatchScene extends Phaser.Scene {
     this.challenges = new ChallengeDirector(this);
     this.bindControls();
     this.renderState(true);
+    if (this.startDetail.challengePreview) {
+      this.busy = true;
+      this.time.delayedCall(850, () => {
+        const previewType = this.startDetail.challengePreview!;
+        this.game.canvas.dataset.challengeState = `active:${previewType}`;
+        void this.challenges.start(previewType)
+          .then((result) => {
+            this.game.canvas.dataset.challengeState = `complete:${result.type}:${result.score}`;
+          })
+          .finally(() => {
+            this.busy = false;
+            this.renderState();
+          });
+      });
+    }
     void audioManager.playMusic("battle");
   }
 

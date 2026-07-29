@@ -69,4 +69,8 @@ The first visual gate is captured in `artifacts/rebuild/` for desktop and mobile
 - [x] Separate guidance and player plates so they no longer cover the central play field.
 - [x] Add full-card cinematic reveals and layered arena reactions for every current spell family.
 - [x] Replace the remaining Rewind, Prism Shift, Stormcall, Frostbite, Mirror Trick, and Cleanse fallback faces with high-resolution unified card designs.
+- [x] Rebuild Rune Memory as a staged five-rune reveal with responsive input, accuracy scoring, speed bonus, and safe timeout cleanup.
+- [x] Rebuild Spell Timing as a three-round moving-target challenge with readable hit feedback and mobile-sized controls.
+- [x] Rebuild Arcane Clash as a five-prompt reaction challenge with pointer and keyboard controls and leak-free listener cleanup.
+- [x] Add deterministic desktop/mobile challenge previews and visual regression evidence under `artifacts/challenges/`.
 - [ ] Continue the full non-audio polish, multiplayer, accessibility, and acceptance-checklist pass.

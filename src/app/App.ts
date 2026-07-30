@@ -119,6 +119,7 @@ export class App {
 
           <div class="versus-stage">
             <article class="fighter-side fighter-side-player" aria-live="polite">
+              <div class="fighter-team-label"><span>PLAYER ONE</span><b>WILDSPELL DUELIST</b></div>
               <div class="fighter-aura"></div>
               <div class="fighter-figure">
                 <video data-player-fighter="kenpachi" src="/characters/kenpachi/selection-idle-ui.webm" muted loop playsinline></video>
@@ -138,6 +139,7 @@ export class App {
             </div>
 
             <article class="fighter-side fighter-side-rival">
+              <div class="fighter-team-label"><span>CPU RIVAL</span><b>ARCANE CHALLENGER</b></div>
               <div class="fighter-aura"></div>
               <div class="fighter-figure">
                 <video data-rival-fighter="hisoka" src="/characters/hisoka/selection-idle-ui.webm" muted loop playsinline></video>
@@ -166,6 +168,10 @@ export class App {
                 <video src="/characters/hisoka/portrait-idle-preview.webm" muted loop playsinline aria-hidden="true"></video>
                 <span><b>HISOKA</b><small>TRICKERY</small></span>
               </button>
+              <div class="roster-card locked" aria-label="Locked duelist"><i>?</i><span><b>LOCKED</b><small>COMING SOON</small></span></div>
+              <div class="roster-card locked" aria-label="Locked duelist"><i>?</i><span><b>LOCKED</b><small>COMING SOON</small></span></div>
+              <div class="roster-card locked" aria-label="Locked duelist"><i>?</i><span><b>LOCKED</b><small>COMING SOON</small></span></div>
+              <div class="roster-card locked" aria-label="Locked duelist"><i>?</i><span><b>LOCKED</b><small>COMING SOON</small></span></div>
               <div class="roster-card locked" aria-label="Locked duelist"><i>?</i><span><b>LOCKED</b><small>COMING SOON</small></span></div>
               <div class="roster-card locked" aria-label="Locked duelist"><i>?</i><span><b>LOCKED</b><small>COMING SOON</small></span></div>
             </div>

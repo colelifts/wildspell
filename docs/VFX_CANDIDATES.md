@@ -2,6 +2,27 @@
 
 No asset listed here is integrated into WildSpell. This page exists so the visual direction can be approved before any external animation files enter the live game.
 
+## Requested source: ProductionCrate Toon / Anime FX
+
+- Fire category supplied by the project owner: https://footagecrate.com/vfx/visual-graphics/toon-anime-fx/toon-fire-sparks
+- Direct candidate: https://vfx.productioncrate.com/video-effects/footagecrate-4k-anime-fire-spark
+- Direct candidate format: transparent RGBA MOV, PNG sequence, or H.264 preview; 4K; 30 FPS; 1.2 seconds
+- Source listing states no attribution is required and an extended-use license is available for commercial and non-commercial productions.
+- Important: the raw effect may not be redistributed as a standalone asset. Before download, confirm that committing the licensed media inside a public GitHub game repository is permitted under the chosen account/license.
+
+Suggested audition only (not integrated):
+
+- Arsonist impact: Anime Fire Spark plus a separate directional flame strike.
+- Burn status: a smaller edge flame loop, masked to the card silhouette.
+- Freeze: use the matching Toon/Anime Energy collection only if an ice burst has the same line weight.
+- Whirlwind: use a transparent circular anime wind stroke; avoid photoreal tornado footage.
+
+## No-AI alternative candidates
+
+- PIPOYA Time Magic: https://pipoya.itch.io/pipoya-free-vfx-time-magic — transparent time-stop/reverse sprite sheets, commercial and personal use allowed, editing allowed, redistribution prohibited, author states no generative AI.
+- Kalponic Free Stylized Sprite VFX: https://kalponic-studio.itch.io/free-stylized-sprite-vfx — 15 stylized flipbooks, commercial use and modification allowed, CC BY 4.0, author states no generative AI.
+- Thundersnow Magic VFX Pack 1: https://thundersnowpixel.itch.io/magic-vfx-pack-1 — hand-drawn spell sheets including whirlwind/lightning, commercial use and modification allowed, redistribution prohibited, author states no generative AI.
+
 ## Primary candidate: Vivid Motion — Elemental Arcana Vol. 1
 
 - Preview and download: https://vivid-motion-assets.itch.io/vivid-motion-elemental-arcana-vol-1

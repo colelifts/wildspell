@@ -104,3 +104,22 @@ These rules are acceptable only as a disposable prototype and must not be descri
 - [x] Firebase rules/configuration and static deployment posture reviewed.
 - [x] Baseline Playwright test added.
 - [x] Baseline Playwright command executed successfully; screenshot retained at `artifacts/baseline/menu-desktop.png`.
+# Visual replacement audit — July 30, 2026
+
+The latest full-page review found that the project is not ready to call visually complete. The following are replacement items, not small polish items.
+
+## Screen verdicts
+
+- Main menu: previous build was static-looking, logo was undersized, and the central form covered both fighters. Rebuilt as a full-height animated arena composition with large edge fighters, a larger logo, a compact central command panel, and a seven-character roster strip.
+- Character select: previous build only supported two characters, clipped figures and banners, used a manual button beneath `VS`, and placed perfect-square grids in the middle of the art. Rebuilt as a seven-character split stage with large figures, compact staggered 4x3 rosters, readable traits, hover saturation, and a `FIGHT` control that replaces `VS` after selection.
+- Match HUD: current asset-heavy frame system is more readable than the prototype but still has too many competing ornamental elements. Nameplates, guidance, hand, stack warning, and cinematic copy need strict safe zones.
+- Spell cinematics: Arsonist, Freeze, and Whirlwind currently stack title copy, full card reveal, status frame, particles, and the live HUD in one visual plane. Replace procedural placeholder effects after the third-party VFX audition; retain only one hero card reveal plus one effect focal point.
+- Final Card challenges: the three games function, but their presentation is generic and oversized. The `ARCANE SHOWDOWN` heading dominates the playfield, decorative circles are empty, and input controls look like debug UI. Rebuild with one compact header, a clear 3-2-1 countdown, a single central play surface, and an explicit winner/loser result plate.
+- Results: the result card is legible but oversized and visually disconnected from the fighters. Replace with a wide victory banner and character reaction, keeping score and rematch as secondary content.
+- Online/reconnect: functional states exist, but multiplayer screenshots show severe overlay collisions during active draw stacks and spell cinematics. Online state must use the same cinematic safe-zone rules as solo.
+
+## Asset verdicts
+
+- Keep: supplied card illustrations, approved WildSpell logo, supplied player music, character selection masters after edge cleanup.
+- Replace: procedural status-frame art when an approved hand-drawn VFX equivalent exists; generic challenge shapes; oversized result frames; redundant generated UI borders.
+- Approval gate: no ProductionCrate/itch.io effect enters the repository until its preview, author, license, format, and exact WildSpell usage are approved.

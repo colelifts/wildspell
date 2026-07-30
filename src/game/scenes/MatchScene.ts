@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import { CARD_BACK_KEY, createPremiumCardAnimations, preloadPremiumCards, premiumCardTexture } from "../animation/CardVisuals";
 import { PremiumGabbyDirector, preloadPremiumGabby, type PremiumGabbyPose } from "../animation/PremiumGabbyDirector";
 import { PremiumPlayerDirector, preloadPremiumPlayer, type PremiumPlayerPose } from "../animation/PremiumPlayerDirector";
+import { RosterCharacterDirector, preloadRosterCharacters } from "../animation/RosterCharacterDirector";
 import { ReactiveArena } from "../animation/ReactiveArena";
 import { SpellCinematics } from "../animation/SpellCinematics";
 import { ChallengeDirector, type ChallengeType } from "../challenges/ChallengeDirector";
@@ -58,8 +59,8 @@ export class MatchScene extends Phaser.Scene {
   private state!: GameState;
   private cinematics!: SpellCinematics;
   private arena!: ReactiveArena;
-  private playerDirector!: PremiumPlayerDirector | PremiumGabbyDirector;
-  private opponentDirector!: PremiumPlayerDirector | PremiumGabbyDirector;
+  private playerDirector!: PremiumPlayerDirector | PremiumGabbyDirector | RosterCharacterDirector;
+  private opponentDirector!: PremiumPlayerDirector | PremiumGabbyDirector | RosterCharacterDirector;
   private challenges!: ChallengeDirector;
   private playerSprite!: Phaser.GameObjects.Image;
   private opponentSprite!: Phaser.GameObjects.Image;
@@ -94,7 +95,10 @@ export class MatchScene extends Phaser.Scene {
     this.onlineSession = data.online?.session;
     this.onlineRevision = data.online?.room.state?.syncRevision ?? data.online?.room.revision ?? -1;
     const selected = data.characterId ?? "kenpachi";
-    const soloNames: [string, string] = selected === "kenpachi" ? ["KENPACHI", "HISOKA"] : ["HISOKA", "KENPACHI"];
+    const names: Record<CharacterId, string> = { kenpachi: "KENPACHI", hisoka: "HISOKA", gojo: "GOJO", mob: "MOB", hit: "HIT", ryuk: "RYUK", maki: "MAKI" };
+    const order: CharacterId[] = ["kenpachi", "hisoka", "gojo", "mob", "hit", "ryuk", "maki"];
+    const rival = order[(order.indexOf(selected) + 1) % order.length]!;
+    const soloNames: [string, string] = [names[selected], names[rival]];
     this.state = data.online?.room.state
       ? stateForSlot(data.online.room.state, data.online.session.slot)
       : createGame(soloNames, data.ruleset, data.difficulty, Date.now() >>> 0);
@@ -124,6 +128,7 @@ export class MatchScene extends Phaser.Scene {
     preloadPremiumCards(this);
     preloadPremiumPlayer(this);
     preloadPremiumGabby(this);
+    preloadRosterCharacters(this);
   }
 
   create(): void {
@@ -147,15 +152,24 @@ export class MatchScene extends Phaser.Scene {
     const playerCharacter: CharacterId = this.onlineSession
       ? (guestPerspective ? "hisoka" : "kenpachi")
       : selectedCharacter;
-    const opponentCharacter: CharacterId = playerCharacter === "kenpachi" ? "hisoka" : "kenpachi";
+    const rosterOrder: CharacterId[] = ["kenpachi", "hisoka", "gojo", "mob", "hit", "ryuk", "maki"];
+    const opponentCharacter: CharacterId = rosterOrder[(rosterOrder.indexOf(playerCharacter) + 1) % rosterOrder.length]!;
     const baseY = this.portrait ? height * 0.7 : height * 0.94;
     const playerX = this.portrait ? width * 0.12 : width * 0.14;
     const opponentX = this.portrait ? width * 0.88 : width * 0.86;
     const coleHeight = this.portrait ? Phaser.Math.Clamp(height * 0.3, 300, 350) : 350;
     const gabbyHeight = this.portrait ? Phaser.Math.Clamp(height * 0.29, 290, 340) : 330;
-    this.playerDirector = playerCharacter === "kenpachi" ? new PremiumPlayerDirector(this) : new PremiumGabbyDirector(this);
+    this.playerDirector = playerCharacter === "kenpachi"
+      ? new PremiumPlayerDirector(this)
+      : playerCharacter === "hisoka"
+        ? new PremiumGabbyDirector(this)
+        : new RosterCharacterDirector(this, playerCharacter, 1);
     this.playerSprite = this.playerDirector.create(playerX, baseY, playerCharacter === "kenpachi" ? coleHeight : gabbyHeight);
-    this.opponentDirector = opponentCharacter === "kenpachi" ? new PremiumPlayerDirector(this) : new PremiumGabbyDirector(this);
+    this.opponentDirector = opponentCharacter === "kenpachi"
+      ? new PremiumPlayerDirector(this)
+      : opponentCharacter === "hisoka"
+        ? new PremiumGabbyDirector(this)
+        : new RosterCharacterDirector(this, opponentCharacter, -1);
     this.opponentSprite = this.opponentDirector.create(opponentX, baseY, opponentCharacter === "kenpachi" ? coleHeight : gabbyHeight);
     this.cinematics = new SpellCinematics(this);
     this.challenges = new ChallengeDirector(this);

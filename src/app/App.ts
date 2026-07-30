@@ -27,10 +27,50 @@ const CHARACTER_DATA: Record<CharacterId, {
     title: "THE DECEPTIVE JOKER",
     trait: "MISDIRECTION",
     traitCopy: "Playable Wild spells shimmer, making color-control opportunities easier to spot."
+  },
+  gojo: {
+    name: "GOJO",
+    title: "THE LIMITLESS SORCERER",
+    trait: "INFINITY",
+    traitCopy: "The first forced draw each round is reduced by one card."
+  },
+  mob: {
+    name: "MOB",
+    title: "THE QUIET PSYCHIC",
+    trait: "100%",
+    traitCopy: "After taking a penalty, the next playable card is revealed with psychic focus."
+  },
+  hit: {
+    name: "HIT",
+    title: "THE SILENT ASSASSIN",
+    trait: "TIME-SKIP",
+    traitCopy: "Once per round, a drawn playable card may be cast without ending your turn."
+  },
+  ryuk: {
+    name: "RYUK",
+    title: "THE BORED SHINIGAMI",
+    trait: "SHINIGAMI EYES",
+    traitCopy: "Once per round, briefly glimpse the newest card in the rival hand."
+  },
+  maki: {
+    name: "MAKI",
+    title: "THE HEAVENLY WARRIOR",
+    trait: "STEEL RESOLVE",
+    traitCopy: "The first negative status placed on you each round expires one turn sooner."
   }
 };
 
-const opposingCharacter = (character: CharacterId): CharacterId => character === "kenpachi" ? "hisoka" : "kenpachi";
+const CHARACTER_ORDER = Object.keys(CHARACTER_DATA) as CharacterId[];
+const opposingCharacter = (character: CharacterId): CharacterId => CHARACTER_ORDER[(CHARACTER_ORDER.indexOf(character) + 1) % CHARACTER_ORDER.length]!;
+const rosterCards = (rival = false): string => CHARACTER_ORDER.map((character) => {
+  const data = CHARACTER_DATA[character];
+  if (rival) return `<div class="rival-roster-card" data-rival-choice="${character}"><img src="/characters/${character}/portrait.png" alt="" /><span>${data.name}</span></div>`;
+  return `<button class="roster-card" data-character="${character}" role="radio" aria-label="${data.name}" aria-checked="false"><img src="/characters/${character}/portrait.png" alt="" /><span>${data.name}</span></button>`;
+}).join("") + Array.from({ length: 5 }, (_, index) => `<div class="${rival ? "rival-roster-card" : "roster-card"} locked" aria-label="Locked duelist ${index + 1}"><i>?</i></div>`).join("");
+
+const fighterImages = (side: "player" | "rival"): string => CHARACTER_ORDER.map((character) =>
+  `<img data-${side}-fighter="${character}" src="/characters/${character}/selection-splash.png" alt="${CHARACTER_DATA[character].name}" />`
+).join("");
 
 export class App {
   private readonly game = new WildSpellGame();
@@ -49,20 +89,19 @@ export class App {
     this.root.innerHTML = `
       <main class="app-shell">
         <section class="menu-screen" data-screen="menu">
-          <div class="sky-glow"></div>
-          <div class="menu-content">
+          <div class="menu-motion" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="menu-fighter-stage" aria-hidden="true">
+            <img class="menu-champion menu-champion-left" src="/characters/kenpachi/selection-splash.png" alt="" />
+            <img class="menu-champion menu-champion-right" src="/characters/hisoka/selection-splash.png" alt="" />
+          </div>
+          <div class="menu-content menu-content-v2">
             <header class="brand-lockup">
               <span class="brand-kicker">THE ARCANE TOURNAMENT</span>
               <img class="brand-logo" src="/ui/wildspell-logo.png" alt="WildSpell: The Final Draw" />
-              <h1>WILDSPELL</h1>
-              <p>THE FINAL DRAW</p>
+              <h1 class="semantic-title">WILDSPELL</h1>
             </header>
-            <div class="menu-grid">
-              <aside class="menu-fighter menu-fighter-kenpachi" aria-hidden="true">
-                <video src="/characters/kenpachi/selection-idle-ui.webm" muted loop autoplay playsinline></video>
-                <div><span>PLAYABLE DUELIST</span><strong>KENPACHI</strong><small>THE RELENTLESS BLADE</small></div>
-              </aside>
-              <section class="command-panel rune-frame">
+            <div class="menu-grid menu-grid-v2">
+              <section class="command-panel rune-frame" aria-label="Main menu">
                 <div class="mode-tabs" role="tablist">
                   <button class="mode-tab active" data-tab="solo">SOLO DUEL</button>
                   <button class="mode-tab" data-tab="online">ONLINE BETA</button>
@@ -98,13 +137,9 @@ export class App {
                   <article><i class="fire">+4</i><div><b>CHAOS +4</b><span>Adds four cards to the draw stack and changes color.</span></div></article>
                 </div>
               </section>
-              <aside class="showcase-panel rune-frame">
-                <video class="character-pedestal hisoka-showcase" src="/characters/hisoka/selection-idle-ui.webm" muted loop autoplay playsinline></video>
-                <span class="rival-tag">FEATURED RIVAL</span>
-                <h2>HISOKA</h2>
-                <p>Deceptive card illusionist. Impossible to read.<br />Even harder to outplay.</p>
-                <div class="feature-chips"><span>4 AI LEVELS</span><span>5 SIGNATURE SPELLS</span><span>3 CHALLENGES</span></div>
-              </aside>
+            </div>
+            <div class="menu-roster-strip" aria-hidden="true">
+              ${CHARACTER_ORDER.map((character) => `<span><img src="/characters/${character}/portrait.png" alt="" /><b>${CHARACTER_DATA[character].name}</b></span>`).join("")}
             </div>
           </div>
           <button class="corner-button" id="open-settings" aria-label="Open settings">⚙</button>
@@ -114,10 +149,7 @@ export class App {
           <div class="select-atmosphere" aria-hidden="true"><i></i><i></i><i></i></div>
           <header class="select-header">
             <button class="select-back" id="character-select-back" aria-label="Return to main menu">&#8592; BACK</button>
-            <div class="select-brand">
-              <img src="/ui/wildspell-logo.png" alt="" />
-              <h1 id="character-select-title">SELECT YOUR DUELIST</h1>
-            </div>
+            <div class="select-brand"><img src="/ui/wildspell-logo.png" alt="WildSpell" /><h1 id="character-select-title">SELECT YOUR DUELIST</h1></div>
             <div class="select-mode"><span>SOLO DUEL</span><b>1P VS CPU</b></div>
           </header>
 
@@ -125,36 +157,26 @@ export class App {
             <article class="fighter-side fighter-side-player" aria-live="polite">
               <div class="fighter-heading"><h2 id="selected-fighter-name">KENPACHI</h2><p id="selected-fighter-title">THE RELENTLESS BLADE</p></div>
               <div class="fighter-trait fighter-trait-player"><span>SIGNATURE TRAIT</span><strong id="selected-trait-name">BATTLE THRILL</strong><p id="selected-trait-copy">Draw-stack threats pulse brighter before you commit a move.</p></div>
-              <div class="fighter-figure">
-                <img data-player-fighter="kenpachi" src="/characters/kenpachi/selection-splash.png" alt="Kenpachi" />
-                <img data-player-fighter="hisoka" src="/characters/hisoka/selection-splash.png" alt="Hisoka" />
-              </div>
-              <div class="fighter-team-banner"><span>PLAYER 1</span><strong>SELECT</strong></div>
+              <div class="fighter-figure">${fighterImages("player")}</div>
+              <div class="fighter-team-banner"><span>PLAYER ONE</span><strong>CHOOSE YOUR DUELIST</strong></div>
               <div class="side-roster roster" role="radiogroup" aria-label="Available duelists">
-                <button class="roster-card selected" data-character="kenpachi" role="radio" aria-label="KENPACHI" aria-checked="true"><img src="/characters/kenpachi/portrait.png" alt="" /><span><b>KENPACHI</b></span></button>
-                <button class="roster-card" data-character="hisoka" role="radio" aria-label="HISOKA" aria-checked="false"><img src="/characters/hisoka/portrait.png" alt="" /><span><b>HISOKA</b></span></button>
-                ${Array.from({ length: 10 }, () => '<div class="roster-card locked" aria-label="Locked duelist"><i>?</i></div>').join("")}
+                ${rosterCards()}
               </div>
             </article>
 
             <div class="versus-core">
               <strong>VS</strong>
-              <span class="selection-status" id="selection-status">CHOOSE YOUR DUELIST</span>
-              <button class="confirm-fighter" id="confirm-character" data-testid="confirm-character" aria-label="Start the duel" disabled><span>BOTH READY</span><b>BEGIN DUEL</b></button>
+              <span class="selection-status" id="selection-status">SELECT</span>
+              <button class="confirm-fighter" id="confirm-character" data-testid="confirm-character" aria-label="Start the duel" disabled><b>FIGHT</b></button>
             </div>
 
             <article class="fighter-side fighter-side-rival">
               <div class="fighter-heading"><h2 id="rival-fighter-name">HISOKA</h2><p id="rival-fighter-title">THE DECEPTIVE JOKER</p></div>
               <div class="fighter-trait fighter-trait-rival"><span>SIGNATURE TRAIT</span><strong id="rival-trait-name">MISDIRECTION</strong><p id="rival-trait-copy">Playable Wild spells shimmer so color-control options stand out.</p></div>
-              <div class="fighter-figure">
-                <img data-rival-fighter="hisoka" src="/characters/hisoka/selection-splash.png" alt="Hisoka" />
-                <img data-rival-fighter="kenpachi" src="/characters/kenpachi/selection-splash.png" alt="Kenpachi" />
-              </div>
-              <div class="fighter-team-banner"><span>CPU</span><strong>AUTO PICK</strong></div>
+              <div class="fighter-figure">${fighterImages("rival")}</div>
+              <div class="fighter-team-banner"><span>CPU RIVAL</span><strong>ARCANE CHALLENGER</strong></div>
               <div class="side-roster rival-roster" aria-label="Rival roster">
-                <div class="rival-roster-card" data-rival-choice="kenpachi"><img src="/characters/kenpachi/portrait.png" alt="" /></div>
-                <div class="rival-roster-card selected" data-rival-choice="hisoka"><img src="/characters/hisoka/portrait.png" alt="" /></div>
-                ${Array.from({ length: 10 }, () => '<div class="rival-roster-card locked" aria-hidden="true"><i>?</i></div>').join("")}
+                ${rosterCards(true)}
               </div>
             </article>
           </div>

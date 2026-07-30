@@ -4,7 +4,7 @@ import type { RoomRecord } from "./multiplayer/protocol";
 import type { RoomSession } from "./multiplayer/roomService";
 
 export type ResultPreview = "round" | "match";
-export type CharacterId = "kenpachi" | "hisoka";
+export type CharacterId = "kenpachi" | "hisoka" | "gojo" | "mob" | "hit" | "ryuk" | "maki";
 
 export interface StartMatchDetail {
   playerName: string;

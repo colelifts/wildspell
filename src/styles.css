@@ -1847,3 +1847,425 @@ label,
   .confirm-fighter { justify-self: stretch; width: 100%; min-height: 58px; }
   .select-hint { display: none; }
 }
+
+/* Premium tournament menu + exact versus selector ----------------------------- */
+.menu-screen {
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, #071a31d9 0 38%, transparent 54%, #1b0a35c7 100%),
+    linear-gradient(180deg, #03081642, #02040dd9),
+    url("/backgrounds/menu-arena-4k.png") center/cover no-repeat;
+}
+.menu-screen::before {
+  background:
+    radial-gradient(ellipse at 17% 56%, #18bce326, transparent 32%),
+    radial-gradient(ellipse at 83% 52%, #b53fff2c, transparent 34%),
+    linear-gradient(180deg, #02061218 55%, #02040df5 100%);
+}
+.menu-content {
+  width: 100%;
+  height: 100%;
+  padding: 0 clamp(24px, 3vw, 64px) clamp(22px, 3vh, 42px);
+  display: grid;
+  grid-template-rows: clamp(142px, 19vh, 230px) minmax(0, 1fr);
+}
+.brand-lockup {
+  position: relative;
+  z-index: 7;
+  min-height: 0;
+  height: 100%;
+  align-content: center;
+}
+.brand-kicker { font-size: clamp(10px, .7vw, 13px) !important; }
+.brand-logo {
+  width: min(510px, 34vw);
+  height: clamp(122px, 16vh, 190px);
+  margin: -6px 0 -18px;
+}
+.menu-grid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(310px, .82fr) minmax(600px, 1.35fr) minmax(310px, .82fr);
+  gap: clamp(12px, 2vw, 38px);
+  align-items: stretch;
+}
+.menu-fighter,
+.showcase-panel {
+  position: relative;
+  min-height: 0;
+  overflow: visible;
+  border: 0;
+  clip-path: none;
+  background: none;
+  box-shadow: none;
+}
+.menu-fighter video,
+.showcase-panel .character-pedestal {
+  position: absolute;
+  inset: -4% -20% 7%;
+  width: 140%;
+  height: 106%;
+  object-fit: contain;
+  object-position: center bottom;
+  transform: none;
+  filter: saturate(1.06) contrast(1.04) drop-shadow(0 26px 32px #000e);
+  -webkit-mask-image: radial-gradient(ellipse 70% 92% at 50% 48%, #000 0 58%, #000f 70%, #0008 83%, transparent 100%);
+  mask-image: radial-gradient(ellipse 70% 92% at 50% 48%, #000 0 58%, #000f 70%, #0008 83%, transparent 100%);
+  animation: menu-champion-breathe 4.2s ease-in-out infinite alternate;
+}
+.showcase-panel .character-pedestal { animation-delay: -2.1s; }
+.menu-fighter::after,
+.showcase-panel::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  left: 8%;
+  right: 8%;
+  bottom: 2%;
+  height: 22%;
+  background: radial-gradient(ellipse, #46d9ff66, transparent 68%);
+  filter: blur(24px);
+}
+.showcase-panel::after { background: radial-gradient(ellipse, #c04cff70, transparent 68%); }
+.menu-fighter > div,
+.showcase-panel > *:not(.character-pedestal) {
+  position: absolute;
+  z-index: 3;
+}
+.menu-fighter > div {
+  left: 7%;
+  right: 7%;
+  bottom: 1%;
+  display: grid;
+  gap: 4px;
+  padding: 14px 18px 16px;
+  border-left: 5px solid #58e8ff;
+  background: linear-gradient(90deg, #03101ff2, #06182dc9 70%, transparent);
+  filter: drop-shadow(0 12px 16px #000d);
+}
+.menu-fighter span,
+.menu-fighter small { color: #9cefff; font: 700 clamp(9px, .6vw, 12px) "Cinzel", Georgia, serif; letter-spacing: .12em; }
+.menu-fighter strong { color: #fff4d5; font: 800 clamp(35px, 2.8vw, 58px)/.9 "Cinzel", Georgia, serif; text-shadow: 0 3px 0 #5a2915, 0 0 20px #59dfff80; }
+.showcase-panel {
+  display: block;
+  padding: 0;
+  text-align: right;
+}
+.showcase-panel .rival-tag { right: 7%; bottom: 114px; }
+.showcase-panel h2 { right: 7%; bottom: 60px; margin: 0; font-size: clamp(34px, 2.8vw, 58px); }
+.showcase-panel p { right: 7%; bottom: 20px; margin: 0; max-width: 90%; font-size: clamp(12px, .8vw, 16px); }
+.showcase-panel .feature-chips { display: none; }
+.showcase-panel::before { display: none; }
+.command-panel {
+  z-index: 5;
+  align-self: center;
+  min-height: 0;
+  padding: clamp(24px, 2.2vw, 40px);
+  border: 1px solid #ba9a62;
+  clip-path: polygon(18px 0, calc(100% - 18px) 0, 100% 18px, 100% calc(100% - 18px), calc(100% - 18px) 100%, 18px 100%, 0 calc(100% - 18px), 0 18px);
+  background:
+    linear-gradient(135deg, #07162cf4, #0b1025f0 55%, #160d2be8),
+    none;
+  box-shadow: inset 0 0 0 2px #243f64, 0 28px 65px #000d, 0 0 36px #6e69ff38;
+}
+.mode-tabs { gap: 10px; margin-bottom: 22px; }
+.mode-tab {
+  min-height: 54px;
+  border: 1px solid #405d85;
+  background: #071226dc;
+  font-size: clamp(11px, .7vw, 14px) !important;
+}
+.mode-tab.active {
+  border-color: #f4d887;
+  background: linear-gradient(135deg, #244d77, #39285d);
+  box-shadow: inset 0 -3px #e2b852, 0 0 24px #79dfff35;
+}
+.tab-panel.active { gap: 17px; }
+.command-panel label { font-size: clamp(11px, .7vw, 14px); }
+.command-panel input,
+.command-panel select { min-height: 58px; padding: 14px 16px; font-size: clamp(16px, 1vw, 20px); }
+.command-panel .primary-cta {
+  min-height: 68px;
+  border: 1px solid #ffe199;
+  background: linear-gradient(110deg, #955013, #e9a92e 48%, #ffe28a);
+  clip-path: polygon(0 0, 94% 0, 100% 50%, 94% 100%, 0 100%, 3% 50%);
+  color: #261304;
+  font-size: clamp(13px, .8vw, 17px);
+}
+.mode-note { font-size: clamp(13px, .8vw, 16px); line-height: 1.45; }
+.corner-button { width: 62px; height: 62px; right: 34px; top: 28px; }
+@keyframes menu-champion-breathe { to { scale: 1.018; translate: 0 -5px; filter: saturate(1.14) contrast(1.06) drop-shadow(0 30px 38px #000e); } }
+
+.character-select-screen,
+.character-select-screen[data-selected="hisoka"] {
+  display: block;
+  min-height: 100svh;
+  background:
+    linear-gradient(104deg, #07354bf0 0 49.1%, #42175af0 50.9% 100%),
+    url("/backgrounds/character-select-arena-4k.png") center/cover no-repeat;
+}
+.character-select-screen::before {
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 22% 54%, #1bdcff32, transparent 38%),
+    radial-gradient(ellipse at 78% 54%, #f05cff2e, transparent 38%),
+    repeating-linear-gradient(115deg, transparent 0 95px, #fff 96px, transparent 97px);
+  opacity: .38;
+}
+.character-select-screen::after {
+  z-index: 4;
+  background: linear-gradient(104deg, transparent 48.9%, #fff0b4 49.35%, #fff 49.75%, #e5b1ff 50.15%, transparent 50.7%);
+  opacity: .94;
+}
+.select-header {
+  position: absolute;
+  z-index: 20;
+  inset: 0 0 auto;
+  height: clamp(72px, 8vh, 104px);
+  min-height: 0;
+  padding: 12px clamp(24px, 3.2vw, 66px);
+  grid-template-columns: 160px 1fr 160px;
+  background: linear-gradient(180deg, #020612e6, transparent);
+  pointer-events: none;
+}
+.select-header > * { pointer-events: auto; }
+.select-brand { display: grid; place-items: center; pointer-events: none !important; }
+.select-brand img { width: clamp(220px, 15vw, 320px); height: 106px; object-fit: contain; filter: drop-shadow(0 10px 14px #000e) drop-shadow(0 0 24px #8c6cff88); }
+.select-brand h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.select-mode span { font-size: 11px !important; }
+.select-mode b { font-size: 15px; }
+.select-back { min-width: 120px; min-height: 46px; font-size: 11px; }
+.versus-stage {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(90px, 7vw, 140px) minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+  background: none;
+}
+.fighter-side {
+  position: relative;
+  min-width: 0;
+  overflow: visible;
+  isolation: isolate;
+}
+.fighter-side::before {
+  inset: 0 -12% 0 0;
+  clip-path: polygon(0 0, 100% 0, 84% 100%, 0 100%);
+  background: linear-gradient(110deg, #11bada2e, transparent 66%);
+}
+.fighter-side-rival::before {
+  inset: 0 0 0 -12%;
+  clip-path: polygon(16% 0, 100% 0, 100% 100%, 0 100%);
+  background: linear-gradient(250deg, #d53cff2e, transparent 66%);
+}
+.fighter-heading {
+  position: absolute;
+  z-index: 10;
+  top: clamp(54px, 8vh, 94px);
+  left: clamp(24px, 4vw, 78px);
+  display: grid;
+  gap: 1px;
+  text-shadow: 0 4px 12px #000e;
+}
+.fighter-side-rival .fighter-heading { left: auto; right: clamp(24px, 4vw, 78px); text-align: right; }
+.fighter-heading h2 {
+  margin: 0;
+  color: #fff5dc;
+  font: 800 clamp(34px, 3vw, 56px)/.9 "Cinzel", Georgia, serif;
+  letter-spacing: .02em;
+  -webkit-text-stroke: 1px #5c2e19;
+}
+.fighter-heading p {
+  margin: 6px 0 0;
+  color: #acefff;
+  font: 700 clamp(11px, .7vw, 14px) "Cinzel", Georgia, serif;
+  letter-spacing: .11em;
+}
+.fighter-side-rival .fighter-heading p { color: #f1b5ff; }
+.fighter-figure {
+  position: absolute;
+  z-index: 2;
+  inset: clamp(52px, 6vh, 86px) -12% clamp(120px, 15vh, 210px);
+  overflow: visible;
+}
+.fighter-figure video {
+  left: 50%;
+  bottom: -2%;
+  translate: -46% 62px;
+  width: min(58vw, 1120px);
+  height: 108%;
+  object-fit: contain;
+  object-position: center bottom;
+  scale: 1.15;
+  pointer-events: none;
+  opacity: 0;
+  filter: saturate(.62) brightness(.72) contrast(1.02) drop-shadow(0 28px 34px #000e);
+  -webkit-mask-image: radial-gradient(ellipse 73% 92% at 50% 48%, #000 0 58%, #000f 70%, #0008 83%, transparent 100%);
+  mask-image: radial-gradient(ellipse 73% 92% at 50% 48%, #000 0 58%, #000f 70%, #0008 83%, transparent 100%);
+}
+.fighter-side-rival .fighter-figure video { translate: -54% 14px; transform: scaleX(-1); }
+.fighter-figure video.active { opacity: .84; filter: saturate(.76) brightness(.88) contrast(1.03) drop-shadow(0 28px 34px #000e); }
+.fighter-side:hover .fighter-figure video.active,
+.fighter-side.spotlight .fighter-figure video.active,
+.character-select-screen[data-preview] .fighter-side-player .fighter-figure video.active {
+  opacity: 1;
+  scale: 1.25;
+  filter: saturate(1.15) brightness(1.06) contrast(1.07) drop-shadow(0 30px 38px #000e);
+}
+.character-select-screen[data-preview] .fighter-side-rival .fighter-figure video.active { opacity: .72; filter: saturate(.58) brightness(.78) contrast(1.02) drop-shadow(0 28px 34px #000e); }
+.fighter-team-banner {
+  position: absolute;
+  z-index: 11;
+  left: 50%;
+  bottom: clamp(310px, 29vh, 420px);
+  translate: -50% 0;
+  width: min(390px, 72%);
+  min-height: 54px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 22px;
+  clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%);
+  background: linear-gradient(100deg, #ee6b30, #d64543);
+  box-shadow: 0 10px 22px #0009;
+}
+.fighter-side-rival .fighter-team-banner { background: linear-gradient(100deg, #447df2, #4b56d2); clip-path: polygon(0 0, 92% 0, 100% 100%, 8% 100%); }
+.fighter-team-banner span { color: #fff7d2; font: 800 11px "Cinzel", Georgia, serif; letter-spacing: .1em; }
+.fighter-team-banner strong { color: #fff; font: 800 clamp(15px, 1vw, 20px) "Cinzel", Georgia, serif; }
+.side-roster,
+.rival-roster {
+  position: absolute;
+  z-index: 12;
+  left: 50%;
+  bottom: clamp(22px, 3vh, 44px);
+  translate: -50% 0;
+  width: min(480px, 78%);
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: clamp(5px, .45vw, 9px);
+}
+.side-roster .roster-card,
+.rival-roster-card {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1.28;
+  overflow: hidden;
+  border: 2px solid #c65b4b;
+  border-radius: 2px;
+  padding: 0;
+  background: #02040a;
+  box-shadow: 0 6px 10px #000a;
+}
+.rival-roster-card { border-color: #6b8cff; }
+.side-roster .roster-card img,
+.side-roster .roster-card video,
+.rival-roster-card img { width: 100%; height: 100%; object-fit: cover; object-position: center 16%; filter: saturate(.72) brightness(.72); }
+.side-roster .roster-card > span { position: absolute; inset: auto 0 0; padding: 4px; background: #03040bd9; }
+.side-roster .roster-card b { font-size: clamp(7px, .45vw, 10px) !important; }
+.side-roster .roster-card.selected,
+.rival-roster-card.selected { translate: 0 -5px; border-color: #fff5ba; box-shadow: 0 0 0 2px #fff8, 0 0 22px #ffe47a; }
+.side-roster .roster-card.selected img,
+.side-roster .roster-card.selected video,
+.rival-roster-card.selected img { filter: saturate(1.15) brightness(1.06); }
+.side-roster .locked,
+.rival-roster-card.locked {
+  display: grid;
+  place-items: center;
+  opacity: 1;
+  border-color: #263043;
+  background: linear-gradient(145deg, #0a0c13, #000);
+}
+.side-roster .locked::before,
+.rival-roster-card.locked::before { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, transparent 47%, #20283a 48% 49%, transparent 50%); }
+.side-roster .locked i,
+.rival-roster-card.locked i { z-index: 1; color: #666f81; font: 34px Georgia, serif; }
+.side-roster .roster-card::after { display: none; }
+.versus-core {
+  z-index: 16;
+  width: auto;
+  translate: 0;
+  place-content: center;
+  gap: 24px;
+}
+.versus-core::before { display: none; }
+.versus-core strong {
+  margin: 0;
+  color: #fff;
+  font: italic 900 clamp(78px, 6.5vw, 130px)/.8 Georgia, serif;
+  -webkit-text-stroke: 2px #f0ad42;
+  text-shadow: 0 6px 0 #8e3b1e, 0 0 34px #fff, 0 0 65px #ffe68a;
+}
+.versus-core .confirm-fighter {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  translate: -50% -50%;
+  z-index: 2;
+  width: clamp(110px, 7vw, 150px);
+  min-width: 0;
+  height: clamp(140px, 14vh, 210px);
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  clip-path: none;
+  background: transparent;
+  color: transparent;
+  box-shadow: none;
+  opacity: 0;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.versus-core .confirm-fighter span,
+.versus-core .confirm-fighter b { display: none; }
+.selected-trait { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+@media (max-width: 1380px) and (min-width: 821px) {
+  .menu-content { grid-template-rows: 150px 1fr; }
+  .menu-grid { grid-template-columns: minmax(230px, .7fr) minmax(560px, 1.45fr) minmax(230px, .7fr); gap: 12px; }
+  .command-panel { padding: 22px 26px; }
+  .menu-fighter strong, .showcase-panel h2 { font-size: 36px; }
+  .fighter-heading h2 { font-size: 48px; }
+  .side-roster, .rival-roster { width: min(390px, 82%); bottom: 18px; gap: 5px; }
+  .fighter-team-banner { bottom: 286px; }
+}
+
+@media (max-width: 820px) {
+  .menu-screen { overflow-y: auto; }
+  .menu-content { height: auto; min-height: 100svh; padding: 8px 12px 18px; grid-template-rows: 130px auto; }
+  .brand-logo { width: 78vw; height: 120px; }
+  .menu-grid { grid-template-columns: 1fr; gap: 10px; }
+  .menu-fighter, .showcase-panel { display: none; }
+  .command-panel { padding: 18px 15px; }
+  .mode-tab { min-height: 46px; font-size: 9px !important; }
+  .command-panel input, .command-panel select { min-height: 50px; }
+  .corner-button { width: 48px; height: 48px; top: 12px; right: 12px; }
+  .character-select-screen { min-height: 100svh; overflow: hidden; }
+  .select-header { height: 58px; grid-template-columns: 60px 1fr 0; padding: 6px; }
+  .select-brand img { width: 142px; height: 56px; }
+  .select-back { min-width: 0; min-height: 36px; padding: 7px; font-size: 7px; }
+  .select-mode { display: none; }
+  .versus-stage { grid-template-columns: 1fr 42px 1fr; }
+  .fighter-heading { top: 62px; left: 7px; }
+  .fighter-side-rival .fighter-heading { right: 7px; }
+  .fighter-heading h2 { font-size: clamp(17px, 5vw, 23px); }
+  .fighter-heading p { display: none; }
+  .fighter-figure { inset: 84px -72% 226px; }
+  .fighter-figure video { width: 132vw; height: 114%; bottom: -2%; translate: -44% 28px; scale: 1.08; }
+  .fighter-side-rival .fighter-figure video { translate: -56% 4px; }
+  .fighter-side:hover .fighter-figure video.active,
+  .fighter-side.spotlight .fighter-figure video.active,
+  .character-select-screen[data-preview] .fighter-side-player .fighter-figure video.active { scale: 1.13; }
+  .fighter-team-banner { bottom: 211px; width: 94%; min-height: 42px; padding: 7px 8px; gap: 5px; grid-template-columns: 1fr; }
+  .fighter-team-banner span { width: 100%; text-align: center; font-size: 7px !important; }
+  .fighter-team-banner strong { display: none; }
+  .side-roster, .rival-roster { width: calc(100% - 10px); bottom: 12px; grid-template-columns: repeat(3, 1fr); gap: 3px; }
+  .side-roster .roster-card, .rival-roster-card { aspect-ratio: 1.05; border-width: 1px; }
+  .side-roster .roster-card > span { display: none; }
+  .side-roster .locked i, .rival-roster-card.locked i { font-size: 20px; }
+  .versus-core { gap: 12px; }
+  .versus-core strong { font-size: 40px; -webkit-text-stroke-width: 1px; }
+  .versus-core .confirm-fighter { width: 42px; height: 112px; }
+}

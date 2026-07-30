@@ -57,6 +57,10 @@ export class App {
               <p>THE FINAL DRAW</p>
             </header>
             <div class="menu-grid">
+              <aside class="menu-fighter menu-fighter-kenpachi" aria-hidden="true">
+                <video src="/characters/kenpachi/selection-idle-ui.webm" muted loop autoplay playsinline></video>
+                <div><span>PLAYABLE DUELIST</span><strong>KENPACHI</strong><small>THE RELENTLESS BLADE</small></div>
+              </aside>
               <section class="command-panel rune-frame">
                 <div class="mode-tabs" role="tablist">
                   <button class="mode-tab active" data-tab="solo">SOLO DUEL</button>
@@ -94,7 +98,7 @@ export class App {
                 </div>
               </section>
               <aside class="showcase-panel rune-frame">
-                <div class="character-pedestal hisoka-showcase"></div>
+                <video class="character-pedestal hisoka-showcase" src="/characters/hisoka/selection-idle-ui.webm" muted loop autoplay playsinline></video>
                 <span class="rival-tag">FEATURED RIVAL</span>
                 <h2>HISOKA</h2>
                 <p>Deceptive card illusionist. Impossible to read.<br />Even harder to outplay.</p>
@@ -109,77 +113,48 @@ export class App {
           <div class="select-atmosphere" aria-hidden="true"><i></i><i></i><i></i></div>
           <header class="select-header">
             <button class="select-back" id="character-select-back" aria-label="Return to main menu">&#8592; BACK</button>
-            <div>
-              <span>ARCANE TOURNAMENT</span>
+            <div class="select-brand">
+              <img src="/ui/wildspell-logo.png" alt="" />
               <h1 id="character-select-title">SELECT YOUR DUELIST</h1>
-              <p>Choose the champion who will carry your deck into battle.</p>
             </div>
             <div class="select-mode"><span>SOLO DUEL</span><b>1P VS CPU</b></div>
           </header>
 
           <div class="versus-stage">
             <article class="fighter-side fighter-side-player" aria-live="polite">
-              <div class="fighter-team-label"><span>PLAYER ONE</span><b>WILDSPELL DUELIST</b></div>
-              <div class="fighter-aura"></div>
+              <div class="fighter-heading"><h2 id="selected-fighter-name">KENPACHI</h2><p id="selected-fighter-title">THE RELENTLESS BLADE</p></div>
               <div class="fighter-figure">
                 <video data-player-fighter="kenpachi" src="/characters/kenpachi/selection-idle-ui.webm" muted loop playsinline></video>
                 <video data-player-fighter="hisoka" src="/characters/hisoka/selection-idle-ui.webm" muted loop playsinline></video>
               </div>
-              <div class="fighter-identity">
-                <span>PLAYER ONE</span>
-                <h2 id="selected-fighter-name">KENPACHI</h2>
-                <p id="selected-fighter-title">THE RELENTLESS BLADE</p>
+              <div class="fighter-team-banner"><span>PLAYER ONE</span><strong>CHOOSE YOUR DUELIST</strong></div>
+              <div class="side-roster roster" role="radiogroup" aria-label="Available duelists">
+                <button class="roster-card selected" data-character="kenpachi" role="radio" aria-label="KENPACHI" aria-checked="true"><img src="/characters/kenpachi/portrait.png" alt="" /><span><b>KENPACHI</b></span></button>
+                <button class="roster-card" data-character="hisoka" role="radio" aria-label="HISOKA" aria-checked="false"><video src="/characters/hisoka/portrait-idle-preview.webm" muted loop playsinline aria-hidden="true"></video><span><b>HISOKA</b></span></button>
+                ${Array.from({ length: 10 }, () => '<div class="roster-card locked" aria-label="Locked duelist"><i>?</i></div>').join("")}
               </div>
             </article>
 
-            <div class="versus-core" aria-hidden="true">
-              <span>WILDSPELL</span>
+            <div class="versus-core">
               <strong>VS</strong>
-              <i></i>
+              <button class="confirm-fighter" id="confirm-character" data-testid="confirm-character" aria-label="Enter the arena with the selected duelist"><span>READY</span><b>FIGHT</b></button>
             </div>
 
             <article class="fighter-side fighter-side-rival">
-              <div class="fighter-team-label"><span>CPU RIVAL</span><b>ARCANE CHALLENGER</b></div>
-              <div class="fighter-aura"></div>
+              <div class="fighter-heading"><h2 id="rival-fighter-name">HISOKA</h2><p id="rival-fighter-title">THE DECEPTIVE JOKER</p></div>
               <div class="fighter-figure">
                 <video data-rival-fighter="hisoka" src="/characters/hisoka/selection-idle-ui.webm" muted loop playsinline></video>
                 <video data-rival-fighter="kenpachi" src="/characters/kenpachi/selection-idle-ui.webm" muted loop playsinline></video>
               </div>
-              <div class="fighter-identity">
-                <span>CPU RIVAL</span>
-                <h2 id="rival-fighter-name">HISOKA</h2>
-                <p id="rival-fighter-title">THE DECEPTIVE JOKER</p>
+              <div class="fighter-team-banner"><span>CPU RIVAL</span><strong>ARCANE CHALLENGER</strong></div>
+              <div class="side-roster rival-roster" aria-label="Rival roster">
+                <div class="rival-roster-card" data-rival-choice="kenpachi"><img src="/characters/kenpachi/portrait.png" alt="" /></div>
+                <div class="rival-roster-card selected" data-rival-choice="hisoka"><img src="/characters/hisoka/portrait.png" alt="" /></div>
+                ${Array.from({ length: 10 }, () => '<div class="rival-roster-card locked" aria-hidden="true"><i>?</i></div>').join("")}
               </div>
             </article>
           </div>
-
-          <section class="selection-console">
-            <div class="trait-panel">
-              <span>SIGNATURE TRAIT</span>
-              <strong id="selected-trait-name">BATTLE THRILL</strong>
-              <p id="selected-trait-copy">Draw-stack cards receive a brighter warning, helping you read dangerous counters instantly.</p>
-            </div>
-            <div class="roster" role="radiogroup" aria-label="Available duelists">
-              <button class="roster-card selected" data-character="kenpachi" role="radio" aria-checked="true">
-                <img src="/characters/kenpachi/portrait.png" alt="" />
-                <span><b>KENPACHI</b><small>POWER</small></span>
-              </button>
-              <button class="roster-card" data-character="hisoka" role="radio" aria-checked="false">
-                <video src="/characters/hisoka/portrait-idle-preview.webm" muted loop playsinline aria-hidden="true"></video>
-                <span><b>HISOKA</b><small>TRICKERY</small></span>
-              </button>
-              <div class="roster-card locked" aria-label="Locked duelist"><i>?</i><span><b>LOCKED</b><small>COMING SOON</small></span></div>
-              <div class="roster-card locked" aria-label="Locked duelist"><i>?</i><span><b>LOCKED</b><small>COMING SOON</small></span></div>
-              <div class="roster-card locked" aria-label="Locked duelist"><i>?</i><span><b>LOCKED</b><small>COMING SOON</small></span></div>
-              <div class="roster-card locked" aria-label="Locked duelist"><i>?</i><span><b>LOCKED</b><small>COMING SOON</small></span></div>
-              <div class="roster-card locked" aria-label="Locked duelist"><i>?</i><span><b>LOCKED</b><small>COMING SOON</small></span></div>
-              <div class="roster-card locked" aria-label="Locked duelist"><i>?</i><span><b>LOCKED</b><small>COMING SOON</small></span></div>
-            </div>
-            <button class="confirm-fighter" id="confirm-character" data-testid="confirm-character">
-              <span>READY</span><strong>ENTER THE ARENA</strong><i>&#9654;</i>
-            </button>
-          </section>
-          <p class="select-hint"><kbd>&larr;</kbd><kbd>&rarr;</kbd> SELECT &nbsp; <kbd>ENTER</kbd> CONFIRM &nbsp; <kbd>ESC</kbd> BACK</p>
+          <div class="selected-trait" aria-live="polite"><span id="selected-trait-name">BATTLE THRILL</span><p id="selected-trait-copy">Draw-stack cards receive a brighter warning, helping you read dangerous counters instantly.</p></div>
         </section>
 
         <section class="game-screen hidden" data-screen="game">
@@ -287,6 +262,7 @@ export class App {
     const requestedSpell = new URLSearchParams(window.location.search).get("spell");
     const spellPreview = (["arsonist", "freeze", "whirlwind", "draw2", "wild4"] as CardKind[]).find((type) => type === requestedSpell);
     this.pendingSolo = { difficulty, ruleset, ...(challengePreview ? { challengePreview } : {}), ...(spellPreview ? { spellPreview } : {}), ...(resultPreview ? { resultPreview } : {}) };
+    this.setMenuMedia(false);
     this.root.querySelector('[data-screen="menu"]')?.classList.add("hidden");
     this.root.querySelector('[data-screen="character-select"]')?.classList.remove("hidden");
     this.selectCharacter(this.selectedCharacter, false);
@@ -324,14 +300,26 @@ export class App {
 
   private renderCharacterPair(character: CharacterId): void {
     const rival = opposingCharacter(character);
-    this.root.querySelectorAll<HTMLElement>("[data-player-fighter]").forEach((fighter) => fighter.classList.toggle("active", fighter.dataset.playerFighter === character));
-    this.root.querySelectorAll<HTMLElement>("[data-rival-fighter]").forEach((fighter) => fighter.classList.toggle("active", fighter.dataset.rivalFighter === rival));
+    this.root.querySelectorAll<HTMLVideoElement>("[data-player-fighter]").forEach((fighter) => this.setFighterMediaActive(fighter, fighter.dataset.playerFighter === character));
+    this.root.querySelectorAll<HTMLVideoElement>("[data-rival-fighter]").forEach((fighter) => this.setFighterMediaActive(fighter, fighter.dataset.rivalFighter === rival));
+    this.root.querySelectorAll<HTMLElement>("[data-rival-choice]").forEach((portrait) => portrait.classList.toggle("selected", portrait.dataset.rivalChoice === rival));
     this.root.querySelector<HTMLElement>("#selected-fighter-name")!.textContent = CHARACTER_DATA[character].name;
     this.root.querySelector<HTMLElement>("#selected-fighter-title")!.textContent = CHARACTER_DATA[character].title;
     this.root.querySelector<HTMLElement>("#selected-trait-name")!.textContent = CHARACTER_DATA[character].trait;
     this.root.querySelector<HTMLElement>("#selected-trait-copy")!.textContent = CHARACTER_DATA[character].traitCopy;
     this.root.querySelector<HTMLElement>("#rival-fighter-name")!.textContent = CHARACTER_DATA[rival].name;
     this.root.querySelector<HTMLElement>("#rival-fighter-title")!.textContent = CHARACTER_DATA[rival].title;
+  }
+
+  private setFighterMediaActive(video: HTMLVideoElement, active: boolean): void {
+    video.classList.toggle("active", active);
+    if (!active) {
+      video.pause();
+      return;
+    }
+    if (!this.root.querySelector('[data-screen="character-select"]')?.classList.contains("hidden")) {
+      void video.play().catch(() => undefined);
+    }
   }
 
   private confirmCharacter(): void {
@@ -358,12 +346,20 @@ export class App {
     this.root.querySelector('[data-screen="menu"]')?.classList.remove("hidden");
     this.pendingSolo = undefined;
     this.setCharacterSelectMedia(false);
+    this.setMenuMedia(true);
     audioManager.playSfx("click");
+  }
+
+  private setMenuMedia(playing: boolean): void {
+    this.root.querySelectorAll<HTMLVideoElement>('[data-screen="menu"] video').forEach((video) => {
+      if (playing) void video.play().catch(() => undefined);
+      else video.pause();
+    });
   }
 
   private setCharacterSelectMedia(playing: boolean): void {
     this.root.querySelectorAll<HTMLVideoElement>('[data-screen="character-select"] video').forEach((video) => {
-      if (playing) void video.play().catch(() => undefined);
+      if (playing && video.classList.contains("active")) void video.play().catch(() => undefined);
       else video.pause();
     });
   }
@@ -392,6 +388,7 @@ export class App {
     this.onlineStarted = false;
     this.root.querySelector('[data-screen="game"]')?.classList.add("hidden");
     this.root.querySelector('[data-screen="menu"]')?.classList.remove("hidden");
+    this.setMenuMedia(true);
     void audioManager.playMusic("menu");
   }
 

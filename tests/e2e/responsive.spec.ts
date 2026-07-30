@@ -13,6 +13,7 @@ for (const viewport of viewports) {
     await page.goto("/");
     await expect(page.locator("#loading-veil")).toBeHidden();
     await page.getByTestId("start-solo").click();
+    await page.getByRole("radio", { name: "KENPACHI" }).click();
     await page.getByTestId("confirm-character").click();
     const canvas = page.locator("canvas");
     await expect(canvas).toHaveAttribute("data-match-ready", "true", { timeout: 15_000 });

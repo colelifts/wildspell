@@ -9,7 +9,7 @@ test("all seven duelists preview correctly and a new fighter enters the arena", 
   for (const name of roster) {
     await page.getByRole("radio", { name }).click();
     await expect(page.locator("#selected-fighter-name")).toHaveText(name);
-    await expect(page.locator(".fighter-side-player .fighter-figure img.active")).toHaveAttribute("alt", name);
+    await expect(page.locator(".fighter-side-player .fighter-art.active")).toHaveAttribute("aria-label", name);
     await expect(page.locator("#selected-trait-name")).not.toBeEmpty();
   }
 

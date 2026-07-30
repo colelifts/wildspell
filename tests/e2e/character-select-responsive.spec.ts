@@ -49,8 +49,8 @@ test("fighter select stays composed from small phones through ultrawide displays
     const metrics = await page.evaluate(() => ({
       scrollWidth: document.documentElement.scrollWidth,
       scrollHeight: document.documentElement.scrollHeight,
-      activePlayerFighters: document.querySelectorAll(".fighter-side-player .fighter-figure img.active").length,
-      paintedPlayerFighters: [...document.querySelectorAll<HTMLElement>(".fighter-side-player .fighter-figure img")]
+      activePlayerFighters: document.querySelectorAll(".fighter-side-player .fighter-art.active").length,
+      paintedPlayerFighters: [...document.querySelectorAll<HTMLElement>(".fighter-side-player .fighter-art")]
         .filter((fighter) => getComputedStyle(fighter).display !== "none").length,
       playerCards: document.querySelectorAll(".fighter-side-player .roster-card").length,
       rivalCards: document.querySelectorAll(".fighter-side-rival .rival-roster-card").length
@@ -71,7 +71,7 @@ test("fighter select stays composed from small phones through ultrawide displays
       [".versus-core", "versus control"]
     ] as const) {
       const layoutHeight = Math.max(viewport.height,
-        await page.locator('[data-screen="character-select"]').evaluate((element) => element.getBoundingClientRect().height));
+        await page.locator('[data-screen="character-select"]').evaluate((element) => Math.max(element.getBoundingClientRect().height, element.scrollHeight)));
       expectInsideLayout(await box(page, selector), viewport.width, layoutHeight, `${viewport.name} ${label}`);
     }
 
@@ -85,7 +85,7 @@ test("fighter select stays composed from small phones through ultrawide displays
         return { x: rect.x, y: rect.y, width: rect.width, height: rect.height, right: rect.right, bottom: rect.bottom };
       }));
       const layoutHeight = Math.max(viewport.height,
-        await page.locator('[data-screen="character-select"]').evaluate((element) => element.getBoundingClientRect().height));
+        await page.locator('[data-screen="character-select"]').evaluate((element) => Math.max(element.getBoundingClientRect().height, element.scrollHeight)));
       cards.forEach((card, index) => expectInsideLayout(card, viewport.width, layoutHeight, `${viewport.name} ${side} card ${index + 1}`));
       for (let first = 0; first < cards.length; first += 1) {
         for (let second = first + 1; second < cards.length; second += 1) {
@@ -114,7 +114,7 @@ test("fighter select stays composed from small phones through ultrawide displays
     await page.getByRole("radio", { name: "MAKI" }).click();
     await expect(page.getByTestId("confirm-character")).toBeEnabled();
     const layoutHeight = Math.max(viewport.height,
-      await page.locator('[data-screen="character-select"]').evaluate((element) => element.getBoundingClientRect().height));
+      await page.locator('[data-screen="character-select"]').evaluate((element) => Math.max(element.getBoundingClientRect().height, element.scrollHeight)));
     expectInsideLayout(await box(page, ".confirm-fighter"), viewport.width, layoutHeight, `${viewport.name} fight button`);
     await page.waitForTimeout(450);
 
@@ -122,6 +122,6 @@ test("fighter select stays composed from small phones through ultrawide displays
   }
 
   await page.evaluate(() => document.documentElement.classList.add("reduced-motion"));
-  await expect.poll(() => page.locator(".fighter-side-player .fighter-figure img.active").evaluate((element) => getComputedStyle(element).animationName)).toBe("none");
+  await expect.poll(() => page.locator(".fighter-side-player .fighter-art.active").evaluate((element) => getComputedStyle(element).animationName)).toBe("none");
   await expect.poll(() => page.locator(".fighter-side-player .fighter-figure").evaluate((element) => getComputedStyle(element, "::before").animationName)).toBe("none");
 });

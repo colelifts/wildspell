@@ -62,16 +62,23 @@ const CHARACTER_DATA: Record<CharacterId, {
 
 const CHARACTER_ORDER = Object.keys(CHARACTER_DATA) as CharacterId[];
 const opposingCharacter = (character: CharacterId): CharacterId => CHARACTER_ORDER[(CHARACTER_ORDER.indexOf(character) + 1) % CHARACTER_ORDER.length]!;
+const characterArt = (character: CharacterId) => ({
+  full: `/characters/${character}/select-full.png`,
+  showcase: character === "kenpachi" ? "/characters/kenpachi/selection-splash.png" : `/characters/${character}/select-showcase.png`,
+  cutout: character === "kenpachi" ? "/characters/kenpachi/portrait.png" : `/characters/${character}/select-cutout.png`
+});
 const rosterCards = (rival = false): string => CHARACTER_ORDER.map((character) => {
   const data = CHARACTER_DATA[character];
-  const content = `<span class="roster-portrait-layer"><img src="/characters/${character}/portrait.png" alt="" /></span><img class="roster-cutout" src="/characters/${character}/portrait.png" alt="" /><strong class="roster-name">${data.name}</strong>`;
+  const art = characterArt(character);
+  const content = `<span class="roster-portrait-layer"><img src="${art.showcase}" alt="" /></span><img class="roster-cutout" src="${art.cutout}" alt="" /><strong class="roster-name">${data.name}</strong>`;
   if (rival) return `<div class="rival-roster-card" data-rival-choice="${character}" aria-label="CPU ${data.name}">${content}</div>`;
   return `<button class="roster-card" data-character="${character}" role="radio" aria-label="${data.name}" aria-checked="false">${content}</button>`;
 }).join("") + Array.from({ length: 5 }, (_, index) => `<div class="${rival ? "rival-roster-card" : "roster-card"} locked" aria-label="Locked duelist ${index + 1}"><span class="locked-diamond"><i>?</i><b aria-hidden="true">&#128274;</b></span></div>`).join("");
 
-const fighterImages = (side: "player" | "rival"): string => CHARACTER_ORDER.map((character) =>
-  `<img data-${side}-fighter="${character}" src="/characters/${character}/selection-splash.png" alt="${CHARACTER_DATA[character].name}" />`
-).join("");
+const fighterImages = (side: "player" | "rival"): string => CHARACTER_ORDER.map((character) => {
+  const art = characterArt(character);
+  return `<span class="fighter-art" data-${side}-fighter="${character}" role="img" aria-label="${CHARACTER_DATA[character].name}"><img class="fighter-full" src="${art.full}" alt="" /></span>`;
+}).join("");
 
 export class App {
   private readonly game = new WildSpellGame();
@@ -166,7 +173,7 @@ export class App {
             </article>
 
             <div class="versus-core">
-              <strong aria-hidden="true">VS</strong>
+              <img class="versus-mark" src="/ui/select-vs.png" alt="Versus" />
               <span class="selection-status" id="selection-status">SELECT</span>
               <button class="confirm-fighter" id="confirm-character" data-testid="confirm-character" aria-label="Start the duel" disabled><b>FIGHT</b></button>
             </div>

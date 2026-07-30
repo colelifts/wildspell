@@ -25,7 +25,9 @@ export class ChallengeDirector {
     const background = this.scene.add.rectangle(width / 2, height / 2, width, height, 0x02030a, 0.985);
     const colorWash = this.scene.add.rectangle(width / 2, height / 2, width, height, 0x8b1fff, 0.14).setBlendMode(Phaser.BlendModes.ADD);
     const portraitFrameHeight = Math.min(980, height - 50);
-    const frame = this.scene.add.rectangle(width / 2, height / 2, Math.min(820, width - 30), portrait ? portraitFrameHeight : 500, 0x091631, 0.98).setStrokeStyle(5, 0xf4cb68);
+    const frameWidth = Math.min(900, width - 22);
+    const frameHeight = portrait ? portraitFrameHeight : 520;
+    const frame = this.scene.add.image(width / 2, height / 2, "ui-minigame-frame").setDisplaySize(frameWidth, frameHeight).setAlpha(0.98);
     const innerFrame = this.scene.add.rectangle(width / 2, height / 2, Math.min(800, width - 50), portrait ? portraitFrameHeight - 20 : 480, 0x0b1d41, 0.35).setStrokeStyle(2, 0x8f6cff, 0.8);
     const header = this.scene.add.text(width / 2, portrait ? height * 0.14 : 72, "ARCANE SHOWDOWN", {
       fontFamily: "Georgia, serif", fontSize: portrait ? "43px" : "52px", fontStyle: "bold", color: "#fff0b3", stroke: "#3d155f", strokeThickness: 10
@@ -50,7 +52,7 @@ export class ChallengeDirector {
         if (this.resolved) return;
         this.resolved = true;
         this.clearActivity();
-        const bannerPlate = this.scene.add.rectangle(width / 2, height / 2, portrait ? width - 80 : 520, 120, 0x071126, 0.96).setStrokeStyle(4, 0x8dffd6).setDepth(525).setScale(0.7).setAlpha(0);
+        const bannerPlate = this.scene.add.image(width / 2, height / 2, "ui-result-banner").setDisplaySize(portrait ? width - 70 : 590, portrait ? 180 : 210).setDepth(525).setScale(0.7).setAlpha(0);
         const banner = this.scene.add.text(width / 2, height / 2, `${Math.max(0, Math.round(score))} ARCANE POINTS`, {
           fontFamily: '"Trebuchet MS", sans-serif', fontSize: portrait ? "31px" : "42px", fontStyle: "bold", color: "#adffe2", stroke: "#071126", strokeThickness: 10
         }).setOrigin(0.5).setDepth(526).setScale(0.7).setAlpha(0);
@@ -63,7 +65,7 @@ export class ChallengeDirector {
         });
         this.cleanup.push(() => resultTimer.remove(false));
       };
-      const countdownPlate = this.scene.add.circle(width / 2, height / 2, portrait ? 102 : 116, 0x120721, 0.96).setStrokeStyle(7, 0xffd76f, 1);
+      const countdownPlate = this.scene.add.image(width / 2, height / 2, "ui-countdown-emblem").setDisplaySize(portrait ? 242 : 270, portrait ? 228 : 254);
       const countdown = this.scene.add.text(width / 2, height / 2, "3", {
         fontFamily: "Georgia, serif", fontSize: portrait ? "112px" : "132px", fontStyle: "bold", color: "#fff2bb", stroke: "#6e164f", strokeThickness: 13
       }).setOrigin(0.5);

@@ -20,8 +20,9 @@ function stateWith(hands: [Card[], Card[]], top = card("red", "number", 5), rule
 
 describe("deck", () => {
   it("builds deterministic Classic and Wild decks", () => {
-    expect(buildDeck("classic", 7).cards).toHaveLength(90);
-    expect(buildDeck("wild", 7).cards).toHaveLength(94);
+    expect(buildDeck("classic", 7).cards).toHaveLength(84);
+    expect(buildDeck("wild", 7).cards).toHaveLength(88);
+    expect(buildDeck("wild", 7).cards.filter((card) => card.kind === "freeze").every((card) => card.color === "blue")).toBe(true);
     expect(buildDeck("wild", 7).cards.map((item) => item.id)).toEqual(buildDeck("wild", 7).cards.map((item) => item.id));
     const liveSpecials = [...new Set(buildDeck("wild", 7).cards.filter((item) => item.kind !== "number").map((item) => item.kind))].sort();
     expect(liveSpecials).toEqual(["arsonist", "draw2", "freeze", "whirlwind", "wild4"]);
@@ -56,6 +57,17 @@ describe("legal moves", () => {
     expect(illegalReason(state, burned, 0)).toContain("burning");
     expect(illegalReason(state, plusTwo, 0)).toBeNull();
     expect(illegalReason(state, plusFour, 0)).toBeNull();
+  });
+
+  it("allows every signature spell from any discard color and adopts its printed color", () => {
+    const arsonist = card("red", "arsonist");
+    const freeze = card("blue", "freeze");
+    const whirlwind = card("green", "whirlwind");
+    const state = stateWith([[arsonist, freeze, whirlwind], [card("yellow", "number", 2)]], card("yellow", "number", 8));
+    expect([arsonist, freeze, whirlwind].map((item) => illegalReason(state, item, 0))).toEqual([null, null, null]);
+
+    const result = reduceGame(state, { type: "play", player: 0, cardId: arsonist.id });
+    expect(result.state.currentColor).toBe("red");
   });
 });
 
@@ -200,15 +212,18 @@ describe("Wild statuses and spells", () => {
     expect(state.hands[1].some((item) => item.id === state.statuses[1].frozenCardIds[0])).toBe(true);
   });
 
-  it("Whirlwind swaps one random card each way", () => {
+  it("Whirlwind swaps both entire hands after the spell is discarded", () => {
     const whirlwind = card("green", "whirlwind");
     const own = card("red", "number", 1);
+    const ownTwo = card("blue", "number", 7);
     const rival = card("blue", "number", 2);
-    let state = stateWith([[whirlwind, own, card("blue", "number", 7)], [rival, card("yellow", "number", 3)]], card("green", "number", 8));
+    const rivalTwo = card("yellow", "number", 3);
+    const rivalThree = card("green", "number", 9);
+    let state = stateWith([[whirlwind, own, ownTwo], [rival, rivalTwo, rivalThree]], card("green", "number", 8));
     state = reduceGame(state, { type: "play", player: 0, cardId: whirlwind.id }).state;
-    expect(state.hands[0]).toHaveLength(2);
+    expect(state.hands[0].map((item) => item.id)).toEqual([rival.id, rivalTwo.id, rivalThree.id]);
     expect(state.hands[1]).toHaveLength(2);
-    expect(state.hands[0][0]?.id).not.toBe(own.id);
+    expect(state.hands[1].map((item) => item.id)).toEqual([own.id, ownTwo.id]);
   });
 
   it("Mirror copies the last non-Mirror spell", () => {

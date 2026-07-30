@@ -1,6 +1,6 @@
 # WildSpell rebuild progress
 
-Updated: 2026-07-28
+Updated: 2026-07-29
 
 ## Audit and stabilization
 
@@ -44,8 +44,8 @@ The first visual gate is captured in `artifacts/rebuild/` for desktop and mobile
 - [x] Add map-scale Freeze, Arsonist, Whirlwind, Arcane +2, and Chaos +4 reactions.
 - [x] Rebuild number cards as clean antialiased premium faces with readable corner values.
 - [x] Verify the updated menu and a live solo match in Chromium with no browser errors.
-- [ ] Replace the remaining LPC player and opponent sprites with approved high-detail character animation packs.
-- [ ] Replace legacy special-card faces only if those spells remain in the final deck.
+- [x] Replace the remaining LPC player and opponent sprites with the approved high-detail Kenpachi and Hisoka animation packs.
+- [x] Remove legacy spell faces from the live deck and retain only the five approved animated specials.
 
 ## Premium character pass
 
@@ -61,7 +61,7 @@ The first visual gate is captured in `artifacts/rebuild/` for desktop and mobile
 
 ## Premium gameplay and clarity pass
 
-- [x] Draw through unusable cards until the first legal card appears.
+- [x] Draw at most one card; allow that card to be played immediately when legal, otherwise pass automatically.
 - [x] Resolve unanswerable draw stacks and exhausted no-move turns automatically.
 - [x] Remove the unnecessary manual End Turn control and reject voluntary draws when a legal play exists.
 - [x] Enlarge the live hand, discard, deck, and opponent cards across desktop and mobile.
@@ -82,6 +82,8 @@ The first visual gate is captured in `artifacts/rebuild/` for desktop and mobile
 - [x] Increase desktop camera scale, hand-card scale, nameplate type size, deck-count contrast, and disabled-control legibility.
 - [x] Add a dedicated 2048-pixel clarity assertion and proof image under `artifacts/clarity/`.
 - [x] Prove atomic Quick Match pairing plus synchronized color choice, same-type +2/+4 counter stacks, reconnect, Final Card scoring, and round transition in two desktop/mobile browsers.
+- [x] Add a responsive fighting-game character-select screen with animated Kenpachi and Hisoka presentations, portraits, keyboard navigation, opponent swapping, and match handoff.
+- [x] Add subtle functional fighter traits: Kenpachi intensifies active draw-stack warnings, while Hisoka highlights playable Wild opportunities.
 - [x] Narrow the live deck to the five approved animated specials: Arsonist, Freeze, Whirlwind, Arcane +2, and Chaos +4.
 - [x] Install Cole's supplied menu, battle, and minigame music with automatic scene switching.
 - [x] Replace the noisy galaxy card back with a simplified violet-and-gold eclipse design generated for thumbnail readability.
@@ -95,5 +97,9 @@ The first visual gate is captured in `artifacts/rebuild/` for desktop and mobile
 - [x] Prevent card inspection and match controls from covering an active minigame.
 - [x] Keep draw-spell counters fanned on the table with a prominent live stack total and counter-window label.
 - [x] Prevent Burn from selecting red cards and replace status badges with full-card looping fire, frost, cracks, and motes.
-- [x] Replace generated spell/card placeholders in the live manifest with licensed recorded Mixkit effects and preserve source/license notes.
+- [x] Replace generic recorded placeholders with the custom local WildSpell SFX set and preserve replaceable manifest filenames.
+- [x] Integrate the approved blue-purple-gold UI artwork across the menu, character select, nameplates, guidance, stack counter, modals, minigames, and results.
+- [x] Blend selection-art edges into a fighting-game split stage and add full-color hover/focus treatment with dimmed inactive rivals.
+- [x] Clamp spell overlays to the responsive viewport and repair source-relative scaling so effects no longer render partially off-screen.
+- [ ] Review and approve third-party elemental VFX candidates before any external animation assets are added to the game.
 - [ ] Continue the full non-audio polish, multiplayer, accessibility, and acceptance-checklist pass.

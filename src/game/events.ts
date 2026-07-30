@@ -4,9 +4,12 @@ import type { RoomRecord } from "./multiplayer/protocol";
 import type { RoomSession } from "./multiplayer/roomService";
 
 export type ResultPreview = "round" | "match";
+export type CharacterId = "kenpachi" | "hisoka";
 
 export interface StartMatchDetail {
   playerName: string;
+  opponentName?: string;
+  characterId?: CharacterId;
   difficulty: Difficulty;
   ruleset: Ruleset;
   challengePreview?: ChallengeType;

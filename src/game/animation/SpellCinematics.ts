@@ -96,6 +96,21 @@ export class SpellCinematics {
       face = fallback;
     }
     root.add([glowOuter, glowInner, face]);
+    if (kind === "whirlwind") {
+      const correctionPanel = this.scene.add.rectangle(0, cardHeight * 0.39, cardWidth * 0.82, cardHeight * 0.145, 0x061713, 0.96)
+        .setRounded(Math.max(8, cardWidth * 0.035))
+        .setStrokeStyle(2, 0x79f6cf, 0.72);
+      const correction = this.scene.add.text(0, cardHeight * 0.39, "SWAP ENTIRE HANDS", {
+        fontFamily: "Georgia, serif",
+        fontSize: `${Math.max(12, cardWidth * 0.064)}px`,
+        fontStyle: "bold",
+        color: "#effff8",
+        stroke: "#061713",
+        strokeThickness: 4,
+        align: "center"
+      }).setOrigin(0.5);
+      root.add([correctionPanel, correction]);
+    }
     this.scene.tweens.add({ targets: root, alpha: 1, scale: 1, angle: 0, duration: 330, ease: "Back.Out" });
     this.scene.tweens.add({ targets: glowOuter, scale: 1.12, alpha: 0.04, duration: 420, yoyo: true, repeat: 2, ease: "Sine.InOut" });
     this.scene.time.delayedCall(860, () => this.scene.tweens.add({ targets: root, x: width * 0.24, y: height * 0.54, scale: 0.64, angle: -4, duration: 380, ease: "Cubic.InOut" }));
@@ -126,6 +141,7 @@ export class SpellCinematics {
   }
 
   private iceWave(from: Phaser.Math.Vector2, to: Phaser.Math.Vector2, color: number): void {
+    this.effectFrame("status-freeze", to.x, to.y, 260, 390, 1150, -2);
     const angle = Phaser.Math.Angle.Between(from.x, from.y, to.x, to.y);
     for (let index = 0; index < 18; index += 1) {
       const shard = this.scene.add.polygon(from.x, from.y, [0, -34, 9, 8, 3, 42, -8, 8], index % 3 ? color : 0xeaffff, 0.92).setStrokeStyle(2, 0xffffff, 0.9).setDepth(320).setAngle(Phaser.Math.RadToDeg(angle) + 90).setScale(0.25).setBlendMode(Phaser.BlendModes.ADD);
@@ -141,6 +157,7 @@ export class SpellCinematics {
   private whirlwind(from: Phaser.Math.Vector2, to: Phaser.Math.Vector2, color: number): void {
     const centerX = (from.x + to.x) / 2;
     const centerY = (from.y + to.y) / 2;
+    this.effectFrame("status-whirlwind", centerX, centerY + 10, 440, 620, 1320, 12);
     this.scene.cameras.main.shake(880, 0.014);
     for (let ring = 0; ring < 9; ring += 1) {
       const ribbon = this.scene.add.ellipse(centerX, to.y + 105 - ring * 24, 90 + ring * 36, 22 + ring * 5, 0x06191b, 0.04).setStrokeStyle(6 - ring * 0.35, ring % 2 ? 0xffffff : color, 0.82).setDepth(320 + ring).setBlendMode(Phaser.BlendModes.ADD).setScale(0.18).setAngle(ring % 2 ? -8 : 8);
@@ -156,13 +173,17 @@ export class SpellCinematics {
     for (let index = 0; index < 6; index += 1) {
       const beginsLeft = index % 2 === 0;
       const card = this.scene.add.image(beginsLeft ? from.x : to.x, (beginsLeft ? from.y : to.y) + (index - 2.5) * 10, CARD_BACK_KEY)
-        .setDisplaySize(72, 108).setDepth(338 + index).setAngle(beginsLeft ? -18 : 18).setScale(0.42);
+        .setDisplaySize(72, 108).setDepth(338 + index).setAngle(beginsLeft ? -18 : 18);
+      const cardScaleX = card.scaleX;
+      const cardScaleY = card.scaleY;
+      card.setScale(cardScaleX * 0.42, cardScaleY * 0.42);
       this.scene.tweens.add({
         targets: card,
         x: beginsLeft ? to.x : from.x,
         y: beginsLeft ? to.y : from.y,
         angle: beginsLeft ? 720 : -720,
-        scale: 0.78,
+        scaleX: cardScaleX * 1.08,
+        scaleY: cardScaleY * 1.08,
         duration: 900,
         delay: index * 65,
         ease: "Sine.InOut",
@@ -174,6 +195,7 @@ export class SpellCinematics {
   }
 
   private fireSurge(from: Phaser.Math.Vector2, to: Phaser.Math.Vector2): void {
+    this.effectFrame("status-burn", to.x, to.y, 260, 390, 1250, 2);
     const angle = Phaser.Math.Angle.Between(from.x, from.y, to.x, to.y);
     for (let index = 0; index < 3; index += 1) {
       const root = this.scene.add.container(from.x, from.y + (index - 1) * 18).setDepth(324).setRotation(angle).setScale(0.35);
@@ -200,9 +222,13 @@ export class SpellCinematics {
 
   private arcaneVolley(from: Phaser.Math.Vector2, to: Phaser.Math.Vector2, color: number): void {
     for (let index = 0; index < 2; index += 1) {
-      const card = this.scene.add.image(from.x + (index ? 24 : -24), from.y, CARD_BACK_KEY).setDisplaySize(72, 108).setDepth(326).setAngle(index ? 18 : -18).setScale(0.35).setBlendMode(Phaser.BlendModes.ADD);
+      const card = this.scene.add.image(from.x + (index ? 24 : -24), from.y, CARD_BACK_KEY).setDisplaySize(72, 108).setDepth(326).setAngle(index ? 18 : -18).setBlendMode(Phaser.BlendModes.ADD);
+      const cardScaleX = card.scaleX;
+      const cardScaleY = card.scaleY;
+      card.setScale(cardScaleX * 0.35, cardScaleY * 0.35);
       const halo = this.scene.add.circle(card.x, card.y, 42, color, 0.08).setStrokeStyle(5, color, 0.86).setDepth(325).setBlendMode(Phaser.BlendModes.ADD);
-      this.scene.tweens.add({ targets: [card, halo], x: to.x + (index ? 30 : -30), y: to.y, scale: index ? 0.72 : 0.78, angle: index ? 382 : -382, alpha: 0, duration: 650, delay: index * 110, ease: "Cubic.In", onComplete: () => { card.destroy(); halo.destroy(); } });
+      this.scene.tweens.add({ targets: card, x: to.x + (index ? 30 : -30), y: to.y, scaleX: cardScaleX * 1.08, scaleY: cardScaleY * 1.08, angle: index ? 382 : -382, alpha: 0, duration: 650, delay: index * 110, ease: "Cubic.In", onComplete: () => card.destroy() });
+      this.scene.tweens.add({ targets: halo, x: to.x + (index ? 30 : -30), y: to.y, scale: index ? 0.72 : 0.78, alpha: 0, duration: 650, delay: index * 110, ease: "Cubic.In", onComplete: () => halo.destroy() });
     }
   }
 
@@ -249,5 +275,21 @@ export class SpellCinematics {
       const angle = (Math.PI * 2 * index) / 18;
       this.scene.tweens.add({ targets: spark, x: x + Math.cos(angle) * 100, y: y + Math.sin(angle) * 100, alpha: 0, scale: 0, duration: 430, onComplete: () => spark.destroy() });
     }
+  }
+
+  private effectFrame(texture: string, x: number, y: number, width: number, height: number, duration: number, rotation: number): void {
+    const viewport = virtualViewport(this.scene);
+    const safeWidth = Math.min(width, viewport.width - 24);
+    const safeHeight = Math.min(height, viewport.height - 24);
+    const safeX = Phaser.Math.Clamp(x, safeWidth / 2 + 12, viewport.width - safeWidth / 2 - 12);
+    const safeY = Phaser.Math.Clamp(y, safeHeight / 2 + 12, viewport.height - safeHeight / 2 - 12);
+    const frame = this.scene.add.image(safeX, safeY, texture).setDisplaySize(safeWidth, safeHeight).setDepth(336).setAlpha(0).setBlendMode(Phaser.BlendModes.ADD).setAngle(-rotation);
+    const echo = this.scene.add.image(safeX, safeY, texture).setDisplaySize(safeWidth * 0.94, safeHeight * 0.94).setDepth(335).setAlpha(0).setBlendMode(Phaser.BlendModes.SCREEN).setFlipX(true).setAngle(rotation);
+    const frameScale = { x: frame.scaleX, y: frame.scaleY };
+    const echoScale = { x: echo.scaleX, y: echo.scaleY };
+    frame.setScale(frameScale.x * 0.82, frameScale.y * 0.82);
+    echo.setScale(echoScale.x * 0.82, echoScale.y * 0.82);
+    this.scene.tweens.add({ targets: frame, alpha: 1, scaleX: frameScale.x * 1.06, scaleY: frameScale.y * 1.06, angle: rotation, duration: 260, ease: "Back.Out", yoyo: true, hold: Math.max(120, duration - 620), onComplete: () => frame.destroy() });
+    this.scene.tweens.add({ targets: echo, alpha: 0.46, scaleX: echoScale.x * 1.12, scaleY: echoScale.y * 1.12, angle: -rotation, duration: 360, yoyo: true, hold: Math.max(80, duration - 760), onComplete: () => echo.destroy() });
   }
 }

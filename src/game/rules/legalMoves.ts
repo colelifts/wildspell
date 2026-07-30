@@ -12,13 +12,16 @@ export function illegalReason(state: GameState, card: Card, player: 0 | 1): stri
     if (card.kind !== state.drawStack.kind) return `${state.drawStack.kind === "draw2" ? "+2" : "+4"} can only be countered by the same draw spell.`;
     return null;
   }
-  if (isDrawCard(card.kind)) return null;
+  // Signature spells are deliberately "always castable" in WildSpell. Their
+  // printed color becomes the arena color after resolving, but matching the
+  // current discard is never required. Active draw stacks remain the one
+  // exception: only the matching counter spell may answer a stack.
+  if (card.kind !== "number") return null;
   const top = state.discard.at(-1);
   if (!top) return null;
   if (card.color === "wild") return null;
   if (card.color === state.currentColor) return null;
   if (card.kind === "number" && top.kind === "number" && card.value === top.value) return null;
-  if (card.kind !== "number" && card.kind === top.kind) return null;
   return `Match ${state.currentColor}, ${top.kind === "number" ? `the number ${top.value}` : "the spell"}, or play a Wild.`;
 }
 

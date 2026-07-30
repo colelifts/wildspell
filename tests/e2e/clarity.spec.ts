@@ -6,6 +6,7 @@ test("2K arena uses a high-density backing canvas instead of browser upscaling",
   await page.goto("/");
   await expect(page.locator("#loading-veil")).toBeHidden();
   await page.getByTestId("start-solo").click();
+  await page.getByTestId("confirm-character").click();
   const canvas = page.locator("canvas");
   await expect(canvas).toHaveAttribute("data-match-ready", "true", { timeout: 15_000 });
   const density = await canvas.evaluate((element) => {

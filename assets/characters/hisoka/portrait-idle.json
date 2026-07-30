@@ -1,0 +1,13 @@
+{
+  "character": "hisoka",
+  "animation": "portrait-idle",
+  "texture": "portrait-idle-sheet.webp",
+  "frameWidth": 512,
+  "frameHeight": 512,
+  "columns": 8,
+  "rows": 6,
+  "frameCount": 48,
+  "framesPerSecond": 12,
+  "loop": true,
+  "transparent": true
+}

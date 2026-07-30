@@ -7,6 +7,7 @@ for (const challenge of ["rune-memory", "spell-timing", "arcane-clash"] as const
     await page.goto(`/?challenge=${challenge}`);
     await expect(page.locator("#loading-veil")).toBeHidden();
     await page.getByTestId("start-solo").click();
+    await page.getByTestId("confirm-character").click();
     const canvas = page.locator("canvas");
     await expect(canvas).toBeVisible();
     await expect(canvas).toHaveAttribute("data-challenge-state", `active:${challenge}`, { timeout: 12_000 });

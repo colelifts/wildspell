@@ -38,7 +38,7 @@ export const CARD_EFFECT_LABELS: Record<CardKind, string> = {
   prism: "CHOOSE THE NEXT COLOR",
   wild4: "ADD 4 TO DRAW STACK",
   arsonist: "APPLY BURN 1",
-  whirlwind: "SWAP 1 RANDOM CARD",
+  whirlwind: "SWAP ENTIRE HANDS",
   stormcall: "YELLOW OR DRAW 2",
   frostbite: "LOCK 1 RIVAL CARD",
   mirror: "COPY THE LAST SPELL",

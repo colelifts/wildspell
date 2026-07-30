@@ -7,6 +7,7 @@ for (const result of ["round", "match"] as const) {
     await page.goto(`/?result=${result}`);
     await expect(page.locator("#loading-veil")).toBeHidden();
     await page.getByTestId("start-solo").click();
+    await page.getByTestId("confirm-character").click();
     const canvas = page.locator("canvas");
     await expect(canvas).toHaveAttribute("data-result-state", `active:${result}`, { timeout: 10_000 });
     await page.waitForTimeout(500);

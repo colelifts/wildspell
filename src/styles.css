@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Grotesk:wght@500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap");
 
 :root {
   font-family: "Space Grotesk", system-ui, sans-serif;
@@ -79,7 +79,7 @@ button {
 .menu-content {
   position: relative;
   z-index: 2;
-  width: min(1180px, 94vw);
+  width: min(1680px, 94vw);
   padding: 12px 0 20px;
 }
 .brand-lockup {
@@ -377,7 +377,7 @@ select:focus {
   top: 3%;
   width: 82%;
   height: 78%;
-  background: url("/characters/premium/gabby/turn-ready.png") center bottom/contain no-repeat;
+  background: url("/characters/hisoka/selection-splash.png") center bottom/contain no-repeat;
   transform: translateX(-50%);
   filter: drop-shadow(0 0 16px #b45cff) drop-shadow(0 18px 22px #03040dcc);
   animation: showcase-float 2.8s ease-in-out infinite alternate;
@@ -493,10 +493,422 @@ select:focus {
 .cleanse {
   color: #9dffc1;
 }
+.character-select-screen {
+  --player-accent: #5ce8ff;
+  --rival-accent: #d56cff;
+  position: absolute;
+  z-index: 20;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  min-height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    linear-gradient(90deg, #07192bdd 0 48.5%, #160b2ddd 51.5% 100%),
+    linear-gradient(180deg, #02071566, #020511e8),
+    url("/backgrounds/arena-premium.png") center/cover no-repeat;
+  transition: opacity 0.35s ease, scale 0.35s ease, filter 0.35s ease;
+}
+.character-select-screen[data-selected="hisoka"] {
+  --player-accent: #dc62ff;
+  --rival-accent: #61e8ff;
+  background:
+    linear-gradient(90deg, #160b2ddd 0 48.5%, #07192bdd 51.5% 100%),
+    linear-gradient(180deg, #02071566, #020511e8),
+    url("/backgrounds/arena-premium.png") center/cover no-repeat;
+}
+.character-select-screen.departing {
+  opacity: 0;
+  scale: 1.035;
+  filter: brightness(1.7);
+  pointer-events: none;
+}
+.character-select-screen::before,
+.character-select-screen::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+}
+.character-select-screen::before {
+  background:
+    radial-gradient(circle at 22% 52%, color-mix(in srgb, var(--player-accent) 30%, transparent), transparent 34%),
+    radial-gradient(circle at 78% 52%, color-mix(in srgb, var(--rival-accent) 25%, transparent), transparent 34%),
+    repeating-linear-gradient(115deg, transparent 0 90px, #ffffff08 91px, transparent 93px);
+}
+.character-select-screen::after {
+  background: linear-gradient(105deg, transparent 48.7%, #ffe7a9 49.45%, #fff 49.9%, #bd70ff 50.25%, transparent 51.2%);
+  opacity: 0.62;
+  filter: drop-shadow(0 0 18px #fff);
+}
+.select-atmosphere,
+.select-atmosphere i {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+.select-atmosphere i {
+  background: linear-gradient(90deg, transparent, #ffffff22, transparent);
+  width: 2px;
+  left: 50%;
+  animation: select-lightning 4.8s ease-in-out infinite;
+  filter: blur(1px);
+}
+.select-atmosphere i:nth-child(2) { animation-delay: -1.7s; transform: rotate(18deg); }
+.select-atmosphere i:nth-child(3) { animation-delay: -3.2s; transform: rotate(-15deg); }
+.select-header {
+  position: relative;
+  z-index: 5;
+  display: grid;
+  grid-template-columns: 180px 1fr 180px;
+  align-items: center;
+  gap: 18px;
+  min-height: 106px;
+  padding: 18px clamp(22px, 4vw, 72px) 12px;
+  text-align: center;
+  background: linear-gradient(180deg, #020712f2, #071128aa 78%, transparent);
+}
+.select-header > div:first-of-type span,
+.select-mode span,
+.fighter-identity span,
+.trait-panel > span {
+  font: 8px "Press Start 2P";
+  letter-spacing: 0.18em;
+  color: #9beeff;
+}
+.select-header h1 {
+  margin: 6px 0 3px;
+  font-family: Georgia, serif;
+  font-size: clamp(28px, 3vw, 48px);
+  line-height: 0.95;
+  color: #fff5d2;
+  letter-spacing: 0.06em;
+  text-shadow: 0 3px 0 #6c3210, 0 0 24px #ffc65a66;
+}
+.select-header p {
+  margin: 8px 0 0;
+  color: #9fb4d2;
+  font-size: 12px;
+}
+.select-back {
+  justify-self: start;
+  border: 1px solid #5b769d;
+  border-radius: 3px;
+  padding: 11px 14px;
+  color: #dcecff;
+  background: #071329cc;
+  font: 8px "Press Start 2P";
+  transition: 0.18s;
+}
+.select-back:hover { border-color: #ffe285; color: white; translate: -3px 0; }
+.select-mode {
+  justify-self: end;
+  display: grid;
+  gap: 5px;
+  text-align: right;
+}
+.select-mode b {
+  color: #ffe07d;
+  font: 10px "Press Start 2P";
+}
+.versus-stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 0 minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+.fighter-side {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  transition: filter 0.28s ease, opacity 0.28s ease;
+}
+.fighter-side::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    linear-gradient(112deg, color-mix(in srgb, var(--player-accent) 24%, transparent), transparent 58%),
+    radial-gradient(ellipse at 40% 58%, color-mix(in srgb, var(--player-accent) 18%, transparent), transparent 62%);
+  clip-path: polygon(0 0, 100% 0, 88% 100%, 0 100%);
+}
+.fighter-side-rival::before {
+  background:
+    linear-gradient(248deg, color-mix(in srgb, var(--rival-accent) 24%, transparent), transparent 58%),
+    radial-gradient(ellipse at 60% 58%, color-mix(in srgb, var(--rival-accent) 18%, transparent), transparent 62%);
+  clip-path: polygon(12% 0, 100% 0, 100% 100%, 0 100%);
+}
+.fighter-aura {
+  position: absolute;
+  left: 50%;
+  bottom: 2%;
+  width: min(52vw, 700px);
+  height: 78%;
+  translate: -50% 0;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, color-mix(in srgb, var(--player-accent) 24%, transparent), transparent 66%);
+  filter: blur(18px);
+  animation: fighter-aura-pulse 2.6s ease-in-out infinite alternate;
+}
+.fighter-side-rival .fighter-aura {
+  background: radial-gradient(ellipse, color-mix(in srgb, var(--rival-accent) 22%, transparent), transparent 66%);
+  animation-delay: -1.3s;
+}
+.fighter-figure {
+  position: absolute;
+  inset: 0;
+}
+.fighter-figure video {
+  position: absolute;
+  left: 50%;
+  bottom: -3%;
+  width: min(42vw, 620px);
+  height: 112%;
+  translate: -50% 0;
+  object-fit: contain;
+  opacity: 0;
+  scale: 0.94;
+  filter: saturate(0.75) brightness(0.58) blur(3px);
+  -webkit-mask-image: radial-gradient(ellipse 68% 95% at 50% 51%, #000 56%, #000d 73%, transparent 100%);
+  mask-image: radial-gradient(ellipse 68% 95% at 50% 51%, #000 56%, #000d 73%, transparent 100%);
+  transition: opacity 0.28s ease, scale 0.45s cubic-bezier(.2,.9,.2,1), filter 0.35s ease;
+}
+.fighter-side-rival .fighter-figure video { transform: scaleX(-1); }
+.fighter-figure video.active {
+  opacity: 0.7;
+  scale: 1;
+  filter: saturate(0.58) brightness(0.72) contrast(0.96) drop-shadow(0 20px 22px #000b);
+}
+.character-select-screen[data-preview] .fighter-side-player .fighter-figure video.active,
+.fighter-side.spotlight .fighter-figure video.active,
+.fighter-side:hover .fighter-figure video.active {
+  opacity: 1;
+  filter: saturate(1.15) brightness(1.06) contrast(1.04) drop-shadow(0 22px 26px #000c);
+}
+.character-select-screen[data-preview] .fighter-side-rival .fighter-figure video.active,
+.versus-stage:has(.fighter-side-player:hover) .fighter-side-rival .fighter-figure video.active,
+.versus-stage:has(.fighter-side-rival:hover) .fighter-side-player .fighter-figure video.active {
+  opacity: 0.46;
+  filter: saturate(0.32) brightness(0.55) contrast(0.9) drop-shadow(0 18px 22px #000c);
+}
+.fighter-side-player .fighter-figure video.active { animation: fighter-enter-left 0.55s cubic-bezier(.16,.84,.25,1); }
+.fighter-side-rival .fighter-figure video.active { animation: fighter-enter-right 0.55s cubic-bezier(.16,.84,.25,1); }
+.fighter-identity {
+  position: absolute;
+  z-index: 3;
+  left: clamp(20px, 4vw, 72px);
+  bottom: 20px;
+  max-width: 72%;
+  padding: 10px 22px 12px;
+  border-left: 4px solid var(--player-accent);
+  background: linear-gradient(90deg, #030818e8, #03081877, transparent);
+  filter: drop-shadow(0 8px 10px #000a);
+}
+.fighter-side-rival .fighter-identity {
+  left: auto;
+  right: clamp(20px, 4vw, 72px);
+  text-align: right;
+  border-left: 0;
+  border-right: 4px solid var(--rival-accent);
+  background: linear-gradient(270deg, #030818e8, #03081877, transparent);
+}
+.fighter-identity h2 {
+  margin: 5px 0 0;
+  font-family: Georgia, serif;
+  font-size: clamp(36px, 4.2vw, 72px);
+  line-height: 0.82;
+  color: #fff5da;
+  letter-spacing: 0.015em;
+  -webkit-text-stroke: 1px #5f3516;
+  text-shadow: 0 4px 0 #2b1422, 0 0 22px currentColor;
+}
+.fighter-identity p {
+  margin: 10px 0 0;
+  color: #bcd0e9;
+  font: 8px "Press Start 2P";
+  letter-spacing: 0.08em;
+}
+.versus-core {
+  position: relative;
+  z-index: 4;
+  width: 138px;
+  translate: -69px 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+.versus-core span {
+  color: #9ab6d9;
+  font: 7px "Press Start 2P";
+  letter-spacing: 0.18em;
+  writing-mode: vertical-rl;
+  justify-self: center;
+}
+.versus-core strong {
+  margin: 9px 0;
+  font: italic 76px/0.9 Georgia, serif;
+  color: #fff6dc;
+  -webkit-text-stroke: 2px #a85716;
+  text-shadow: 0 5px 0 #711e19, 0 0 28px #ffdb72;
+  transform: rotate(-8deg);
+}
+.versus-core i {
+  justify-self: center;
+  width: 12px;
+  height: 12px;
+  rotate: 45deg;
+  border: 2px solid #ffe79c;
+  background: #9853ff;
+  box-shadow: 0 0 16px #fff;
+}
+.selection-console {
+  position: relative;
+  z-index: 7;
+  display: grid;
+  grid-template-columns: minmax(250px, 1fr) minmax(420px, 1.6fr) minmax(250px, 1fr);
+  align-items: center;
+  gap: clamp(12px, 2vw, 30px);
+  padding: 13px clamp(22px, 4vw, 72px);
+  border-top: 1px solid #c7dfff38;
+  border-bottom: 1px solid #ffffff10;
+  background: linear-gradient(180deg, #0b1734f5, #030713fa);
+  box-shadow: 0 -18px 48px #02040bd9, inset 0 1px #ffffff16;
+}
+.trait-panel {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  padding-left: 13px;
+  border-left: 2px solid var(--player-accent);
+}
+.trait-panel strong {
+  color: #ffe189;
+  font: 10px "Press Start 2P";
+}
+.trait-panel p {
+  max-width: 360px;
+  margin: 2px 0 0;
+  color: #9eb5d2;
+  font-size: 11px;
+  line-height: 1.35;
+}
+.roster {
+  display: flex;
+  justify-content: center;
+  gap: 9px;
+  min-width: 0;
+}
+.roster-card {
+  position: relative;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  width: clamp(82px, 7vw, 112px);
+  aspect-ratio: 0.8;
+  overflow: hidden;
+  padding: 0;
+  border: 2px solid #435779;
+  clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+  background: #071127;
+  color: white;
+  box-shadow: 0 5px 10px #0009;
+  transition: 0.18s ease;
+}
+.roster-card img,
+.roster-card video {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  object-fit: cover;
+  object-position: center top;
+  background: radial-gradient(circle, #203a69, #05091a);
+}
+.roster-card > span {
+  display: grid;
+  gap: 2px;
+  padding: 6px 3px;
+  background: #050b19ed;
+}
+.roster-card b { font: 7px "Press Start 2P"; }
+.roster-card small { color: #91abc9; font: 6px "Press Start 2P"; }
+.roster-card:hover:not(.locked) { translate: 0 -5px; border-color: #eef9ff; }
+.roster-card.selected {
+  translate: 0 -8px;
+  border-color: var(--player-accent);
+  box-shadow: 0 0 0 2px #fff8, 0 0 24px color-mix(in srgb, var(--player-accent) 70%, transparent);
+}
+.roster-card.locked {
+  place-items: center;
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+.roster-card.locked i {
+  align-self: center;
+  font: 34px Georgia, serif;
+  color: #7183a1;
+}
+.confirm-fighter {
+  justify-self: end;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 3px 18px;
+  min-width: min(300px, 100%);
+  padding: 13px 18px;
+  border: 1px solid #ffdc73;
+  border-radius: 3px;
+  background: linear-gradient(110deg, #bd6818, #ffce55 56%, #fff0a4);
+  color: #281202;
+  text-align: left;
+  box-shadow: 0 5px 0 #70350e, 0 0 24px #ffb82b55;
+  transition: 0.16s;
+}
+.confirm-fighter span { font: 7px "Press Start 2P"; opacity: 0.72; }
+.confirm-fighter strong { font: 10px "Press Start 2P"; }
+.confirm-fighter i { grid-row: 1 / 3; grid-column: 2; align-self: center; font-size: 22px; }
+.confirm-fighter:hover { translate: 0 -3px; filter: brightness(1.12); box-shadow: 0 8px 0 #70350e, 0 0 34px #ffca4f88; }
+.confirm-fighter:active { translate: 0 3px; box-shadow: 0 2px 0 #70350e; }
+.select-hint {
+  position: relative;
+  z-index: 8;
+  margin: 0;
+  padding: 7px;
+  text-align: center;
+  color: #6f86a5;
+  background: #02050c;
+  font: 7px "Press Start 2P";
+}
+.select-hint kbd {
+  padding: 3px 5px;
+  border: 1px solid #455a78;
+  border-radius: 2px;
+  background: #0b172b;
+  color: #cfe4ff;
+  font: inherit;
+}
+@keyframes fighter-aura-pulse { to { scale: 1.08; opacity: 0.62; } }
+@keyframes fighter-enter-left { from { translate: -56% 3%; opacity: 0; scale: 0.88; } }
+@keyframes fighter-enter-right { from { translate: -44% 3%; opacity: 0; scale: 0.88; } }
+@keyframes select-lightning { 0%, 72%, 100% { opacity: 0; } 77% { opacity: 0.85; } 79% { opacity: 0.05; } 82% { opacity: 0.6; } }
 .game-screen {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  overflow: hidden;
   background: #05091a url("/backgrounds/arena-premium.png") center/cover
     no-repeat;
   isolation: isolate;
+}
+.game-screen #game-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
 }
 .game-screen canvas {
   position: absolute;
@@ -505,6 +917,8 @@ select:focus {
   display: block;
   image-rendering: auto;
   transform: translateZ(0);
+  width: 100% !important;
+  height: 100% !important;
 }
 .game-controls {
   position: absolute;
@@ -795,7 +1209,7 @@ select:focus {
     bottom: max(10px, env(safe-area-inset-bottom));
     justify-content: center;
     translate: -50% 0;
-    transform: scale(0.82);
+    transform: scale(0.94);
     transform-origin: bottom center;
   }
   .toast {
@@ -807,6 +1221,11 @@ select:focus {
   .control-button.icon {
     display: none;
   }
+  #game-settings {
+    display: grid;
+    min-width: 46px;
+    width: 46px;
+  }
   .final-button {
     width: 82px;
     height: 82px;
@@ -814,7 +1233,274 @@ select:focus {
   .spellbook {
     grid-template-columns: 1fr;
   }
+  .character-select-screen {
+    position: fixed;
+    grid-template-rows: auto minmax(360px, 1fr) auto;
+    overflow-y: auto;
+  }
+  .select-header {
+    grid-template-columns: 54px minmax(0, 1fr) 0;
+    min-height: 124px;
+    padding: 12px 8px 10px;
+  }
+  .select-header h1 { max-width: 280px; margin-inline: auto; font-size: clamp(20px, 6.3vw, 25px); line-height: 0.92; }
+  .select-header p,
+  .select-mode span,
+  .select-hint { display: none; }
+  .select-back { align-self: start; padding: 8px 6px; font-size: 6px; white-space: nowrap; }
+  .select-mode { display: none; }
+  .versus-stage { grid-template-columns: 1fr 42px 1fr; min-height: 350px; }
+  .fighter-figure video { width: 68vw; height: 105%; bottom: 0; }
+  .fighter-identity,
+  .fighter-side-rival .fighter-identity {
+    left: 6px;
+    right: 6px;
+    bottom: 8px;
+    max-width: none;
+    padding: 7px 8px;
+  }
+  .fighter-identity h2 {
+    max-width: 100%;
+    overflow: hidden;
+    font-size: clamp(18px, 5.8vw, 25px);
+    white-space: nowrap;
+  }
+  .fighter-identity p,
+  .fighter-identity span { font-size: 5px; }
+  .versus-core strong { font-size: 42px; -webkit-text-stroke-width: 1px; }
+  .versus-core span,
+  .versus-core i { display: none; }
+  .selection-console {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+  .trait-panel { display: none; }
+  .roster-card { width: min(20vw, 88px); }
+  .roster-card b { font-size: 5px; }
+  .roster-card small { font-size: 4px; }
+  .confirm-fighter { justify-self: stretch; min-width: 0; }
 }
+@media (max-height: 820px) and (min-width: 821px) {
+  .select-header { min-height: 82px; padding-top: 10px; }
+  .select-header h1 { font-size: 32px; }
+  .select-header p { display: none; }
+  .fighter-identity { bottom: 10px; }
+  .selection-console { padding-top: 9px; padding-bottom: 9px; }
+  .roster-card { width: 82px; }
+  .trait-panel p { display: none; }
+}
+
+/* Approved illustrated UI system ------------------------------------------------ */
+.menu-screen {
+  background:
+    linear-gradient(90deg, #020713e8 0 30%, #07112670 52%, #0306128a 100%),
+    linear-gradient(180deg, #06102b22, #040817ba),
+    url("/backgrounds/menu-arena-4k.png") center/cover no-repeat;
+}
+.menu-screen::before {
+  background:
+    radial-gradient(circle at 22% 42%, #229cff24, transparent 30%),
+    radial-gradient(circle at 73% 54%, #b33cff1f, transparent 35%),
+    linear-gradient(180deg, transparent 60%, #02040de6);
+}
+.brand-lockup {
+  display: grid;
+  justify-items: center;
+  min-height: 190px;
+}
+.brand-logo {
+  display: block;
+  width: min(620px, 64vw);
+  height: 180px;
+  margin: -10px 0 -24px;
+  object-fit: contain;
+  filter: drop-shadow(0 14px 22px #000d) drop-shadow(0 0 26px #744cff72);
+  animation: logo-breathe 3.8s ease-in-out infinite alternate;
+}
+.brand-lockup h1,
+.brand-lockup > p {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.command-panel {
+  border-color: transparent;
+  background:
+    linear-gradient(180deg, #071329b5, #050a18e8),
+    url("/ui/menu-navigation-panel.png") center/100% 100% no-repeat;
+  box-shadow: 0 26px 80px #000d, 0 0 44px #2a95ff2b;
+  clip-path: none;
+}
+.primary-cta,
+.confirm-fighter {
+  border: 0;
+  border-radius: 0;
+  background: url("/ui/button-primary.png") center/100% 100% no-repeat;
+  box-shadow: none;
+  color: #fff3c8;
+  text-shadow: 0 2px 5px #000;
+}
+.secondary-cta,
+.mode-tab,
+.control-button {
+  border: 0;
+  border-radius: 0;
+  background: url("/ui/button-secondary.png") center/100% 100% no-repeat;
+  box-shadow: none;
+}
+.secondary-cta.violet { background: url("/ui/button-secondary.png") center/100% 100% no-repeat; }
+.modal-panel {
+  min-height: 430px;
+  border: 0;
+  clip-path: none;
+  background:
+    linear-gradient(180deg, #050b1cd9, #091129e8),
+    url("/ui/modal-frame.png") center/100% 100% no-repeat;
+  box-shadow: 0 30px 90px #000e, 0 0 40px #9860ff35;
+}
+.character-select-screen,
+.character-select-screen[data-selected="hisoka"] {
+  background:
+    linear-gradient(90deg, #07192bc2 0 48.5%, #160b2dc2 51.5% 100%),
+    linear-gradient(180deg, #02071536, #020511b5),
+    url("/backgrounds/character-select-arena-4k.png") center/cover no-repeat;
+}
+.select-header > div:first-of-type {
+  position: relative;
+  isolation: isolate;
+}
+.select-header > div:first-of-type::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -25px -80px -15px;
+  background: url("/ui/title-ornament.png") center/100% 100% no-repeat;
+  opacity: 0.78;
+  pointer-events: none;
+}
+.fighter-identity {
+  min-width: min(520px, 76%);
+  min-height: 122px;
+  padding: 34px 72px 22px 92px;
+  border: 0;
+  background: url("/ui/nameplate-player.png") center/100% 100% no-repeat;
+  filter: drop-shadow(0 12px 18px #000b);
+}
+.fighter-side-rival .fighter-identity {
+  padding: 34px 92px 22px 72px;
+  border: 0;
+  background: url("/ui/nameplate-rival.png") center/100% 100% no-repeat;
+}
+.fighter-side-rival .fighter-identity > * { transform: none; }
+.versus-core::before {
+  content: "";
+  position: absolute;
+  width: 180px;
+  height: 180px;
+  background: url("/ui/vs-emblem.png") center/contain no-repeat;
+  filter: drop-shadow(0 0 28px #fff6);
+  animation: vs-pulse 1.6s ease-in-out infinite alternate;
+}
+.versus-core > * { position: relative; z-index: 1; }
+.trait-panel {
+  min-height: 118px;
+  padding: 28px 54px 22px 70px;
+  border: 0;
+  background: url("/ui/trait-panel.png") center/100% 100% no-repeat;
+}
+.roster-card::after {
+  content: "";
+  position: absolute;
+  z-index: 3;
+  inset: -5px;
+  background: url("/ui/portrait-selection-frame.png") center/100% 100% no-repeat;
+  opacity: 0.52;
+  pointer-events: none;
+}
+.roster-card.selected::after { opacity: 1; filter: drop-shadow(0 0 16px var(--player-accent)); }
+.roster-card {
+  border: 0;
+  clip-path: none;
+  background: #050a18;
+}
+.settings-panel .primary-cta { min-height: 58px; }
+@keyframes logo-breathe { to { scale: 1.018; filter: drop-shadow(0 17px 26px #000e) drop-shadow(0 0 38px #8d55ff9a); } }
+@keyframes vs-pulse { to { scale: 1.08; rotate: 2deg; filter: drop-shadow(0 0 42px #fff9); } }
+
+/* Anime-fantasy typography and large-display scaling. */
+.brand-kicker,
+.modal-kicker,
+.mode-tab,
+label,
+.primary-cta,
+.secondary-cta,
+.online-banner b,
+.rival-tag,
+.feature-chips span,
+.select-header span,
+.select-mode,
+.fighter-identity span,
+.fighter-identity p,
+.trait-panel span,
+.trait-panel strong,
+.roster-card b,
+.roster-card small,
+.confirm-fighter span,
+.confirm-fighter strong,
+.select-hint,
+.control-button b,
+.final-button span,
+.final-button strong,
+.modal-panel h2,
+.color-options button,
+.toast,
+.loading-veil h2 {
+  font-family: "Cinzel", Georgia, serif !important;
+  letter-spacing: 0.08em;
+}
+
+@media (min-width: 1600px) {
+  .menu-content { width: min(1680px, 92vw); }
+  .brand-lockup { min-height: 250px; }
+  .brand-logo { width: min(760px, 42vw); height: 244px; }
+  .menu-grid { grid-template-columns: minmax(0, 2.25fr) minmax(390px, 0.9fr); gap: 28px; }
+  .command-panel { min-height: 520px; padding: 34px 42px; }
+  .showcase-panel { min-height: 520px; }
+  .mode-tab { min-height: 56px; font-size: 13px; }
+  label { font-size: 12px; }
+  input, select { min-height: 54px; font-size: 18px; }
+  .primary-cta, .secondary-cta { min-height: 62px; font-size: 13px; }
+  .mode-note { font-size: 14px; }
+  .showcase-panel h2 { font-size: 35px; }
+  .showcase-panel p { font-size: 17px; }
+  .feature-chips span { font-size: 10px; padding: 9px 11px; }
+  .character-pedestal { height: 294px; }
+  .corner-button { width: 62px; height: 62px; font-size: 24px; }
+}
+
+@media (max-width: 820px) {
+  .brand-lockup { min-height: 132px; }
+  .brand-logo { width: min(520px, 92vw); height: 128px; margin-bottom: -18px; }
+  .command-panel { min-height: 0; background-size: 118% 108%; }
+  .fighter-identity,
+  .fighter-side-rival .fighter-identity {
+    left: 4px;
+    right: auto;
+    width: calc(100% - 8px);
+    max-width: none;
+    min-width: 0;
+    min-height: 74px;
+    padding: 18px 14px 10px;
+    background-size: 100% 100%;
+  }
+  .fighter-side-rival .fighter-identity { left: 4px; right: auto; padding: 18px 14px 10px; }
+  .versus-core::before { width: 84px; height: 84px; }
+  .modal-panel { min-height: 0; background-size: 120% 110%; }
+}
+
 .reduced-motion * {
   animation-duration: 0.001ms !important;
   animation-iteration-count: 1 !important;

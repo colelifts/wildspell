@@ -141,14 +141,17 @@ function applySpell(state: GameState, card: Card, player: 0 | 1, chosen?: "red" 
       break;
     }
     case "whirlwind": {
-      if (state.hands[player].length && state.hands[target].length) {
-        const [aIndex, seedA] = randomIndex(state.rngSeed, state.hands[player].length);
-        const [bIndex, seedB] = randomIndex(seedA, state.hands[target].length);
-        state.rngSeed = seedB;
-        const own = state.hands[player].splice(aIndex, 1)[0]!;
-        const theirs = state.hands[target].splice(bIndex, 1)[0]!;
-        state.hands[player].push(theirs);
-        state.hands[target].push(own);
+      const ownHand = state.hands[player];
+      state.hands[player] = state.hands[target];
+      state.hands[target] = ownHand;
+
+      // Curses belong to duelists, not to the opponent's cards. Rebind any
+      // persistent card locks to cards in each duelist's newly received hand.
+      for (const owner of [player, target] as const) {
+        const status = state.statuses[owner];
+        status.burnedCardIds = markRandomCards(state, owner, status.burn, "burn");
+        const frostLocks = Math.min(status.frozenCardIds.length, state.hands[owner].length);
+        status.frozenCardIds = markRandomCards(state, owner, frostLocks);
       }
       break;
     }

@@ -1,5 +1,5 @@
 import { audioManager } from "../game/audio/AudioManager";
-import { gameBus, type ResultPreview } from "../game/events";
+import { gameBus, type CharacterId, type ResultPreview, type StartMatchDetail } from "../game/events";
 import type { ChallengeType } from "../game/challenges/ChallengeDirector";
 import { illegalReason } from "../game/rules/legalMoves";
 import type { CardKind, Difficulty, GameEvent, GameState, Ruleset } from "../game/rules/types";
@@ -10,6 +10,28 @@ import { createRoom, joinRoom, subscribeRoom, type RoomSession } from "../game/m
 import type { RoomRecord } from "../game/multiplayer/protocol";
 import { CARD_NAMES } from "../game/rules/cards";
 
+const CHARACTER_DATA: Record<CharacterId, {
+  name: string;
+  title: string;
+  trait: string;
+  traitCopy: string;
+}> = {
+  kenpachi: {
+    name: "KENPACHI",
+    title: "THE RELENTLESS BLADE",
+    trait: "BATTLE THRILL",
+    traitCopy: "Draw-stack cards receive a brighter warning, helping you read dangerous counters instantly."
+  },
+  hisoka: {
+    name: "HISOKA",
+    title: "THE DECEPTIVE JOKER",
+    trait: "MISDIRECTION",
+    traitCopy: "Playable Wild spells carry a subtle shimmer, making color-control opportunities easier to spot."
+  }
+};
+
+const opposingCharacter = (character: CharacterId): CharacterId => character === "kenpachi" ? "hisoka" : "kenpachi";
+
 export class App {
   private readonly game = new WildSpellGame();
   private state?: GameState;
@@ -17,6 +39,8 @@ export class App {
   private roomSession?: RoomSession;
   private roomUnsubscribe?: () => void;
   private onlineStarted = false;
+  private selectedCharacter: CharacterId = "kenpachi";
+  private pendingSolo?: Pick<StartMatchDetail, "difficulty" | "ruleset" | "challengePreview" | "spellPreview" | "resultPreview">;
 
   constructor(private readonly root: HTMLElement) {}
 
@@ -28,6 +52,7 @@ export class App {
           <div class="menu-content">
             <header class="brand-lockup">
               <span class="brand-kicker">THE ARCANE TOURNAMENT</span>
+              <img class="brand-logo" src="/ui/wildspell-logo.png" alt="WildSpell: The Final Draw" />
               <h1>WILDSPELL</h1>
               <p>THE FINAL DRAW</p>
             </header>
@@ -63,21 +88,92 @@ export class App {
                 <div class="tab-panel spellbook" data-panel="codex">
                   <article><i class="fire">♨</i><div><b>ARSONIST</b><span>Burn spreads when your rival fails to answer red.</span></div></article>
                   <article><i class="ice">❄</i><div><b>FREEZE</b><span>Encases the arena in ice and skips the rival's next turn.</span></div></article>
-                  <article><i class="wind">◌</i><div><b>WHIRLWIND</b><span>Tears cards from both hands and swaps them midair.</span></div></article>
+                  <article><i class="wind">◌</i><div><b>WHIRLWIND</b><span>Exchanges both duelists' entire remaining hands.</span></div></article>
                   <article><i class="mirror">+2</i><div><b>ARCANE +2</b><span>Adds two cards to the live draw stack.</span></div></article>
                   <article><i class="fire">+4</i><div><b>CHAOS +4</b><span>Adds four cards to the draw stack and changes color.</span></div></article>
                 </div>
               </section>
               <aside class="showcase-panel rune-frame">
-                <div class="character-pedestal gabby-showcase"></div>
+                <div class="character-pedestal hisoka-showcase"></div>
                 <span class="rival-tag">FEATURED RIVAL</span>
-                <h2>GABBY</h2>
-                <p>Card illusionist. Impossible to read.<br />Even harder to outplay.</p>
+                <h2>HISOKA</h2>
+                <p>Deceptive card illusionist. Impossible to read.<br />Even harder to outplay.</p>
                 <div class="feature-chips"><span>4 AI LEVELS</span><span>5 SIGNATURE SPELLS</span><span>3 CHALLENGES</span></div>
               </aside>
             </div>
           </div>
           <button class="corner-button" id="open-settings" aria-label="Open settings">⚙</button>
+        </section>
+
+        <section class="character-select-screen hidden" data-screen="character-select" data-selected="kenpachi" aria-labelledby="character-select-title">
+          <div class="select-atmosphere" aria-hidden="true"><i></i><i></i><i></i></div>
+          <header class="select-header">
+            <button class="select-back" id="character-select-back" aria-label="Return to main menu">&#8592; BACK</button>
+            <div>
+              <span>ARCANE TOURNAMENT</span>
+              <h1 id="character-select-title">SELECT YOUR DUELIST</h1>
+              <p>Choose the champion who will carry your deck into battle.</p>
+            </div>
+            <div class="select-mode"><span>SOLO DUEL</span><b>1P VS CPU</b></div>
+          </header>
+
+          <div class="versus-stage">
+            <article class="fighter-side fighter-side-player" aria-live="polite">
+              <div class="fighter-aura"></div>
+              <div class="fighter-figure">
+                <video data-player-fighter="kenpachi" src="/characters/kenpachi/selection-idle-ui.webm" muted loop playsinline></video>
+                <video data-player-fighter="hisoka" src="/characters/hisoka/selection-idle-ui.webm" muted loop playsinline></video>
+              </div>
+              <div class="fighter-identity">
+                <span>PLAYER ONE</span>
+                <h2 id="selected-fighter-name">KENPACHI</h2>
+                <p id="selected-fighter-title">THE RELENTLESS BLADE</p>
+              </div>
+            </article>
+
+            <div class="versus-core" aria-hidden="true">
+              <span>WILDSPELL</span>
+              <strong>VS</strong>
+              <i></i>
+            </div>
+
+            <article class="fighter-side fighter-side-rival">
+              <div class="fighter-aura"></div>
+              <div class="fighter-figure">
+                <video data-rival-fighter="hisoka" src="/characters/hisoka/selection-idle-ui.webm" muted loop playsinline></video>
+                <video data-rival-fighter="kenpachi" src="/characters/kenpachi/selection-idle-ui.webm" muted loop playsinline></video>
+              </div>
+              <div class="fighter-identity">
+                <span>CPU RIVAL</span>
+                <h2 id="rival-fighter-name">HISOKA</h2>
+                <p id="rival-fighter-title">THE DECEPTIVE JOKER</p>
+              </div>
+            </article>
+          </div>
+
+          <section class="selection-console">
+            <div class="trait-panel">
+              <span>SIGNATURE TRAIT</span>
+              <strong id="selected-trait-name">BATTLE THRILL</strong>
+              <p id="selected-trait-copy">Draw-stack cards receive a brighter warning, helping you read dangerous counters instantly.</p>
+            </div>
+            <div class="roster" role="radiogroup" aria-label="Available duelists">
+              <button class="roster-card selected" data-character="kenpachi" role="radio" aria-checked="true">
+                <img src="/characters/kenpachi/portrait.png" alt="" />
+                <span><b>KENPACHI</b><small>POWER</small></span>
+              </button>
+              <button class="roster-card" data-character="hisoka" role="radio" aria-checked="false">
+                <video src="/characters/hisoka/portrait-idle-preview.webm" muted loop playsinline aria-hidden="true"></video>
+                <span><b>HISOKA</b><small>TRICKERY</small></span>
+              </button>
+              <div class="roster-card locked" aria-label="Locked duelist"><i>?</i><span><b>LOCKED</b><small>COMING SOON</small></span></div>
+              <div class="roster-card locked" aria-label="Locked duelist"><i>?</i><span><b>LOCKED</b><small>COMING SOON</small></span></div>
+            </div>
+            <button class="confirm-fighter" id="confirm-character" data-testid="confirm-character">
+              <span>READY</span><strong>ENTER THE ARENA</strong><i>&#9654;</i>
+            </button>
+          </section>
+          <p class="select-hint"><kbd>&larr;</kbd><kbd>&rarr;</kbd> SELECT &nbsp; <kbd>ENTER</kbd> CONFIRM &nbsp; <kbd>ESC</kbd> BACK</p>
         </section>
 
         <section class="game-screen hidden" data-screen="game">
@@ -119,6 +215,22 @@ export class App {
       audioManager.playSfx("click");
     }));
     this.root.querySelector("#start-solo")?.addEventListener("click", () => this.startSolo());
+    this.root.querySelector("#character-select-back")?.addEventListener("click", () => this.closeCharacterSelect());
+    this.root.querySelector("#confirm-character")?.addEventListener("click", () => this.confirmCharacter());
+    this.root.querySelectorAll<HTMLButtonElement>("[data-character]").forEach((button) => {
+      button.addEventListener("click", () => this.selectCharacter(button.dataset.character as CharacterId));
+      button.addEventListener("pointerenter", () => {
+        this.previewCharacter(button.dataset.character as CharacterId);
+        audioManager.playSfx("hover");
+      });
+      button.addEventListener("pointerleave", () => this.clearCharacterPreview());
+      button.addEventListener("focus", () => this.previewCharacter(button.dataset.character as CharacterId));
+      button.addEventListener("blur", () => this.clearCharacterPreview());
+    });
+    this.root.querySelectorAll<HTMLElement>(".fighter-side").forEach((side) => {
+      side.addEventListener("pointerenter", () => side.classList.add("spotlight"));
+      side.addEventListener("pointerleave", () => side.classList.remove("spotlight"));
+    });
     this.root.querySelector("#draw-button")?.addEventListener("click", () => gameBus.dispatchEvent(new Event("draw")));
     this.root.querySelector("#emote-button")?.addEventListener("click", () => gameBus.dispatchEvent(new Event("emote")));
     this.root.querySelector("#exit-match")?.addEventListener("click", () => this.exitMatch());
@@ -135,6 +247,7 @@ export class App {
     this.root.querySelector("#quick-match")?.addEventListener("click", () => void this.quickMatch());
     this.root.querySelector("#join-room")?.addEventListener("click", () => void this.joinOnlineRoom());
     this.root.querySelector("#copy-invite")?.addEventListener("click", () => void this.copyInvite());
+    window.addEventListener("keydown", (event) => this.handleCharacterSelectKey(event));
 
     gameBus.addEventListener("state", ((event: CustomEvent<GameState>) => this.updateState(event.detail)) as EventListener);
     gameBus.addEventListener("toast", ((event: CustomEvent<string>) => this.showToast(event.detail)) as EventListener);
@@ -159,19 +272,109 @@ export class App {
   }
 
   private startSolo(): void {
-    const playerName = (this.root.querySelector("#player-name") as HTMLInputElement).value.trim() || "Cole";
     const difficulty = (this.root.querySelector("#difficulty") as HTMLSelectElement).value as Difficulty;
     const ruleset = (this.root.querySelector("#ruleset") as HTMLSelectElement).value as Ruleset;
-    this.root.querySelector('[data-screen="menu"]')?.classList.add("hidden");
-    this.root.querySelector('[data-screen="game"]')?.classList.remove("hidden");
     const requestedChallenge = new URLSearchParams(window.location.search).get("challenge");
     const challengePreview = (["rune-memory", "spell-timing", "arcane-clash"] as ChallengeType[]).find((type) => type === requestedChallenge);
     const requestedResult = new URLSearchParams(window.location.search).get("result");
     const resultPreview = (["round", "match"] as ResultPreview[]).find((type) => type === requestedResult);
     const requestedSpell = new URLSearchParams(window.location.search).get("spell");
     const spellPreview = (["arsonist", "freeze", "whirlwind", "draw2", "wild4"] as CardKind[]).find((type) => type === requestedSpell);
-    this.game.start({ playerName, difficulty, ruleset, ...(challengePreview ? { challengePreview } : {}), ...(spellPreview ? { spellPreview } : {}), ...(resultPreview ? { resultPreview } : {}) });
+    this.pendingSolo = { difficulty, ruleset, ...(challengePreview ? { challengePreview } : {}), ...(spellPreview ? { spellPreview } : {}), ...(resultPreview ? { resultPreview } : {}) };
+    this.root.querySelector('[data-screen="menu"]')?.classList.add("hidden");
+    this.root.querySelector('[data-screen="character-select"]')?.classList.remove("hidden");
+    this.selectCharacter(this.selectedCharacter, false);
+    this.setCharacterSelectMedia(true);
+    void audioManager.playMusic("menu");
+    window.setTimeout(() => this.root.querySelector<HTMLButtonElement>(`[data-character="${this.selectedCharacter}"]`)?.focus(), 80);
+  }
+
+  private selectCharacter(character: CharacterId, playSound = true): void {
+    this.selectedCharacter = character;
+    const screen = this.root.querySelector<HTMLElement>('[data-screen="character-select"]')!;
+    screen.dataset.selected = character;
+    delete screen.dataset.preview;
+    this.root.querySelectorAll<HTMLButtonElement>("[data-character]").forEach((button) => {
+      const selected = button.dataset.character === character;
+      button.classList.toggle("selected", selected);
+      button.setAttribute("aria-checked", String(selected));
+    });
+    this.renderCharacterPair(character);
+    if (playSound) audioManager.playSfx("click");
+  }
+
+  private previewCharacter(character: CharacterId): void {
+    const screen = this.root.querySelector<HTMLElement>('[data-screen="character-select"]')!;
+    if (screen.classList.contains("hidden")) return;
+    screen.dataset.preview = character;
+    this.renderCharacterPair(character);
+  }
+
+  private clearCharacterPreview(): void {
+    const screen = this.root.querySelector<HTMLElement>('[data-screen="character-select"]')!;
+    delete screen.dataset.preview;
+    this.renderCharacterPair(this.selectedCharacter);
+  }
+
+  private renderCharacterPair(character: CharacterId): void {
+    const rival = opposingCharacter(character);
+    this.root.querySelectorAll<HTMLElement>("[data-player-fighter]").forEach((fighter) => fighter.classList.toggle("active", fighter.dataset.playerFighter === character));
+    this.root.querySelectorAll<HTMLElement>("[data-rival-fighter]").forEach((fighter) => fighter.classList.toggle("active", fighter.dataset.rivalFighter === rival));
+    this.root.querySelector<HTMLElement>("#selected-fighter-name")!.textContent = CHARACTER_DATA[character].name;
+    this.root.querySelector<HTMLElement>("#selected-fighter-title")!.textContent = CHARACTER_DATA[character].title;
+    this.root.querySelector<HTMLElement>("#selected-trait-name")!.textContent = CHARACTER_DATA[character].trait;
+    this.root.querySelector<HTMLElement>("#selected-trait-copy")!.textContent = CHARACTER_DATA[character].traitCopy;
+    this.root.querySelector<HTMLElement>("#rival-fighter-name")!.textContent = CHARACTER_DATA[rival].name;
+    this.root.querySelector<HTMLElement>("#rival-fighter-title")!.textContent = CHARACTER_DATA[rival].title;
+  }
+
+  private confirmCharacter(): void {
+    if (!this.pendingSolo) return;
+    const rival = opposingCharacter(this.selectedCharacter);
+    this.root.querySelector('[data-screen="character-select"]')?.classList.add("departing");
+    this.setCharacterSelectMedia(false);
     audioManager.playSfx("deal");
+    window.setTimeout(() => {
+      this.root.querySelector('[data-screen="character-select"]')?.classList.add("hidden");
+      this.root.querySelector('[data-screen="character-select"]')?.classList.remove("departing");
+      this.root.querySelector('[data-screen="game"]')?.classList.remove("hidden");
+      this.game.start({
+        ...this.pendingSolo!,
+        playerName: CHARACTER_DATA[this.selectedCharacter].name,
+        opponentName: CHARACTER_DATA[rival].name,
+        characterId: this.selectedCharacter
+      });
+    }, 360);
+  }
+
+  private closeCharacterSelect(): void {
+    this.root.querySelector('[data-screen="character-select"]')?.classList.add("hidden");
+    this.root.querySelector('[data-screen="menu"]')?.classList.remove("hidden");
+    this.pendingSolo = undefined;
+    this.setCharacterSelectMedia(false);
+    audioManager.playSfx("click");
+  }
+
+  private setCharacterSelectMedia(playing: boolean): void {
+    this.root.querySelectorAll<HTMLVideoElement>('[data-screen="character-select"] video').forEach((video) => {
+      if (playing) void video.play().catch(() => undefined);
+      else video.pause();
+    });
+  }
+
+  private handleCharacterSelectKey(event: KeyboardEvent): void {
+    if (this.root.querySelector('[data-screen="character-select"]')?.classList.contains("hidden")) return;
+    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+      event.preventDefault();
+      this.selectCharacter(opposingCharacter(this.selectedCharacter));
+      this.root.querySelector<HTMLButtonElement>(`[data-character="${this.selectedCharacter}"]`)?.focus();
+    } else if (event.key === "Enter") {
+      event.preventDefault();
+      this.confirmCharacter();
+    } else if (event.key === "Escape") {
+      event.preventDefault();
+      this.closeCharacterSelect();
+    }
   }
 
   private exitMatch(): void {

@@ -1,0 +1,13 @@
+{
+  "character": "kenpachi",
+  "animation": "selection-idle",
+  "texture": "selection-idle-sheet.webp",
+  "frameWidth": 512,
+  "frameHeight": 768,
+  "columns": 8,
+  "rows": 6,
+  "frameCount": 48,
+  "framesPerSecond": 12,
+  "loop": true,
+  "transparent": true
+}

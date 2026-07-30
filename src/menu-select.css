@@ -207,8 +207,9 @@
 .select-mode b { color: #ffe26f; }
 
 .versus-stage { position: absolute; inset: 0; z-index: 2; overflow: hidden; }
-.fighter-side { position: absolute; inset: 0 auto 0 0; width: 53%; overflow: hidden; }
+.fighter-side { --fighter-accent: #54dcff; position: absolute; inset: 0 auto 0 0; width: 53%; overflow: hidden; }
 .fighter-side-rival { left: auto; right: 0; }
+.fighter-side-rival { --fighter-accent: #d96cff; }
 .fighter-side-player,
 .fighter-side-rival { transform: none !important; translate: none !important; clip-path: none !important; }
 .fighter-side::before {
@@ -232,8 +233,33 @@
 .fighter-heading p { margin: 8px 4px 0; color: #bdefff; font: 800 clamp(9px, .72vw, 13px)/1.1 system-ui; letter-spacing: .18em; }
 .fighter-side-rival .fighter-heading p { color: #f0b7ff; }
 
-.fighter-figure { position: absolute; z-index: 5; inset: clamp(66px, 7vh, 86px) 5% 115px 0; pointer-events: none; }
+.fighter-figure { position: absolute; z-index: 5; inset: clamp(66px, 7vh, 86px) 5% 115px 0; pointer-events: none; isolation: isolate; }
 .fighter-side-rival .fighter-figure { inset: clamp(66px, 7vh, 86px) 0 115px 5%; }
+.fighter-figure::before,
+.fighter-figure::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 10% 8% 1%;
+  opacity: .42;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.fighter-figure::before {
+  background: radial-gradient(ellipse at 50% 63%, color-mix(in srgb, var(--fighter-accent) 52%, transparent), transparent 62%);
+  filter: blur(26px);
+  animation: ws-fighter-aura 4.8s ease-in-out infinite;
+}
+.fighter-figure::after {
+  inset: 16% 14% 2%;
+  background:
+    radial-gradient(circle at 18% 68%, var(--fighter-accent) 0 2px, transparent 3px),
+    radial-gradient(circle at 76% 48%, #fff7c7 0 1.5px, transparent 3px),
+    radial-gradient(circle at 65% 82%, var(--fighter-accent) 0 1px, transparent 2.5px),
+    radial-gradient(circle at 34% 28%, #fff 0 1px, transparent 2.5px);
+  filter: drop-shadow(0 0 8px var(--fighter-accent));
+  animation: ws-fighter-sparks 5.6s linear infinite;
+}
 .fighter-figure img {
   position: absolute;
   inset: 0;
@@ -256,7 +282,7 @@
   animation: ws-fighter-reveal .32s cubic-bezier(.2,.8,.2,1) both;
 }
 .fighter-side-player .fighter-figure img.active,
-.fighter-side.spotlight .fighter-figure img.active { opacity: 1; filter: saturate(1.15) brightness(1.02) contrast(1.05) drop-shadow(0 34px 30px #000d); scale: 1.07; }
+.fighter-side.spotlight .fighter-figure img.active { opacity: 1; filter: saturate(1.15) brightness(1.02) contrast(1.05) drop-shadow(0 34px 30px #000d); scale: 1.07; animation: ws-fighter-reveal .32s cubic-bezier(.2,.8,.2,1) both, ws-fighter-idle 6s .34s ease-in-out infinite; }
 .fighter-side-rival .fighter-figure img.active { object-position: center bottom; }
 
 .fighter-trait {
@@ -325,22 +351,30 @@
 .fighter-side-rival .side-roster { left: auto; right: clamp(26px, 4vw, 74px); }
 .roster-card,
 .rival-roster-card {
+  --row-shift: 0px;
   position: relative;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
   min-width: 0;
   min-height: 0;
+  align-self: stretch;
+  box-sizing: border-box;
+  grid-template-rows: minmax(0, 1fr);
   padding: 0;
   overflow: hidden;
   border: 1px solid #6abfdf77;
   background: #02050b;
   box-shadow: 0 5px 10px #000b;
-  transition: translate .15s ease, filter .15s ease, border-color .15s ease;
+  translate: var(--row-shift) 0 !important;
+  transition: filter .15s ease, border-color .15s ease;
   aspect-ratio: auto !important;
 }
 .rival-roster-card { border-color: #c761e477; }
-.roster-card:nth-child(n + 5):nth-child(-n + 8) { translate: 8px 0; }
-.roster-card:nth-child(n + 9) { translate: 16px 0; }
-.rival-roster-card:nth-child(n + 5):nth-child(-n + 8) { translate: -8px 0; }
-.rival-roster-card:nth-child(n + 9) { translate: -16px 0; }
+.roster-card:nth-child(n + 5):nth-child(-n + 8) { --row-shift: 8px; }
+.roster-card:nth-child(n + 9) { --row-shift: 16px; }
+.rival-roster-card:nth-child(n + 5):nth-child(-n + 8) { --row-shift: -8px; }
+.rival-roster-card:nth-child(n + 9) { --row-shift: -16px; }
 .roster-card img,
 .rival-roster-card img { width: 100%; height: 100%; object-fit: cover; filter: saturate(.45) brightness(.58); transition: filter .16s ease, scale .16s ease; }
 .roster-card span,
@@ -419,6 +453,19 @@
 @keyframes ws-fighter-reveal {
   from { opacity: 0; scale: 1.12; filter: saturate(.2) brightness(.5) blur(3px); }
 }
+@keyframes ws-fighter-idle {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -5px; }
+}
+@keyframes ws-fighter-aura {
+  0%, 100% { opacity: .3; scale: .96; }
+  50% { opacity: .58; scale: 1.04; }
+}
+@keyframes ws-fighter-sparks {
+  0% { opacity: .2; translate: 0 18px; }
+  45% { opacity: .66; }
+  100% { opacity: .12; translate: 8px -26px; }
+}
 
 @media (max-width: 900px), (max-height: 690px) {
   .menu-content-v2 { padding-inline: 12px; grid-template-rows: 112px 1fr 64px; }
@@ -443,14 +490,42 @@
   .fighter-heading p { margin-top: 5px; }
   .fighter-trait { top: 116px; }
   .fighter-figure,
-  .fighter-side-rival .fighter-figure { inset-block: 48px 142px; }
+  .fighter-side-rival .fighter-figure { inset-block: 44px 104px; }
   .fighter-team-banner,
-  .fighter-side-rival .fighter-team-banner { bottom: 161px !important; height: 30px; min-width: 225px; }
+  .fighter-side-rival .fighter-team-banner { bottom: 119px !important; height: 27px; min-width: 205px; }
   .fighter-team-banner strong { font-size: 12px; }
-  .side-roster { bottom: 8px; width: min(360px, 40vw); height: 146px; }
+  .side-roster { bottom: 7px; width: min(322px, 39vw); height: 106px; }
   .versus-core { top: 46%; width: 112px; height: 112px; }
   .versus-core > strong { font-size: clamp(54px, 5.4vw, 78px); }
   .confirm-fighter { width: 132px !important; min-width: 132px !important; height: 60px !important; min-height: 60px !important; font-size: 16px; }
+}
+
+@media (min-width: 1800px) and (min-height: 900px) {
+  .select-back { left: clamp(28px, 1.8vw, 58px); top: clamp(20px, 1.4vw, 38px); min-width: 124px; min-height: 52px; font-size: 15px; }
+  .select-brand { top: 14px; }
+  .select-brand img { width: clamp(190px, 10vw, 280px); height: clamp(74px, 5vw, 112px); }
+  .select-brand h1 { font-size: clamp(11px, .58vw, 16px); }
+  .select-mode { right: clamp(36px, 2.2vw, 76px); top: clamp(24px, 1.6vw, 46px); font-size: clamp(12px, .58vw, 16px); }
+  .fighter-heading { top: clamp(88px, 7.2vh, 126px); left: clamp(58px, 3.2vw, 110px); }
+  .fighter-side-rival .fighter-heading { right: clamp(58px, 3.2vw, 110px); }
+  .fighter-heading h2 { font-size: clamp(64px, 3.5vw, 104px); }
+  .fighter-heading p { font-size: clamp(12px, .64vw, 18px); }
+  .fighter-trait { top: clamp(205px, 16vh, 270px); left: clamp(60px, 3.2vw, 112px); width: clamp(300px, 18vw, 520px); }
+  .fighter-trait-rival { left: auto; right: clamp(60px, 3.2vw, 112px); }
+  .fighter-trait span { font-size: clamp(10px, .5vw, 14px); }
+  .fighter-trait strong { font-size: clamp(16px, .8vw, 23px); }
+  .fighter-trait p { font-size: clamp(11px, .58vw, 16px); }
+  .fighter-figure { inset: clamp(76px, 6vh, 104px) 3% clamp(150px, 12vh, 206px) -2%; }
+  .fighter-side-rival .fighter-figure { inset: clamp(76px, 6vh, 104px) -2% clamp(150px, 12vh, 206px) 3%; }
+  .fighter-team-banner { left: clamp(58px, 3.2vw, 110px); bottom: clamp(210px, 17vh, 280px) !important; min-width: clamp(340px, 22vw, 650px); height: clamp(42px, 3.4vh, 58px); font-size: clamp(12px, .6vw, 17px); }
+  .fighter-side-rival .fighter-team-banner { right: clamp(58px, 3.2vw, 110px); }
+  .fighter-team-banner strong { font-size: clamp(16px, .85vw, 24px); }
+  .side-roster { left: clamp(58px, 3.2vw, 110px); bottom: clamp(18px, 1.6vh, 30px); width: clamp(500px, 23vw, 720px); height: clamp(180px, 14vh, 238px); gap: clamp(5px, .35vw, 10px); }
+  .fighter-side-rival .side-roster { right: clamp(58px, 3.2vw, 110px); }
+  .roster-card span, .rival-roster-card span { padding: 4px; font-size: clamp(8px, .42vw, 12px); }
+  .versus-core { width: clamp(150px, 8vw, 220px); height: clamp(150px, 8vw, 220px); }
+  .confirm-fighter { width: clamp(170px, 9vw, 240px) !important; min-width: clamp(170px, 9vw, 240px) !important; height: clamp(76px, 5vw, 104px) !important; min-height: clamp(76px, 5vw, 104px) !important; }
+  .confirm-fighter b { font-size: clamp(19px, 1vw, 28px) !important; }
 }
 
 @media (max-width: 680px) {
@@ -483,4 +558,7 @@
 .reduced-motion .menu-champion,
 .reduced-motion .menu-motion i,
 .reduced-motion .brand-logo,
-.reduced-motion .confirm-fighter { animation: none !important; }
+.reduced-motion .confirm-fighter,
+.reduced-motion .fighter-figure::before,
+.reduced-motion .fighter-figure::after,
+.reduced-motion .fighter-figure img.active { animation: none !important; }

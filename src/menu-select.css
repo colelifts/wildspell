@@ -269,20 +269,13 @@
   object-position: center bottom;
   display: none;
   opacity: 0;
-  scale: .96;
   filter: saturate(.25) brightness(.52) contrast(1.08) drop-shadow(0 34px 30px #000c);
-  transition: opacity .22s ease, filter .22s ease, scale .3s ease;
-  transform: none !important;
-  translate: 0 0 !important;
+  transition: opacity .22s ease, filter .22s ease;
 }
 .fighter-figure img.active {
   display: block;
   opacity: .62;
-  scale: 1.03;
-  animation: ws-fighter-reveal .32s cubic-bezier(.2,.8,.2,1) both;
 }
-.fighter-side-player .fighter-figure img.active,
-.fighter-side.spotlight .fighter-figure img.active { opacity: 1; filter: saturate(1.15) brightness(1.02) contrast(1.05) drop-shadow(0 34px 30px #000d); scale: 1.07; animation: ws-fighter-reveal .32s cubic-bezier(.2,.8,.2,1) both, ws-fighter-idle 6s .34s ease-in-out infinite; }
 .fighter-side-rival .fighter-figure img.active { object-position: center bottom; }
 
 .fighter-trait {
@@ -439,33 +432,11 @@
   translate: 0 0 !important;
   transform: none !important;
 }
-.character-select-screen[data-ready="true"] .versus-core > strong { opacity: 0; scale: .7; }
-.character-select-screen[data-ready="true"] .confirm-fighter { opacity: 1; pointer-events: auto; animation: ws-fight-ready 1s ease-in-out infinite; }
-.character-select-screen[data-ready="true"] .selection-status { top: 120px; }
-
 @keyframes ws-menu-camera { from { scale: 1.02; translate: -1% 0; } to { scale: 1.07; translate: 1% -1%; } }
 @keyframes ws-logo-energy { 50% { filter: drop-shadow(0 12px 34px #000) drop-shadow(0 0 30px #7be7ffbb) drop-shadow(0 0 18px #e365ff88); } }
 @keyframes ws-left-fighter { 0%,100% { translate: 0 0; filter: drop-shadow(0 30px 32px #000d) drop-shadow(0 0 6px #56dcff); } 50% { translate: 0 -7px; filter: drop-shadow(0 30px 32px #000d) drop-shadow(0 0 18px #56dcff); } }
 @keyframes ws-right-fighter { 0%,100% { translate: 0 -3px; filter: drop-shadow(0 30px 32px #000d) drop-shadow(0 0 7px #d55cff); } 50% { translate: 0 5px; filter: drop-shadow(0 30px 32px #000d) drop-shadow(0 0 20px #d55cff); } }
 @keyframes ws-mote { from { translate: 0 0; opacity: 0; } 12% { opacity: 1; } to { translate: 30px -95vh; opacity: 0; } }
-@keyframes ws-fight-ready { 50% { filter: brightness(1.18) drop-shadow(0 0 12px #fff0a6); } }
-@keyframes ws-select-exit { to { opacity: 0; scale: 1.035; filter: brightness(1.45); } }
-@keyframes ws-fighter-reveal {
-  from { opacity: 0; scale: 1.12; filter: saturate(.2) brightness(.5) blur(3px); }
-}
-@keyframes ws-fighter-idle {
-  0%, 100% { translate: 0 0; }
-  50% { translate: 0 -5px; }
-}
-@keyframes ws-fighter-aura {
-  0%, 100% { opacity: .3; scale: .96; }
-  50% { opacity: .58; scale: 1.04; }
-}
-@keyframes ws-fighter-sparks {
-  0% { opacity: .2; translate: 0 18px; }
-  45% { opacity: .66; }
-  100% { opacity: .12; translate: 8px -26px; }
-}
 
 @media (max-width: 900px), (max-height: 690px) {
   .menu-content-v2 { padding-inline: 12px; grid-template-rows: 112px 1fr 64px; }

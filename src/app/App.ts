@@ -64,9 +64,10 @@ const CHARACTER_ORDER = Object.keys(CHARACTER_DATA) as CharacterId[];
 const opposingCharacter = (character: CharacterId): CharacterId => CHARACTER_ORDER[(CHARACTER_ORDER.indexOf(character) + 1) % CHARACTER_ORDER.length]!;
 const rosterCards = (rival = false): string => CHARACTER_ORDER.map((character) => {
   const data = CHARACTER_DATA[character];
-  if (rival) return `<div class="rival-roster-card" data-rival-choice="${character}"><img src="/characters/${character}/portrait.png" alt="" /><span>${data.name}</span></div>`;
-  return `<button class="roster-card" data-character="${character}" role="radio" aria-label="${data.name}" aria-checked="false"><img src="/characters/${character}/portrait.png" alt="" /><span>${data.name}</span></button>`;
-}).join("") + Array.from({ length: 5 }, (_, index) => `<div class="${rival ? "rival-roster-card" : "roster-card"} locked" aria-label="Locked duelist ${index + 1}"><i>?</i></div>`).join("");
+  const content = `<span class="roster-portrait-layer"><img src="/characters/${character}/portrait.png" alt="" /></span><img class="roster-cutout" src="/characters/${character}/portrait.png" alt="" /><strong class="roster-name">${data.name}</strong>`;
+  if (rival) return `<div class="rival-roster-card" data-rival-choice="${character}" aria-label="CPU ${data.name}">${content}</div>`;
+  return `<button class="roster-card" data-character="${character}" role="radio" aria-label="${data.name}" aria-checked="false">${content}</button>`;
+}).join("") + Array.from({ length: 5 }, (_, index) => `<div class="${rival ? "rival-roster-card" : "roster-card"} locked" aria-label="Locked duelist ${index + 1}"><span class="locked-diamond"><i>?</i><b aria-hidden="true">&#128274;</b></span></div>`).join("");
 
 const fighterImages = (side: "player" | "rival"): string => CHARACTER_ORDER.map((character) =>
   `<img data-${side}-fighter="${character}" src="/characters/${character}/selection-splash.png" alt="${CHARACTER_DATA[character].name}" />`
@@ -145,7 +146,7 @@ export class App {
           <button class="corner-button" id="open-settings" aria-label="Open settings">⚙</button>
         </section>
 
-        <section class="character-select-screen hidden" data-screen="character-select" data-selected="kenpachi" aria-labelledby="character-select-title">
+        <section class="character-select-screen hidden" data-screen="character-select" data-selected="kenpachi" data-player-character="kenpachi" data-rival-character="hisoka" aria-labelledby="character-select-title">
           <div class="select-atmosphere" aria-hidden="true"><i></i><i></i><i></i></div>
           <header class="select-header">
             <button class="select-back" id="character-select-back" aria-label="Return to main menu">&#8592; BACK</button>
@@ -156,7 +157,7 @@ export class App {
           <div class="versus-stage">
             <article class="fighter-side fighter-side-player" aria-live="polite">
               <div class="fighter-heading"><h2 id="selected-fighter-name">KENPACHI</h2><p id="selected-fighter-title">THE RELENTLESS BLADE</p></div>
-              <div class="fighter-trait fighter-trait-player"><span>SIGNATURE TRAIT</span><strong id="selected-trait-name">BATTLE THRILL</strong><p id="selected-trait-copy">Draw-stack threats pulse brighter before you commit a move.</p></div>
+              <div class="fighter-trait fighter-trait-player"><i class="trait-sigil" aria-hidden="true">&#9889;</i><div><span>SIGNATURE TRAIT</span><strong id="selected-trait-name">BATTLE THRILL</strong><p id="selected-trait-copy">Draw-stack threats pulse brighter before you commit a move.</p></div></div>
               <div class="fighter-figure">${fighterImages("player")}</div>
               <div class="fighter-team-banner"><span>PLAYER ONE</span><strong>CHOOSE YOUR DUELIST</strong></div>
               <div class="side-roster roster" role="radiogroup" aria-label="Available duelists">
@@ -165,20 +166,21 @@ export class App {
             </article>
 
             <div class="versus-core">
-              <strong>VS</strong>
+              <strong aria-hidden="true">VS</strong>
               <span class="selection-status" id="selection-status">SELECT</span>
               <button class="confirm-fighter" id="confirm-character" data-testid="confirm-character" aria-label="Start the duel" disabled><b>FIGHT</b></button>
             </div>
 
             <article class="fighter-side fighter-side-rival">
               <div class="fighter-heading"><h2 id="rival-fighter-name">HISOKA</h2><p id="rival-fighter-title">THE DECEPTIVE JOKER</p></div>
-              <div class="fighter-trait fighter-trait-rival"><span>SIGNATURE TRAIT</span><strong id="rival-trait-name">MISDIRECTION</strong><p id="rival-trait-copy">Playable Wild spells shimmer so color-control options stand out.</p></div>
+              <div class="fighter-trait fighter-trait-rival"><i class="trait-sigil" aria-hidden="true">&#9824;</i><div><span>SIGNATURE TRAIT</span><strong id="rival-trait-name">MISDIRECTION</strong><p id="rival-trait-copy">Playable Wild spells shimmer so color-control options stand out.</p></div></div>
               <div class="fighter-figure">${fighterImages("rival")}</div>
               <div class="fighter-team-banner"><span>CPU RIVAL</span><strong>ARCANE CHALLENGER</strong></div>
               <div class="side-roster rival-roster" aria-label="Rival roster">
                 ${rosterCards(true)}
               </div>
             </article>
+            <div class="select-controls" aria-hidden="true"><span><kbd>&larr;&rarr;</kbd> NAVIGATE</span><span><kbd>E</kbd> CONFIRM</span><span><kbd>Esc</kbd> BACK</span></div>
           </div>
         </section>
 
@@ -290,19 +292,21 @@ export class App {
     this.setMenuMedia(false);
     this.root.querySelector('[data-screen="menu"]')?.classList.add("hidden");
     this.root.querySelector('[data-screen="character-select"]')?.classList.remove("hidden");
-    this.characterSelectionReady = false;
+    this.root.scrollTop = 0;
+    this.root.scrollLeft = 0;
+    this.characterSelectionReady = true;
     const selectScreen = this.root.querySelector<HTMLElement>('[data-screen="character-select"]')!;
-    delete selectScreen.dataset.ready;
-    this.root.querySelector<HTMLButtonElement>("#confirm-character")!.disabled = true;
-    this.root.querySelector<HTMLElement>("#selection-status")!.textContent = "CHOOSE YOUR DUELIST";
+    selectScreen.dataset.ready = "true";
+    this.root.querySelector<HTMLButtonElement>("#confirm-character")!.disabled = false;
+    this.root.querySelector<HTMLElement>("#selection-status")!.textContent = "BOTH DUELISTS READY";
     this.root.querySelectorAll<HTMLButtonElement>("[data-character]").forEach((button) => {
       button.classList.remove("selected");
       button.setAttribute("aria-checked", "false");
     });
-    this.renderCharacterPair(this.selectedCharacter);
+    this.selectCharacter(this.selectedCharacter, false);
     this.setCharacterSelectMedia(true);
     void audioManager.playMusic("menu");
-    window.setTimeout(() => this.root.querySelector<HTMLButtonElement>(`[data-character="${this.selectedCharacter}"]`)?.focus(), 80);
+    window.setTimeout(() => this.root.querySelector<HTMLButtonElement>(`[data-character="${this.selectedCharacter}"]`)?.focus({ preventScroll: true }), 80);
   }
 
   private selectCharacter(character: CharacterId, playSound = true): void {
@@ -312,12 +316,17 @@ export class App {
     screen.dataset.selected = character;
     screen.dataset.ready = "true";
     delete screen.dataset.preview;
+    screen.querySelectorAll(".roster-card.previewing").forEach((card) => card.classList.remove("previewing"));
     this.root.querySelectorAll<HTMLButtonElement>("[data-character]").forEach((button) => {
       const selected = button.dataset.character === character;
       button.classList.toggle("selected", selected);
       button.setAttribute("aria-checked", String(selected));
     });
     this.renderCharacterPair(character);
+    screen.classList.remove("selection-impact");
+    void screen.offsetWidth;
+    screen.classList.add("selection-impact");
+    window.setTimeout(() => screen.classList.remove("selection-impact"), 280);
     const confirm = this.root.querySelector<HTMLButtonElement>("#confirm-character")!;
     confirm.disabled = false;
     this.root.querySelector<HTMLElement>("#selection-status")!.textContent = "BOTH DUELISTS READY";
@@ -328,17 +337,23 @@ export class App {
     const screen = this.root.querySelector<HTMLElement>('[data-screen="character-select"]')!;
     if (screen.classList.contains("hidden")) return;
     screen.dataset.preview = character;
+    screen.querySelectorAll(".roster-card.previewing").forEach((card) => card.classList.remove("previewing"));
+    screen.querySelector(`[data-character="${character}"]`)?.classList.add("previewing");
     this.renderCharacterPair(character);
   }
 
   private clearCharacterPreview(): void {
     const screen = this.root.querySelector<HTMLElement>('[data-screen="character-select"]')!;
     delete screen.dataset.preview;
+    screen.querySelectorAll(".roster-card.previewing").forEach((card) => card.classList.remove("previewing"));
     this.renderCharacterPair(this.selectedCharacter);
   }
 
   private renderCharacterPair(character: CharacterId): void {
     const rival = opposingCharacter(character);
+    const screen = this.root.querySelector<HTMLElement>('[data-screen="character-select"]')!;
+    screen.dataset.playerCharacter = character;
+    screen.dataset.rivalCharacter = rival;
     this.root.querySelectorAll<HTMLElement>("[data-player-fighter]").forEach((fighter) => this.setFighterMediaActive(fighter, fighter.dataset.playerFighter === character));
     this.root.querySelectorAll<HTMLElement>("[data-rival-fighter]").forEach((fighter) => this.setFighterMediaActive(fighter, fighter.dataset.rivalFighter === rival));
     this.root.querySelectorAll<HTMLElement>("[data-rival-choice]").forEach((portrait) => portrait.classList.toggle("selected", portrait.dataset.rivalChoice === rival));
@@ -400,14 +415,16 @@ export class App {
 
   private handleCharacterSelectKey(event: KeyboardEvent): void {
     if (this.root.querySelector('[data-screen="character-select"]')?.classList.contains("hidden")) return;
-    if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+    if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) {
       event.preventDefault();
-      this.selectCharacter(opposingCharacter(this.selectedCharacter));
+      const current = CHARACTER_ORDER.indexOf(this.selectedCharacter);
+      const offset = event.key === "ArrowLeft" ? -1 : event.key === "ArrowRight" ? 1 : event.key === "ArrowUp" ? -4 : 4;
+      const next = (current + offset + CHARACTER_ORDER.length) % CHARACTER_ORDER.length;
+      this.selectCharacter(CHARACTER_ORDER[next]!);
       this.root.querySelector<HTMLButtonElement>(`[data-character="${this.selectedCharacter}"]`)?.focus();
-    } else if (event.key === "Enter") {
+    } else if (event.key.toLowerCase() === "e") {
       event.preventDefault();
       if (this.characterSelectionReady) this.confirmCharacter();
-      else this.selectCharacter(this.selectedCharacter);
     } else if (event.key === "Escape") {
       event.preventDefault();
       this.closeCharacterSelect();

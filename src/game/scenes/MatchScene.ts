@@ -97,7 +97,7 @@ export class MatchScene extends Phaser.Scene {
     const selected = data.characterId ?? "kenpachi";
     const names: Record<CharacterId, string> = { kenpachi: "KENPACHI", hisoka: "HISOKA", gojo: "GOJO", mob: "MOB", hit: "HIT", ryuk: "RYUK", maki: "MAKI" };
     const order: CharacterId[] = ["kenpachi", "hisoka", "gojo", "mob", "hit", "ryuk", "maki"];
-    const rival = order[(order.indexOf(selected) + 1) % order.length]!;
+    const rival = data.opponentCharacterId ?? order[(order.indexOf(selected) + 1) % order.length]!;
     const soloNames: [string, string] = [names[selected], names[rival]];
     this.state = data.online?.room.state
       ? stateForSlot(data.online.room.state, data.online.session.slot)
@@ -147,13 +147,11 @@ export class MatchScene extends Phaser.Scene {
     this.add.rectangle(width / 2, this.portrait ? 74 : 38, width, this.portrait ? 148 : 76, 0x061020, 0.72).setDepth(5);
 
     createPremiumCardAnimations(this);
-    const guestPerspective = this.onlineSession?.slot === 1;
     const selectedCharacter: CharacterId = this.startDetail.characterId ?? "kenpachi";
-    const playerCharacter: CharacterId = this.onlineSession
-      ? (guestPerspective ? "hisoka" : "kenpachi")
-      : selectedCharacter;
+    const playerCharacter: CharacterId = selectedCharacter;
     const rosterOrder: CharacterId[] = ["kenpachi", "hisoka", "gojo", "mob", "hit", "ryuk", "maki"];
-    const opponentCharacter: CharacterId = rosterOrder[(rosterOrder.indexOf(playerCharacter) + 1) % rosterOrder.length]!;
+    const opponentCharacter: CharacterId = this.startDetail.opponentCharacterId
+      ?? rosterOrder[(rosterOrder.indexOf(playerCharacter) + 1) % rosterOrder.length]!;
     const baseY = this.portrait ? height * 0.7 : height * 0.94;
     const playerX = this.portrait ? width * 0.12 : width * 0.14;
     const opponentX = this.portrait ? width * 0.88 : width * 0.86;

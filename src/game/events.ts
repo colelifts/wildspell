@@ -5,11 +5,14 @@ import type { RoomSession } from "./multiplayer/roomService";
 
 export type ResultPreview = "round" | "match";
 export type CharacterId = "kenpachi" | "hisoka" | "gojo" | "mob" | "hit" | "ryuk" | "maki";
+export type WildSpellMode = "final-draw" | "knockout";
 
 export interface StartMatchDetail {
+  mode?: WildSpellMode;
   playerName: string;
   opponentName?: string;
   characterId?: CharacterId;
+  opponentCharacterId?: CharacterId;
   difficulty: Difficulty;
   ruleset: Ruleset;
   challengePreview?: ChallengeType;

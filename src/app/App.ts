@@ -1,5 +1,5 @@
 import { audioManager } from "../game/audio/AudioManager";
-import { gameBus, type CharacterId, type ResultPreview, type StartMatchDetail } from "../game/events";
+import { gameBus, type CharacterId, type ResultPreview, type StartMatchDetail, type WildSpellMode } from "../game/events";
 import type { ChallengeType } from "../game/challenges/ChallengeDirector";
 import { illegalReason } from "../game/rules/legalMoves";
 import type { CardKind, Difficulty, GameEvent, GameState, Ruleset } from "../game/rules/types";
@@ -9,6 +9,7 @@ import { findQuickMatch } from "../game/multiplayer/matchmaking";
 import { createRoom, joinRoom, subscribeRoom, type RoomSession } from "../game/multiplayer/roomService";
 import type { RoomRecord } from "../game/multiplayer/protocol";
 import { CARD_NAMES } from "../game/rules/cards";
+import { KNOCKOUT_CHARACTERS } from "../game/knockout/characters";
 
 const CHARACTER_DATA: Record<CharacterId, {
   name: string;
@@ -88,8 +89,9 @@ export class App {
   private roomUnsubscribe?: () => void;
   private onlineStarted = false;
   private selectedCharacter: CharacterId = "kenpachi";
+  private selectedMode: WildSpellMode = "knockout";
   private characterSelectionReady = false;
-  private pendingSolo?: Pick<StartMatchDetail, "difficulty" | "ruleset" | "challengePreview" | "spellPreview" | "resultPreview">;
+  private pendingSolo?: Pick<StartMatchDetail, "mode" | "difficulty" | "ruleset" | "challengePreview" | "spellPreview" | "resultPreview">;
 
   constructor(private readonly root: HTMLElement) {}
 
@@ -116,6 +118,7 @@ export class App {
                   <button class="mode-tab" data-tab="codex">SPELLBOOK</button>
                 </div>
                 <div class="tab-panel active" data-panel="solo">
+                  ${this.modePicker("solo")}
                   <label>DUELIST NAME<input id="player-name" value="Cole" maxlength="18" /></label>
                   <div class="field-grid">
                     <label>RIVAL POWER<select id="difficulty"><option value="easy">Easy</option><option value="normal" selected>Normal</option><option value="hard">Hard</option><option value="nightmare">Nightmare</option></select></label>
@@ -125,8 +128,10 @@ export class App {
                   <p class="mode-note">Wild Mode unleashes status spells, same-type draw counters, and automatic Final Card challenges.</p>
                 </div>
                 <div class="tab-panel" data-panel="online">
+                  ${this.modePicker("online")}
                   <div class="online-banner"><span>✦</span><div><b>FIREBASE ARENA</b><small>Private rooms, invite codes, presence, and reconnect</small></div></div>
                   <label>DISPLAY NAME<input id="online-name" value="Cole" maxlength="18" /></label>
+                  <label>YOUR DUELIST<select id="online-character">${CHARACTER_ORDER.map((character) => `<option value="${character}">${CHARACTER_DATA[character].name} — ${CHARACTER_DATA[character].trait}</option>`).join("")}</select></label>
                   <div class="button-pair"><button class="secondary-cta" id="create-room">CREATE ROOM</button><button class="secondary-cta violet" id="quick-match">QUICK MATCH</button></div>
                   <label>ROOM SIGIL<input id="room-code" placeholder="ABC123" maxlength="6" /></label>
                   <button class="primary-cta compact" id="join-room">JOIN PRIVATE DUEL</button>
@@ -220,10 +225,17 @@ export class App {
         <div class="loading-veil" id="loading-veil"><div class="loading-rune">✦</div><h2>OPENING THE ARENA</h2><p>Binding spells and summoning champions…</p></div>
       </main>`;
     this.bind();
+    this.updateModeUi();
     void audioManager.preload().finally(() => window.setTimeout(() => this.root.querySelector("#loading-veil")?.classList.add("depart"), 450));
   }
 
   private bind(): void {
+    this.root.querySelectorAll<HTMLButtonElement>("[data-game-mode]").forEach((button) => button.addEventListener("click", () => {
+      this.selectedMode = button.dataset.gameMode as WildSpellMode;
+      this.root.querySelectorAll<HTMLButtonElement>("[data-game-mode]").forEach((item) => item.classList.toggle("active", item.dataset.gameMode === this.selectedMode));
+      this.updateModeUi();
+      audioManager.playSfx("click");
+    }));
     this.root.querySelectorAll<HTMLButtonElement>("[data-tab]").forEach((button) => button.addEventListener("click", () => {
       this.root.querySelectorAll("[data-tab]").forEach((item) => item.classList.toggle("active", item === button));
       this.root.querySelectorAll<HTMLElement>("[data-panel]").forEach((panel) => panel.classList.toggle("active", panel.dataset.panel === button.dataset.tab));
@@ -249,6 +261,7 @@ export class App {
     this.root.querySelector("#draw-button")?.addEventListener("click", () => gameBus.dispatchEvent(new Event("draw")));
     this.root.querySelector("#emote-button")?.addEventListener("click", () => gameBus.dispatchEvent(new Event("emote")));
     this.root.querySelector("#exit-match")?.addEventListener("click", () => this.exitMatch());
+    gameBus.addEventListener("exit-match", () => this.exitMatch());
     this.root.querySelector("#open-settings")?.addEventListener("click", () => this.openSettings());
     this.root.querySelector("#game-settings")?.addEventListener("click", () => this.openSettings());
     this.root.querySelector("#close-settings")?.addEventListener("click", () => this.closeSettings());
@@ -262,6 +275,9 @@ export class App {
     this.root.querySelector("#quick-match")?.addEventListener("click", () => void this.quickMatch());
     this.root.querySelector("#join-room")?.addEventListener("click", () => void this.joinOnlineRoom());
     this.root.querySelector("#copy-invite")?.addEventListener("click", () => void this.copyInvite());
+    this.root.querySelector("#online-character")?.addEventListener("change", (event) => {
+      this.selectedCharacter = (event.target as HTMLSelectElement).value as CharacterId;
+    });
     window.addEventListener("keydown", (event) => this.handleCharacterSelectKey(event));
 
     gameBus.addEventListener("state", ((event: CustomEvent<GameState>) => this.updateState(event.detail)) as EventListener);
@@ -295,13 +311,14 @@ export class App {
     const resultPreview = (["round", "match"] as ResultPreview[]).find((type) => type === requestedResult);
     const requestedSpell = new URLSearchParams(window.location.search).get("spell");
     const spellPreview = (["arsonist", "freeze", "whirlwind", "draw2", "wild4"] as CardKind[]).find((type) => type === requestedSpell);
-    this.pendingSolo = { difficulty, ruleset, ...(challengePreview ? { challengePreview } : {}), ...(spellPreview ? { spellPreview } : {}), ...(resultPreview ? { resultPreview } : {}) };
+    this.pendingSolo = { mode: this.selectedMode, difficulty, ruleset, ...(challengePreview ? { challengePreview } : {}), ...(spellPreview ? { spellPreview } : {}), ...(resultPreview ? { resultPreview } : {}) };
     this.setMenuMedia(false);
     this.root.querySelector('[data-screen="menu"]')?.classList.add("hidden");
     this.root.querySelector('[data-screen="character-select"]')?.classList.remove("hidden");
     this.root.scrollTop = 0;
     this.root.scrollLeft = 0;
     this.characterSelectionReady = true;
+    this.updateModeUi();
     const selectScreen = this.root.querySelector<HTMLElement>('[data-screen="character-select"]')!;
     selectScreen.dataset.ready = "true";
     this.root.querySelector<HTMLButtonElement>("#confirm-character")!.disabled = false;
@@ -366,12 +383,37 @@ export class App {
     this.root.querySelectorAll<HTMLElement>("[data-rival-choice]").forEach((portrait) => portrait.classList.toggle("selected", portrait.dataset.rivalChoice === rival));
     this.root.querySelector<HTMLElement>("#selected-fighter-name")!.textContent = CHARACTER_DATA[character].name;
     this.root.querySelector<HTMLElement>("#selected-fighter-title")!.textContent = CHARACTER_DATA[character].title;
-    this.root.querySelector<HTMLElement>("#selected-trait-name")!.textContent = CHARACTER_DATA[character].trait;
-    this.root.querySelector<HTMLElement>("#selected-trait-copy")!.textContent = CHARACTER_DATA[character].traitCopy;
+    const playerPower = this.characterPower(character);
+    this.root.querySelector<HTMLElement>("#selected-trait-name")!.textContent = playerPower.name;
+    this.root.querySelector<HTMLElement>("#selected-trait-copy")!.textContent = playerPower.copy;
     this.root.querySelector<HTMLElement>("#rival-fighter-name")!.textContent = CHARACTER_DATA[rival].name;
     this.root.querySelector<HTMLElement>("#rival-fighter-title")!.textContent = CHARACTER_DATA[rival].title;
-    this.root.querySelector<HTMLElement>("#rival-trait-name")!.textContent = CHARACTER_DATA[rival].trait;
-    this.root.querySelector<HTMLElement>("#rival-trait-copy")!.textContent = CHARACTER_DATA[rival].traitCopy;
+    const rivalPower = this.characterPower(rival);
+    this.root.querySelector<HTMLElement>("#rival-trait-name")!.textContent = rivalPower.name;
+    this.root.querySelector<HTMLElement>("#rival-trait-copy")!.textContent = rivalPower.copy;
+  }
+
+  private characterPower(character: CharacterId): { name: string; copy: string } {
+    if (this.selectedMode === "knockout") {
+      const power = KNOCKOUT_CHARACTERS[character];
+      return { name: power.ability.toUpperCase(), copy: power.abilityDescription };
+    }
+    return { name: CHARACTER_DATA[character].trait, copy: CHARACTER_DATA[character].traitCopy };
+  }
+
+  private updateModeUi(): void {
+    const knockout = this.selectedMode === "knockout";
+    this.root.querySelectorAll<HTMLElement>(".mode-note").forEach((note) => {
+      if (note.id === "online-status") return;
+      note.textContent = knockout
+        ? "Three lives. Launch your rival from the arena with attacks, dodges, and a clickable signature ability."
+        : "Wild Mode unleashes status spells, draw counters, and Final Card challenges.";
+    });
+    const mode = this.root.querySelector<HTMLElement>(".select-mode b");
+    if (mode) mode.textContent = knockout ? "KNOCKOUT — 1P VS CPU" : "FINAL DRAW — 1P VS CPU";
+    const traitLabels = this.root.querySelectorAll<HTMLElement>(".fighter-trait > div > span");
+    traitLabels.forEach((label) => { label.textContent = knockout ? "ACTIVE ABILITY" : "SIGNATURE TRAIT"; });
+    if (!this.root.querySelector('[data-screen="character-select"]')?.classList.contains("hidden")) this.renderCharacterPair(this.selectedCharacter);
   }
 
   private setFighterMediaActive(fighter: HTMLElement, active: boolean): void {
@@ -392,7 +434,8 @@ export class App {
         ...this.pendingSolo!,
         playerName: CHARACTER_DATA[this.selectedCharacter].name,
         opponentName: CHARACTER_DATA[rival].name,
-        characterId: this.selectedCharacter
+        characterId: this.selectedCharacter,
+        opponentCharacterId: rival
       });
     }, 360);
   }
@@ -451,17 +494,18 @@ export class App {
     void audioManager.playMusic("menu");
   }
 
-  private onlineValues(): { name: string; ruleset: Ruleset } {
+  private onlineValues(): { name: string; ruleset: Ruleset; characterId: CharacterId } {
     return {
       name: (this.root.querySelector("#online-name") as HTMLInputElement).value.trim() || "Cole",
-      ruleset: (this.root.querySelector("#ruleset") as HTMLSelectElement).value as Ruleset
+      ruleset: (this.root.querySelector("#ruleset") as HTMLSelectElement).value as Ruleset,
+      characterId: (this.root.querySelector("#online-character") as HTMLSelectElement).value as CharacterId
     };
   }
 
   private async createOnlineRoom(): Promise<void> {
     await this.withOnlineStatus("Opening a private arena…", async () => {
-      const { name, ruleset } = this.onlineValues();
-      this.roomSession = await createRoom(name, ruleset);
+      const { name, ruleset, characterId } = this.onlineValues();
+      this.roomSession = await createRoom(name, ruleset, characterId, this.selectedMode);
       (this.root.querySelector("#room-code") as HTMLInputElement).value = this.roomSession.code;
       await this.watchOnlineRoom(this.roomSession);
       return `Room ${this.roomSession.code} is open. Share the invite; the duel starts when your rival joins.`;
@@ -470,9 +514,9 @@ export class App {
 
   private async joinOnlineRoom(): Promise<void> {
     await this.withOnlineStatus("Joining the private arena…", async () => {
-      const { name } = this.onlineValues();
+      const { name, characterId } = this.onlineValues();
       const code = (this.root.querySelector("#room-code") as HTMLInputElement).value;
-      this.roomSession = await joinRoom(code, name);
+      this.roomSession = await joinRoom(code, name, characterId);
       await this.watchOnlineRoom(this.roomSession);
       return `Joined room ${this.roomSession.code}. Synchronizing the arena…`;
     });
@@ -480,8 +524,8 @@ export class App {
 
   private async quickMatch(): Promise<void> {
     await this.withOnlineStatus("Searching the arcane queue…", async () => {
-      const { name, ruleset } = this.onlineValues();
-      this.roomSession = await findQuickMatch(name, ruleset);
+      const { name, ruleset, characterId } = this.onlineValues();
+      this.roomSession = await findQuickMatch(name, ruleset, characterId, this.selectedMode);
       (this.root.querySelector("#room-code") as HTMLInputElement).value = this.roomSession.code;
       await this.watchOnlineRoom(this.roomSession);
       return this.roomSession.slot === 0
@@ -501,7 +545,7 @@ export class App {
         return;
       }
       this.updateLobby(room);
-      if (room.state && room.players?.[0] && room.players?.[1] && !this.onlineStarted) this.startOnlineMatch(session, room);
+      if ((room.state || room.knockout?.state) && room.players?.[0] && room.players?.[1] && !this.onlineStarted) this.startOnlineMatch(session, room);
     });
   }
 
@@ -517,13 +561,32 @@ export class App {
   }
 
   private startOnlineMatch(session: RoomSession, room: RoomRecord): void {
-    if (!room.state || this.onlineStarted) return;
+    if ((!room.state && !room.knockout?.state) || this.onlineStarted) return;
     this.onlineStarted = true;
     this.root.querySelector('[data-screen="menu"]')?.classList.add("hidden");
     this.root.querySelector('[data-screen="game"]')?.classList.remove("hidden");
     const playerName = room.players?.[session.slot]?.name ?? "Duelist";
-    this.game.start({ playerName, difficulty: "normal", ruleset: room.ruleset, online: { session, room } });
+    const opponentSlot = session.slot === 0 ? 1 : 0;
+    const playerCharacter = room.players?.[session.slot]?.characterId ?? "kenpachi";
+    const opponentCharacter = room.players?.[opponentSlot]?.characterId ?? "hisoka";
+    this.game.start({
+      mode: room.gameMode ?? "final-draw",
+      playerName,
+      opponentName: room.players?.[opponentSlot]?.name ?? "Rival",
+      characterId: playerCharacter,
+      opponentCharacterId: opponentCharacter,
+      difficulty: "normal",
+      ruleset: room.ruleset,
+      online: { session, room }
+    });
     audioManager.playSfx("deal");
+  }
+
+  private modePicker(scope: "solo" | "online"): string {
+    return `<div class="game-mode-picker" aria-label="Choose game mode">
+      <button type="button" class="game-mode-option active" data-game-mode="knockout" data-scope="${scope}"><b>KNOCKOUT ARENA</b><span>Fight, launch, survive</span></button>
+      <button type="button" class="game-mode-option" data-game-mode="final-draw" data-scope="${scope}"><b>FINAL DRAW</b><span>Strategic spell cards</span></button>
+    </div>`;
   }
 
   private async copyInvite(): Promise<void> {

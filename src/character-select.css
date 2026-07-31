@@ -1,355 +1,331 @@
+/* Authoritative character-select layout. This file intentionally overrides the
+   retired prototype selector rules still present in the legacy stylesheets. */
 .character-select-screen {
-  --player: #ff3b35;
-  --rival: #ad44ff;
-  --gold: #ffb52e;
-  position: relative;
-  width: 100%;
-  min-height: 100svh;
-  overflow: hidden;
+  --left: #ff343a;
+  --right: #9b39ff;
+  position: relative !important;
+  width: 100% !important;
+  height: 100svh !important;
+  min-height: 620px !important;
+  overflow: hidden !important;
   isolation: isolate;
   color: #fff;
-  background: #04050c url("/backgrounds/select-versus-bg.png") center / cover no-repeat;
+  background: #04050c url("/backgrounds/select-versus-bg.png") center/cover no-repeat !important;
   font-family: "Arial Narrow", "Roboto Condensed", Impact, sans-serif;
 }
 .character-select-screen.hidden { display: none !important; }
-.character-select-screen.departing { animation: ws-select-leave .3s ease-in both; }
+.character-select-screen.departing { animation: cs-leave .28s ease-in both; }
 .character-select-screen::before {
   content: "";
   position: absolute;
   inset: 0;
-  z-index: -1;
-  background: linear-gradient(90deg, rgba(8,2,5,.12), rgba(2,3,10,.4) 47%, rgba(2,3,10,.42) 53%, rgba(8,2,16,.12));
+  z-index: 0;
+  background: linear-gradient(100deg,rgba(84,4,12,.48),rgba(4,7,17,.08) 43%,rgba(4,7,17,.08) 57%,rgba(44,5,76,.5));
+  pointer-events: none;
 }
-.select-atmosphere { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
-.select-atmosphere::before,
-.select-atmosphere::after {
-  content: "";
-  position: absolute;
-  inset: -10% 50% -10% -8%;
-  background: repeating-linear-gradient(109deg, transparent 0 72px, rgba(255,255,255,.045) 73px 74px, transparent 75px 144px);
-  opacity: .42;
-}
-.select-atmosphere::after { inset: -10% -8% -10% 50%; transform: scaleX(-1); }
-.select-atmosphere i { display: none; }
-
-.select-header { position: absolute; inset: 0 0 auto; z-index: 80; height: 76px; pointer-events: none; }
-.select-back,.select-brand,.select-mode { pointer-events: auto; }
-.select-back {
-  position: absolute;
-  top: 18px;
-  left: 20px;
-  width: 142px;
-  height: 54px;
-  border: 1px solid #ffffff32;
-  clip-path: polygon(13px 0,calc(100% - 13px) 0,100% 50%,calc(100% - 13px) 100%,13px 100%,0 50%);
-  background: #070811e8;
-  color: #fff;
-  font: 800 16px/1 "Arial Narrow",sans-serif;
-  letter-spacing: .07em;
-  cursor: pointer;
-  box-shadow: 0 8px 24px #0009;
-}
-.select-back:is(:hover,:focus-visible) { outline: none; border-color: #fff; background: #171725; }
-.select-brand { position: absolute; top: 8px; left: 50%; width: 210px; margin-left: -105px; display: grid; place-items: center; }
-.select-brand img { width: 205px; height: 82px; object-fit: contain; filter: drop-shadow(0 8px 18px #000); }
-.select-brand h1 { position: absolute!important; width: 1px!important; height: 1px!important; overflow: hidden!important; clip: rect(0 0 0 0)!important; }
-.select-mode {
-  position: absolute;
-  top: 18px;
-  right: 20px;
-  min-width: 132px;
-  padding: 10px 16px;
-  border: 1px solid #a846ff5c;
-  clip-path: polygon(12px 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,12px 100%,0 50%);
-  background: #060611dc;
-  color: #d8cfea;
-  font: 700 12px/1.25 "Arial Narrow",sans-serif;
-  letter-spacing: .09em;
-  text-align: center;
-}
-.select-mode b { display: block; color: #fff1a7; font-size: 14px; }
-
-.versus-stage { position: absolute; inset: 0; z-index: 1; overflow: hidden; }
-.fighter-side { position: absolute; inset: 0 auto 0 0; width: 53%; pointer-events: none; }
-.fighter-side-rival { inset: 0 0 0 auto; }
-.fighter-side::after {
+.character-select-screen::after {
   content: "";
   position: absolute;
   inset: 0;
   z-index: 1;
-  background: radial-gradient(ellipse at 33% 45%, transparent 0 30%, rgba(4,5,12,.22) 67%, rgba(4,5,12,.64) 100%);
+  background: repeating-linear-gradient(111deg,transparent 0 88px,rgba(255,255,255,.035) 89px 90px,transparent 91px 178px);
   pointer-events: none;
 }
-.fighter-side-rival::after { background: radial-gradient(ellipse at 67% 45%, transparent 0 30%, rgba(4,5,12,.22) 67%, rgba(4,5,12,.64) 100%); }
-.fighter-figure { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
-.fighter-art { position: absolute; inset: 0; display: none; overflow: hidden; opacity: 0; will-change: opacity,transform; }
-.fighter-art.active { display: block; opacity: 1; animation: ws-fighter-enter-left .24s cubic-bezier(.2,.8,.2,1) both, ws-fighter-breathe 12s ease-in-out .24s infinite; }
-.fighter-side-rival .fighter-art.active { animation-name: ws-fighter-enter-right,ws-fighter-breathe; }
-.fighter-figure .fighter-full {
+.select-atmosphere { position: absolute !important; inset: 0 !important; z-index: 2 !important; pointer-events: none; overflow: hidden; }
+.select-atmosphere::before,.select-atmosphere::after {
+  content: "";
   position: absolute;
-  display: block;
-  left: -3%;
-  bottom: 9%;
-  width: 98%;
-  height: 88%;
-  object-fit: contain;
-  object-position: center bottom;
-  transform: none;
-  transform-origin: center bottom;
-  pointer-events: none;
-  opacity: 1;
-  filter: saturate(1.05) contrast(1.05) drop-shadow(0 24px 30px #000b);
-  -webkit-mask-image: radial-gradient(ellipse 68% 73% at 50% 48%,#000 54%,rgba(0,0,0,.88) 70%,transparent 100%);
-  mask-image: radial-gradient(ellipse 68% 73% at 50% 48%,#000 54%,rgba(0,0,0,.88) 70%,transparent 100%);
+  top: -15%; bottom: -15%; left: 49.6%; width: 5px;
+  background: #fff;
+  box-shadow: 0 0 12px 4px #ffd76a,0 0 36px 16px #ff5839,0 0 80px 28px #a73cff;
+  transform: rotate(7deg);
+  transform-origin: center;
 }
-.fighter-side-rival .fighter-figure .fighter-full { left: auto; right: -3%; }
-.fighter-side:not(.spotlight) .fighter-art.active { opacity: .86; filter: saturate(.78) brightness(.82); }
-.fighter-side.spotlight .fighter-art.active { opacity: 1; filter: saturate(1.08) brightness(1.04); }
-.character-select-screen[data-preview] .fighter-side-player .fighter-art.active { opacity: 1; filter: saturate(1.15) brightness(1.04); }
-.selection-impact .fighter-art.active { animation: ws-fighter-confirm .25s ease-out both,ws-fighter-breathe 12s ease-in-out .25s infinite; }
+.select-atmosphere::after { width: 1px; opacity: .85; filter: blur(8px); }
+.select-atmosphere i { display: none !important; }
 
-.fighter-heading { position: absolute; z-index: 20; top: 76px; left: 2vw; max-width: 34vw; pointer-events: none; }
-.fighter-side-rival .fighter-heading { left: auto; right: 2vw; text-align: right; }
-.fighter-heading h2 { margin: 0; color: #fff; font: 900 italic clamp(44px,4vw,76px)/.9 Impact,"Arial Narrow",sans-serif; letter-spacing: .015em; text-shadow: 0 4px 0 #0008,0 8px 25px #000; white-space: nowrap; }
-.fighter-heading p { margin: 9px 0 0; color: var(--player); font: 900 clamp(11px,.82vw,16px)/1 "Arial Narrow",sans-serif; letter-spacing: .1em; }
-.fighter-side-rival .fighter-heading p { color: var(--rival); }
+.select-header {
+  position: absolute !important;
+  inset: 0 0 auto !important;
+  z-index: 100 !important;
+  height: 76px !important;
+  pointer-events: none;
+}
+.select-header > * { pointer-events: auto; }
+.select-back {
+  position: absolute !important;
+  top: 18px !important; left: 22px !important;
+  width: 132px !important; height: 48px !important;
+  border: 1px solid #ffffff3d !important;
+  clip-path: polygon(13px 0,calc(100% - 13px) 0,100% 50%,calc(100% - 13px) 100%,13px 100%,0 50%) !important;
+  background: #070812e9 !important;
+  color: #fff !important;
+  font: 900 15px/1 "Arial Narrow",sans-serif !important;
+  letter-spacing: .08em;
+  cursor: pointer;
+}
+.select-back:is(:hover,:focus-visible) { outline: 2px solid #fff7c5; outline-offset: 2px; }
+.select-brand {
+  position: absolute !important;
+  top: 4px !important; left: 50% !important;
+  width: 190px !important; height: 84px !important;
+  margin: 0 !important;
+  transform: translateX(-50%) !important;
+}
+.select-brand img { width: 100% !important; height: 100% !important; object-fit: contain !important; filter: drop-shadow(0 8px 17px #000); }
+.select-brand h1 { position: absolute!important; width: 1px!important; height: 1px!important; overflow: hidden!important; clip: rect(0 0 0 0)!important; }
+.select-mode {
+  position: absolute !important;
+  top: 18px !important; right: 22px !important;
+  min-width: 126px !important;
+  padding: 8px 15px !important;
+  border: 1px solid #a846ff66 !important;
+  clip-path: polygon(12px 0,calc(100% - 12px) 0,100% 50%,calc(100% - 12px) 100%,12px 100%,0 50%) !important;
+  background: #060611e8 !important;
+  color: #d8cfea !important;
+  font: 800 11px/1.3 "Arial Narrow",sans-serif !important;
+  letter-spacing: .1em;
+  text-align: center;
+}
+.select-mode b { display: block; color: #ffe56f; font-size: 13px; }
+
+.character-select-screen .versus-stage {
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 3 !important;
+  display: block !important;
+  overflow: hidden !important;
+}
+.character-select-screen .fighter-side {
+  position: absolute !important;
+  inset: 0 auto 0 0 !important;
+  width: 52% !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  isolation: isolate;
+  transform: none !important;
+  clip-path: none !important;
+  pointer-events: none;
+}
+.character-select-screen .fighter-side-rival { inset: 0 0 0 auto !important; }
+.fighter-side::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(ellipse at 35% 42%,rgba(255,53,58,.16),transparent 42%),linear-gradient(90deg,rgba(40,3,7,.34),transparent 72%);
+}
+.fighter-side-rival::before { background: radial-gradient(ellipse at 65% 42%,rgba(166,53,255,.17),transparent 42%),linear-gradient(270deg,rgba(31,4,54,.4),transparent 72%); }
+
+.fighter-heading {
+  position: absolute !important;
+  z-index: 40 !important;
+  top: 78px !important; left: 2.2vw !important;
+  max-width: 36vw !important;
+  pointer-events: none;
+}
+.fighter-side-rival .fighter-heading { left: auto !important; right: 2.2vw !important; text-align: right !important; }
+.fighter-heading h2 {
+  margin: 0 !important;
+  color: #fff !important;
+  font: 900 italic clamp(38px,3.4vw,68px)/.88 Impact,"Arial Narrow",sans-serif !important;
+  letter-spacing: .025em !important;
+  white-space: nowrap !important;
+  text-shadow: 0 3px 0 #000,0 8px 24px #000;
+}
+.fighter-heading p { margin: 9px 0 0 !important; color: var(--left) !important; font: 900 clamp(10px,.78vw,15px)/1 "Arial Narrow",sans-serif !important; letter-spacing: .13em !important; }
+.fighter-side-rival .fighter-heading p { color: #ce72ff !important; }
 
 .fighter-trait {
-  position: absolute;
-  z-index: 22;
-  top: 176px;
-  left: 1.7vw;
-  width: min(28vw,455px);
-  min-height: 94px;
-  padding: 12px 16px 12px 80px;
-  display: flex;
-  align-items: center;
-  border: 1px solid #ff34345f;
-  background: linear-gradient(100deg,#13060be8,#06070dcc);
-  clip-path: polygon(12px 0,100% 0,calc(100% - 20px) 100%,0 100%,0 12px);
-  box-shadow: 0 14px 30px #0008;
+  position: absolute !important;
+  z-index: 42 !important;
+  top: 168px !important; left: 2vw !important;
+  width: min(27vw,430px) !important;
+  min-height: 82px !important;
+  padding: 10px 14px 10px 67px !important;
+  display: flex !important;
+  align-items: center !important;
+  border: 1px solid #ff343e70 !important;
+  background: linear-gradient(100deg,#150409ed,#070810db) !important;
+  clip-path: polygon(11px 0,100% 0,calc(100% - 18px) 100%,0 100%,0 11px) !important;
+  box-shadow: 0 14px 30px #0009 !important;
   pointer-events: none;
 }
-.fighter-trait-rival { left: auto; right: 1.7vw; padding: 12px 80px 12px 16px; border-color: #a73cff69; clip-path: polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,20px 100%); text-align: right; }
-.trait-sigil { position: absolute; left: 16px; width: 50px; height: 62px; display: grid; place-items: center; color: #fff; background: linear-gradient(145deg,#ff3b2e,#5e0710); clip-path: polygon(50% 0,100% 30%,82% 100%,18% 100%,0 30%); filter: drop-shadow(0 0 10px #ff2a2a); font: 900 30px/1 Impact,sans-serif; }
-.fighter-trait-rival .trait-sigil { left: auto; right: 16px; background: linear-gradient(145deg,#bd53ff,#310758); filter: drop-shadow(0 0 10px #a83cff); }
-.fighter-trait span { display: block; margin-bottom: 3px; color: #ddd; font: 700 10px/1 Arial,sans-serif; letter-spacing: .12em; }
-.fighter-trait strong { display: block; color: var(--player); font: 900 18px/1 Impact,sans-serif; letter-spacing: .06em; }
-.fighter-trait-rival strong { color: var(--rival); }
-.fighter-trait p { margin: 6px 0 0; color: #f5f5f6; font: 600 11px/1.38 Arial,sans-serif; }
+.fighter-trait-rival { left: auto !important; right: 2vw !important; padding: 10px 67px 10px 14px !important; border-color: #aa42ff70 !important; background: linear-gradient(260deg,#170526ed,#070810db) !important; clip-path: polygon(0 0,calc(100% - 11px) 0,100% 11px,100% 100%,18px 100%) !important; text-align: right; }
+.trait-sigil { position: absolute; left: 12px; width: 42px; height: 54px; display: grid; place-items: center; color: #fff; background: linear-gradient(145deg,#ff4337,#65060f); clip-path: polygon(50% 0,100% 30%,82% 100%,18% 100%,0 30%); filter: drop-shadow(0 0 9px #ff2929); font: 900 25px/1 Impact,sans-serif; }
+.fighter-trait-rival .trait-sigil { left: auto; right: 12px; background: linear-gradient(145deg,#c45aff,#34065c); filter: drop-shadow(0 0 9px #a63cff); }
+.fighter-trait span { display: block; margin-bottom: 2px; color: #d8d8dc; font: 800 9px/1 Arial,sans-serif; letter-spacing: .13em; }
+.fighter-trait strong { display: block; color: var(--left); font: 900 17px/1 Impact,sans-serif; letter-spacing: .07em; }
+.fighter-trait-rival strong { color: #bd5bff; }
+.fighter-trait p { margin: 5px 0 0 !important; color: #f2f2f4 !important; font: 600 10px/1.35 Arial,sans-serif !important; }
+
+.fighter-figure { position: absolute !important; inset: 54px 0 116px !important; z-index: 2 !important; pointer-events: none; }
+.fighter-art { position: absolute !important; inset: 0 !important; display: none !important; overflow: visible !important; opacity: 0; }
+.fighter-art.active { display: block !important; opacity: 1; animation: cs-enter-left .24s cubic-bezier(.2,.8,.2,1) both,cs-breathe 13s ease-in-out .24s infinite; }
+.fighter-side-rival .fighter-art.active { animation-name: cs-enter-right,cs-breathe; }
+.fighter-figure .fighter-full {
+  display: block !important;
+  position: absolute !important;
+  left: -2% !important; right: auto !important; bottom: -2% !important;
+  width: 100% !important; height: 100% !important;
+  object-fit: contain !important;
+  object-position: center bottom !important;
+  transform: none !important;
+  opacity: 1 !important;
+  filter: saturate(1.05) contrast(1.06) drop-shadow(0 24px 28px #000c) !important;
+  -webkit-mask-image: radial-gradient(ellipse 66% 79% at 50% 48%,#000 52%,rgba(0,0,0,.96) 67%,transparent 96%);
+  mask-image: radial-gradient(ellipse 66% 79% at 50% 48%,#000 52%,rgba(0,0,0,.96) 67%,transparent 96%);
+}
+.fighter-side-rival .fighter-full { left: auto !important; right: -2% !important; }
+.fighter-side:not(.spotlight) .fighter-art.active { opacity: .83; filter: saturate(.72) brightness(.82); }
+.fighter-side-player .fighter-art.active,.fighter-side.spotlight .fighter-art.active,.character-select-screen[data-preview] .fighter-side-player .fighter-art.active { opacity: 1; filter: saturate(1.06) brightness(1.02); }
+.selection-impact .fighter-art.active { animation: cs-confirm .24s ease-out both,cs-breathe 13s ease-in-out .24s infinite; }
 
 .fighter-team-banner {
-  position: absolute;
-  z-index: 32;
-  left: 2vw;
-  bottom: calc(4vh + 26vh + 7px);
-  width: min(31vw,510px);
-  height: 42px;
-  padding: 0 22px;
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  background: linear-gradient(90deg,#a70d18,#ec463d);
-  clip-path: polygon(0 0,calc(100% - 22px) 0,100% 50%,calc(100% - 22px) 100%,0 100%);
+  position: absolute !important;
+  z-index: 55 !important;
+  left: 2.2vw !important; right: auto !important;
+  bottom: 190px !important;
+  width: min(29vw,445px) !important; height: 34px !important;
+  padding: 0 16px !important;
+  display: flex !important; align-items: center !important; gap: 10px !important;
+  background: linear-gradient(90deg,#9a0d18,#ed493e) !important;
+  clip-path: polygon(0 0,calc(100% - 18px) 0,100% 50%,calc(100% - 18px) 100%,0 100%) !important;
+  pointer-events: none;
 }
-.fighter-side .fighter-team-banner { width: min(31vw,510px) !important; min-width: 0 !important; bottom: calc(4vh + max(26vh, 195px) + 7px) !important; }
-.fighter-side-rival .fighter-team-banner { left: auto; right: 2vw; justify-content: flex-end; background: linear-gradient(90deg,#334fd0,#6545e8); clip-path: polygon(22px 0,100% 0,100% 100%,22px 100%,0 50%); }
-.fighter-team-banner span { font: 800 9px/1 Arial,sans-serif; letter-spacing: .07em; }
-.fighter-team-banner strong { font: 900 clamp(14px,1.15vw,21px)/1 "Arial Narrow",sans-serif; white-space: nowrap; }
+.fighter-side-rival .fighter-team-banner { left: auto !important; right: 2.2vw !important; justify-content: flex-end !important; background: linear-gradient(90deg,#344cce,#6543e9) !important; clip-path: polygon(18px 0,100% 0,100% 100%,18px 100%,0 50%) !important; }
+.fighter-team-banner span { font: 800 8px/1 Arial,sans-serif !important; letter-spacing: .08em; }
+.fighter-team-banner strong { font: 900 clamp(12px,1vw,17px)/1 "Arial Narrow",sans-serif !important; white-space: nowrap; }
+
 .side-roster {
-  position: absolute;
-  z-index: 33;
-  left: 2vw;
-  bottom: 4vh;
-  width: min(31vw,510px);
-  height: 26vh;
-  min-height: 195px;
-  display: grid;
-  grid-template-columns: repeat(4,minmax(0,1fr));
-  grid-template-rows: repeat(3,minmax(0,1fr));
-  gap: 6px;
-  pointer-events: auto;
+  position: absolute !important;
+  z-index: 56 !important;
+  left: 2.2vw !important; right: auto !important;
+  bottom: 18px !important;
+  width: min(29vw,445px) !important; height: 146px !important;
+  display: grid !important;
+  grid-template-columns: repeat(4,minmax(0,1fr)) !important;
+  grid-template-rows: repeat(3,minmax(0,1fr)) !important;
+  gap: 5px !important;
+  pointer-events: auto !important;
+  overflow: visible !important;
 }
-.fighter-side-rival .side-roster { left: auto; right: 2vw; }
+.fighter-side-rival .side-roster { left: auto !important; right: 2.2vw !important; }
 .roster-card,.rival-roster-card {
-  position: relative;
-  min-width: 0;
-  min-height: 0;
-  padding: 0;
-  overflow: visible;
-  border: 1px solid #ad202b;
-  background: #06070c;
+  position: relative !important;
+  min-width: 0 !important; min-height: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  border: 1px solid #a9252d !important;
+  background: #05060c !important;
   color: #fff;
-  box-shadow: 0 6px 15px #000a;
+  box-shadow: 0 6px 14px #000b !important;
   isolation: isolate;
   cursor: pointer;
-  transform-origin: center bottom;
-  transition: transform .2s cubic-bezier(.2,.8,.2,1),border-color .2s,filter .2s,box-shadow .2s;
+  transform: none !important;
+  transition: translate .18s,scale .18s,filter .18s,border-color .18s !important;
 }
-.rival-roster-card { border-color: #35489e; cursor: default; }
-.roster-portrait-layer { position: absolute; inset: 0; z-index: 1; overflow: hidden; background: #07080e; }
-.roster-portrait-layer img { width: 100%; height: 100%; object-fit: cover; object-position: center 18%; filter: saturate(.8) brightness(.68); transition: filter .2s,transform .2s; }
-.roster-cutout { position: absolute; z-index: 3; left: -7%; bottom: 13%; width: 114%; height: 120%; object-fit: contain; object-position: center bottom; opacity: 0; filter: drop-shadow(0 5px 5px #000); transform: translateY(7px) scale(1.02); transition: opacity .18s,transform .22s cubic-bezier(.2,.8,.2,1); pointer-events: none; }
-.roster-name { position: absolute; z-index: 5; inset: auto 0 0; padding: 5px 2px 4px; background: linear-gradient(transparent,#020207 30%); color: #fff; font: 900 italic clamp(8px,.64vw,12px)/1 Impact,"Arial Narrow",sans-serif; letter-spacing: .05em; text-align: center; text-shadow: 0 2px 3px #000; }
-.roster-card:is(:hover,:focus-visible,.previewing) { z-index: 50; border-color: #fff4bc; outline: none; filter: brightness(1.14); transform: translateY(-9px) scale(1.055); box-shadow: 0 0 0 2px var(--player),0 0 22px #ff3c2f,0 12px 24px #000c; }
-.roster-card:is(:hover,:focus-visible,.previewing) .roster-cutout { opacity: 1; transform: translateY(-5px) scale(1.11); }
-.roster-card:is(:hover,:focus-visible,.previewing) .roster-portrait-layer img { filter: saturate(1.12) brightness(.93); transform: scale(1.035); }
-.roster-card.selected,.rival-roster-card.selected { border-color: #fff4bf; box-shadow: 0 0 0 2px var(--player),0 0 18px #ff342a,0 8px 20px #000a; }
-.rival-roster-card.selected { box-shadow: 0 0 0 2px var(--rival),0 0 18px #a13cff,0 8px 20px #000a; filter: brightness(1.1); }
-.roster-card.locked,.rival-roster-card.locked { display: grid; place-items: center; background: linear-gradient(135deg,#080910 48%,#20253a 49% 51%,#05060b 52%); cursor: not-allowed; }
-.locked-diamond { display: grid; place-items: center; width: 42%; aspect-ratio: 1; border: 1px solid #5c2330; transform: rotate(45deg); color: #737684; }
-.rival-roster-card .locked-diamond { border-color: #303b76; }
-.locked-diamond i { font: 900 22px/1 Arial,sans-serif; transform: rotate(-45deg); }
-.locked-diamond b { position: absolute; right: -6px; bottom: -7px; font-size: 9px; transform: rotate(-45deg); }
+.rival-roster-card { border-color: #34489f !important; cursor: default; }
+.roster-card:nth-child(4n+2),.roster-card:nth-child(4n+4) { translate: 0 -5px; }
+.rival-roster-card:nth-child(4n+1),.rival-roster-card:nth-child(4n+3) { translate: 0 -5px; }
+.roster-portrait-layer { position: absolute !important; inset: 0 !important; z-index: 1 !important; overflow: hidden !important; background: #07080e; }
+.roster-portrait-layer img { width: 100% !important; height: 100% !important; object-fit: cover !important; object-position: center 17% !important; filter: saturate(.42) brightness(.55) !important; transition: filter .18s,scale .18s !important; }
+.roster-cutout { position: absolute !important; z-index: 3 !important; left: -8% !important; bottom: 10% !important; width: 116% !important; height: 124% !important; object-fit: contain !important; object-position: center bottom !important; opacity: 0 !important; transform: translateY(5px) !important; filter: drop-shadow(0 4px 5px #000) !important; transition: opacity .16s,translate .18s,scale .18s !important; pointer-events: none; }
+.roster-name { position: absolute !important; z-index: 5 !important; inset: auto 0 0 !important; padding: 4px 1px 3px !important; background: linear-gradient(transparent,#010207 35%) !important; color: #fff !important; font: 900 italic clamp(7px,.58vw,11px)/1 Impact,"Arial Narrow",sans-serif !important; letter-spacing: .05em !important; text-align: center !important; }
+.roster-card:is(:hover,:focus-visible,.previewing) { z-index: 70 !important; border-color: #fff !important; outline: none !important; filter: brightness(1.15) !important; translate: 0 -8px !important; scale: 1.08 !important; box-shadow: 0 0 0 2px var(--left),0 0 18px #ff3935,0 10px 20px #000d !important; }
+.roster-card:is(:hover,:focus-visible,.previewing) .roster-cutout { opacity: 1 !important; translate: 0 -4px !important; scale: 1.07 !important; }
+.roster-card:is(:hover,:focus-visible,.previewing) .roster-portrait-layer img { filter: saturate(1.08) brightness(.92) !important; scale: 1.04; }
+.roster-card.selected,.rival-roster-card.selected { border-color: #fff4bf !important; box-shadow: 0 0 0 2px var(--left),0 0 15px #ff342a !important; }
+.rival-roster-card.selected { box-shadow: 0 0 0 2px var(--right),0 0 15px #a13cff !important; filter: brightness(1.08); }
+.roster-card.selected .roster-portrait-layer img,.rival-roster-card.selected .roster-portrait-layer img { filter: saturate(1.04) brightness(.86) !important; }
+.roster-card.locked,.rival-roster-card.locked { display: grid !important; place-items: center !important; background: linear-gradient(135deg,#07080d 48%,#23283b 49% 51%,#04050a 52%) !important; cursor: not-allowed; }
+.locked-diamond { display: grid; place-items: center; width: 35%; aspect-ratio: 1; border: 1px solid #642630; transform: rotate(45deg); color: #777a87; }
+.rival-roster-card .locked-diamond { border-color: #344078; }
+.locked-diamond i { font: 900 18px/1 Arial,sans-serif; transform: rotate(-45deg); }
+.locked-diamond b { position: absolute; right: -6px; bottom: -7px; font-size: 8px; transform: rotate(-45deg); }
 
-.versus-core { position: absolute; z-index: 60; top: 38%; left: 50%; width: 190px; margin-left: -95px; display: grid; justify-items: center; pointer-events: none; }
-.versus-mark { width: 168px; height: 116px; object-fit: contain; filter: drop-shadow(0 0 12px #ffb22c) drop-shadow(0 8px 12px #000); transform: rotate(-4deg); }
-.selection-status { margin-top: -4px; color: #fff4ca; font: 800 9px/1 Arial,sans-serif; letter-spacing: .11em; opacity: .8; }
-.confirm-fighter { width: 176px; height: 62px; margin-top: 8px; padding: 0; border: 2px solid #fff1a7; clip-path: polygon(16% 0,84% 0,100% 50%,84% 100%,16% 100%,0 50%); background: linear-gradient(#ffd768,#f28b12 61%,#d66a04); color: #100800; box-shadow: 0 0 0 4px #ff9d1b35,0 0 23px #ff9d1b9c,inset 0 4px #fff5a7; pointer-events: auto; cursor: pointer; transition: transform .18s,filter .18s; }
-.confirm-fighter b { font: 900 italic 29px/1 Impact,sans-serif; }
-.confirm-fighter:is(:hover,:focus-visible) { outline: none; filter: brightness(1.12); transform: scale(1.04); }
-.confirm-fighter:active { transform: scale(.97); }
-.confirm-fighter:disabled { opacity: .42; filter: grayscale(.6); cursor: not-allowed; }
-.select-controls { position: absolute; z-index: 61; left: 50%; bottom: 9px; width: 360px; margin-left: -180px; padding: 8px 18px; display: flex; justify-content: center; gap: 20px; border: 1px solid #ffffff17; clip-path: polygon(15px 0,calc(100% - 15px) 0,100% 50%,calc(100% - 15px) 100%,15px 100%,0 50%); background: #060711dc; color: #ddd; font: 700 10px/1 Arial,sans-serif; letter-spacing: .05em; }
-.select-controls kbd { display: inline-grid; place-items: center; min-width: 26px; height: 23px; padding: 0 4px; margin-right: 4px; border: 1px solid #ffffff40; background: #13141c; color: #fff; font: 700 10px/1 Arial,sans-serif; }
-
-@media (min-width:1500px) and (min-height:850px) {
-  .fighter-figure .fighter-full { left: -5%; bottom: 8%; width: 102%; height: 91%; }
-  .fighter-side-rival .fighter-full { left: auto; right: -5%; }
-  .fighter-side .fighter-team-banner { bottom: calc(4.8vh + 27vh + 7px) !important; }
-  .side-roster { bottom: 4.8vh; height: 27vh; }
-}
-@media (max-width:920px) and (orientation:landscape) {
-  .character-select-screen { min-height: 620px; overflow-y: auto; }
-  .fighter-heading h2 { font-size: 40px; }
-  .fighter-trait { top: 142px; width: 31vw; min-height: 82px; padding-left: 54px; }
-  .fighter-trait-rival { padding-left: 10px; padding-right: 54px; }
-  .trait-sigil { left: 9px; width: 36px; height: 48px; font-size: 22px; }
-  .fighter-trait-rival .trait-sigil { left: auto; right: 9px; }
-  .fighter-trait p { font-size: 9px; }
-  .side-roster { min-height: 176px; height: 29vh; }
-  .fighter-team-banner { bottom: calc(4vh + 182px); }
-  .select-controls { display: none; }
-}
-@media (max-width:760px) and (orientation:portrait) {
-  .character-select-screen { min-height: max(100svh,1000px); overflow-x: hidden; overflow-y: auto; }
-  .select-header { height: 64px; }
-  .select-back { top: 10px; left: 8px; width: 106px; height: 46px; font-size: 13px; }
-  .select-brand { top: 2px; width: 134px; margin-left: -67px; }
-  .select-brand img { width: 132px; height: 60px; }
-  .select-mode { top: 10px; right: 8px; min-width: 90px; padding: 7px 9px; font-size: 8px; }
-  .select-mode b { font-size: 10px; }
-  .versus-stage { min-height: 1000px; overflow: visible; }
-  .fighter-side { width: 57%; height: 470px; }
-  .fighter-figure .fighter-full { left: -18%; bottom: 4%; width: 125%; height: 91%; }
-  .fighter-side-rival .fighter-full { right: -18%; }
-  .fighter-heading { top: 326px; left: 8px; max-width: 43vw; }
-  .fighter-side-rival .fighter-heading { right: 8px; }
-  .fighter-heading h2 { font-size: clamp(23px,7.2vw,33px); }
-  .fighter-heading p { margin-top: 5px; font-size: clamp(7px,2.3vw,10px); }
-  .fighter-trait { top: 404px; left: 6px; width: calc(50vw - 9px); min-height: 106px; padding: 10px 8px 10px 47px; }
-  .fighter-trait-rival { left: auto; right: 6px; padding: 10px 47px 10px 8px; }
-  .trait-sigil { left: 7px; width: 32px; height: 46px; font-size: 20px; }
-  .fighter-trait-rival .trait-sigil { left: auto; right: 7px; }
-  .fighter-trait span { font-size: 7px; }
-  .fighter-trait strong { font-size: 13px; }
-  .fighter-trait p { font-size: 8.5px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .versus-core { top: 332px; width: 86px; margin-left: -43px; }
-  .versus-mark { width: 84px; height: 62px; }
-  .selection-status { display: none; }
-  .confirm-fighter { width: 126px; height: 52px; margin-top: 118px; }
-  .confirm-fighter b { font-size: 23px; }
-  .fighter-team-banner { left: 5px; top: 632px; bottom: auto; width: calc(50vw - 8px); height: 40px; padding: 0 8px; gap: 5px; justify-content: center; }
-  .fighter-side-rival .fighter-team-banner { right: 5px; justify-content: center; }
-  .fighter-team-banner span { font-size: 6px; }
-  .fighter-team-banner strong { font-size: clamp(9px,2.7vw,12px); white-space: normal; text-align: center; }
-  .side-roster { left: 5px; top: 678px; bottom: auto; width: calc(50vw - 8px); height: 292px; min-height: 0; grid-template-columns: repeat(3,minmax(0,1fr)); grid-template-rows: repeat(4,minmax(0,1fr)); gap: 4px; }
-  .fighter-side-rival .side-roster { right: 5px; }
-  .roster-name { padding: 3px 0 2px; font-size: clamp(6.5px,1.9vw,9px); }
-  .select-controls { display: none; }
-}
-@media (max-width:360px) and (orientation:portrait) {
-  .select-brand { top: 9px; width: 100px; margin-left: -50px; }
-  .select-brand img { width: 100px; height: 45px; }
-  .select-back { width: 90px; padding: 0 8px; }
-  .select-mode { min-width: 78px; padding-inline: 6px; }
-  .fighter-trait p { -webkit-line-clamp: 2; }
-  .fighter-team-banner span { display: none; }
-}
-@media (max-width:760px) and (orientation:portrait) {
-  .character-select-screen {
-    height: 100svh !important;
-    min-height: 0 !important;
-    overflow-x: hidden !important;
-    overflow-y: auto !important;
-  }
-  .versus-stage { height: 1000px !important; min-height: 1000px !important; }
-  .fighter-side { width: 50% !important; height: 1000px !important; overflow: visible !important; }
-  .fighter-side .fighter-figure {
-    inset: 58px 0 auto !important;
-    width: 100% !important;
-    height: 350px !important;
-  }
-  .fighter-side .fighter-figure .fighter-full {
-    left: -19% !important;
-    right: auto !important;
-    bottom: 0 !important;
-    width: 138% !important;
-    height: 100% !important;
-  }
-  .fighter-side-rival .fighter-figure .fighter-full {
-    left: auto !important;
-    right: -19% !important;
-  }
-  .fighter-side .fighter-heading { top: 386px !important; left: 8px !important; right: auto !important; max-width: calc(50vw - 16px) !important; }
-  .fighter-side-rival .fighter-heading { left: auto !important; right: 8px !important; }
-  .fighter-heading h2 { font-size: clamp(22px,7vw,31px) !important; white-space: nowrap !important; }
-  .fighter-side .fighter-trait { top: 446px !important; left: 5px !important; right: auto !important; width: calc(50vw - 8px) !important; }
-  .fighter-side-rival .fighter-trait { left: auto !important; right: 5px !important; }
-  .versus-core { top: 360px !important; }
-  .confirm-fighter { margin-top: 120px !important; }
-  .fighter-side .fighter-team-banner { top: 624px !important; bottom: auto !important; left: 5px !important; right: auto !important; width: calc(50vw - 8px) !important; }
-  .fighter-side-rival .fighter-team-banner { left: auto !important; right: 5px !important; }
-  .fighter-side .side-roster { top: 670px !important; bottom: auto !important; left: 5px !important; right: auto !important; width: calc(50vw - 8px) !important; height: 296px !important; }
-  .fighter-side-rival .side-roster { left: auto !important; right: 5px !important; }
-}
 .character-select-screen .versus-core {
   position: absolute !important;
-  top: 38% !important;
-  left: 50% !important;
-  width: 190px !important;
-  margin-left: -95px !important;
-  translate: none !important;
+  z-index: 80 !important;
+  top: 42% !important; left: 50% !important;
+  width: 166px !important;
+  margin: 0 !important;
+  display: grid !important;
+  justify-items: center !important;
+  transform: translate(-50%,-50%) !important;
+  pointer-events: none;
 }
-.character-select-screen .versus-core .confirm-fighter {
-  position: relative !important;
-  width: 176px !important;
-  min-width: 0 !important;
-  height: 62px !important;
-  min-height: 0 !important;
-  margin-top: 8px !important;
-  padding: 0 !important;
+.versus-mark { width: 150px !important; height: 104px !important; object-fit: contain !important; filter: drop-shadow(0 0 12px #ffb12c) drop-shadow(0 8px 11px #000) !important; transform: rotate(-4deg) !important; }
+.selection-status { margin-top: -5px; color: #fff0ba; font: 900 8px/1 Arial,sans-serif; letter-spacing: .11em; }
+.confirm-fighter { width: 160px !important; height: 56px !important; min-width: 0 !important; min-height: 0 !important; margin: 8px 0 0 !important; padding: 0 !important; border: 2px solid #fff0a2 !important; clip-path: polygon(16% 0,84% 0,100% 50%,84% 100%,16% 100%,0 50%) !important; background: linear-gradient(#ffdc6a,#f38c13 62%,#cf6505) !important; color: #120800 !important; box-shadow: 0 0 0 4px #ff9d1b35,0 0 22px #ff9d1b90,inset 0 4px #fff3a4 !important; pointer-events: auto; cursor: pointer; transition: scale .16s,filter .16s !important; }
+.confirm-fighter b { font: 900 italic 27px/1 Impact,sans-serif !important; }
+.confirm-fighter:is(:hover,:focus-visible) { outline: none; filter: brightness(1.13); scale: 1.04; }
+.confirm-fighter:active { scale: .97; }
+.confirm-fighter:disabled { opacity: .4; filter: grayscale(.6); cursor: not-allowed; }
+.select-controls { position: absolute !important; z-index: 90 !important; left: 50% !important; bottom: 5px !important; width: 330px !important; margin: 0 !important; padding: 6px 14px !important; display: flex !important; justify-content: center !important; gap: 16px !important; transform: translateX(-50%) !important; border: 1px solid #ffffff18 !important; background: #050610dc !important; color: #ddd !important; font: 700 9px/1 Arial,sans-serif !important; }
+.select-controls kbd { display: inline-grid; place-items: center; min-width: 23px; height: 20px; margin-right: 3px; border: 1px solid #ffffff40; background: #151620; color: #fff; font: 700 9px/1 Arial,sans-serif; }
+
+@media (max-width: 1180px) and (orientation: landscape) {
+  .fighter-trait { width: 29vw !important; }
+  .fighter-figure { bottom: 100px !important; }
+  .fighter-team-banner,
+  .fighter-side-rival .fighter-team-banner { bottom: 162px !important; width: 31vw !important; }
+  .side-roster { bottom: 12px !important; width: 31vw !important; height: 126px !important; }
+  .fighter-heading h2 { font-size: clamp(32px,3.5vw,47px) !important; }
+  .fighter-trait { top: 145px !important; min-height: 72px !important; }
+  .fighter-trait p { display: -webkit-box !important; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .select-controls { display: none !important; }
 }
-@media (max-width:760px) and (orientation:portrait) {
-  .character-select-screen .versus-core {
-    top: 360px !important;
-    width: 86px !important;
-    margin-left: -43px !important;
-  }
-  .character-select-screen .versus-core .confirm-fighter {
-    width: 126px !important;
-    height: 52px !important;
-    margin-top: 120px !important;
-    left: 50% !important;
-    translate: -50% 0 !important;
-  }
+
+@media (max-width: 900px) and (orientation: portrait) {
+  .character-select-screen { height: auto !important; min-height: 100svh !important; overflow: visible !important; background-attachment: fixed !important; }
+  .select-header { position: fixed !important; height: 64px !important; background: linear-gradient(#03040cf2,#03040c99,transparent); }
+  .select-back { top: 10px !important; left: 8px !important; width: 92px !important; height: 42px !important; font-size: 12px !important; }
+  .select-brand { top: 1px !important; width: 120px !important; height: 60px !important; }
+  .select-mode { top: 10px !important; right: 8px !important; min-width: 82px !important; padding: 6px 7px !important; font-size: 8px !important; }
+  .select-mode b { font-size: 9px; }
+  .character-select-screen .versus-stage { position: relative !important; inset: auto !important; display: grid !important; grid-template-columns: minmax(0,1fr) !important; grid-template-rows: minmax(640px,76svh) 105px minmax(640px,76svh) !important; min-height: 1385px !important; overflow: visible !important; }
+  .character-select-screen .fighter-side { position: relative !important; inset: auto !important; width: 100% !important; max-width: none !important; min-height: 640px !important; overflow: hidden !important; }
+  .fighter-side-player { grid-row: 1; grid-column: 1 !important; }
+  .fighter-side-rival { grid-row: 3; grid-column: 1 !important; }
+  .fighter-side-rival::before { background: radial-gradient(ellipse at 50% 40%,rgba(166,53,255,.18),transparent 44%),linear-gradient(270deg,rgba(31,4,54,.42),transparent 82%); }
+  .fighter-heading { top: 70px !important; left: 16px !important; max-width: 75vw !important; }
+  .fighter-side-rival .fighter-heading { left: auto !important; right: 16px !important; }
+  .fighter-heading h2 { font-size: clamp(34px,9.5vw,52px) !important; }
+  .fighter-trait,.fighter-trait-rival { top: 132px !important; left: 14px !important; right: auto !important; width: min(82vw,410px) !important; min-height: 75px !important; padding: 9px 12px 9px 60px !important; text-align: left !important; }
+  .fighter-side-rival .fighter-trait { left: auto !important; right: 14px !important; padding: 9px 60px 9px 12px !important; text-align: right !important; }
+  .fighter-figure { inset: 48px -8% 115px !important; }
+  .fighter-figure .fighter-full { left: 0 !important; right: auto !important; width: 100% !important; height: 100% !important; }
+  .fighter-side-rival .fighter-full { left: auto !important; right: 0 !important; }
+  .fighter-team-banner { left: 14px !important; right: auto !important; bottom: 128px !important; width: min(72vw,360px) !important; }
+  .fighter-side-rival .fighter-team-banner { left: auto !important; right: 14px !important; }
+  .side-roster { left: 18px !important; right: auto !important; bottom: 12px !important; width: calc(100% - 36px) !important; height: 106px !important; grid-template-columns: repeat(6,minmax(0,1fr)) !important; grid-template-rows: repeat(2,minmax(0,1fr)) !important; gap: 4px !important; }
+  .fighter-side-rival .side-roster { left: 18px !important; right: auto !important; }
+  .roster-card:nth-child(n),.rival-roster-card:nth-child(n) { translate: 0 0; }
+  .roster-card:nth-child(2n),.rival-roster-card:nth-child(2n+1) { translate: 0 -4px; }
+  .roster-card:is(:hover,:focus-visible,.previewing) { translate: 0 -5px !important; scale: 1.02 !important; }
+  .roster-name { font-size: 7px !important; }
+  .character-select-screen .versus-core { position: relative !important; top: auto !important; left: auto !important; grid-row: 2; grid-column: 1 !important; align-self: center; justify-self: center; width: 150px !important; transform: none !important; }
+  .versus-mark { width: 104px !important; height: 64px !important; }
+  .selection-status { display: none; }
+  .confirm-fighter { position: absolute !important; top: 51px; width: 142px !important; height: 49px !important; margin: 0 !important; }
+  .confirm-fighter b { font-size: 23px !important; }
+  .select-controls { display: none !important; }
 }
-@media (prefers-reduced-motion:reduce) {
-  .character-select-screen *,.character-select-screen *::before,.character-select-screen *::after { animation-duration:.001ms!important; animation-iteration-count:1!important; transition-duration:.001ms!important; }
+
+@media (max-width: 420px) and (orientation: portrait) {
+  .fighter-trait p { display: -webkit-box !important; -webkit-line-clamp: 2; }
+  .fighter-team-banner span { display: none; }
+  .side-roster,.fighter-side-rival .side-roster { left: 18px !important; right: auto !important; width: calc(100% - 36px) !important; grid-template-columns: repeat(4,minmax(0,1fr)) !important; grid-template-rows: repeat(3,minmax(0,1fr)) !important; height: 136px !important; }
+  .fighter-team-banner { bottom: 162px !important; }
 }
-.reduced-motion .character-select-screen *,.reduced-motion .character-select-screen *::before,.reduced-motion .character-select-screen *::after { animation:none!important; transition:none!important; }
-@keyframes ws-fighter-enter-left { from { opacity:0; transform:translateX(-16px) scale(.99); } to { opacity:1; transform:translateX(0) scale(1); } }
-@keyframes ws-fighter-enter-right { from { opacity:0; transform:translateX(16px) scale(.99); } to { opacity:1; transform:translateX(0) scale(1); } }
-@keyframes ws-fighter-breathe { 0%,100% { transform:translate3d(0,0,0) scale(1); } 50% { transform:translate3d(0,-2px,0) scale(1.008); } }
-@keyframes ws-fighter-confirm { 0%,100% { opacity:1; transform:scale(1); filter:brightness(1); } 48% { opacity:1; transform:scale(1.016); filter:brightness(1.18) drop-shadow(0 0 20px #fff7c4); } }
-@keyframes ws-select-leave { to { opacity:0; transform:scale(1.008); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .character-select-screen *,.character-select-screen *::before,.character-select-screen *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+}
+.reduced-motion .character-select-screen *,.reduced-motion .character-select-screen *::before,.reduced-motion .character-select-screen *::after { animation: none !important; transition: none !important; }
+@keyframes cs-enter-left { from { opacity: 0; transform: translateX(-14px) scale(.992); } to { opacity: 1; transform: translateX(0) scale(1); } }
+@keyframes cs-enter-right { from { opacity: 0; transform: translateX(14px) scale(.992); } to { opacity: 1; transform: translateX(0) scale(1); } }
+@keyframes cs-breathe { 0%,100% { transform: translate3d(0,0,0) scale(1); } 50% { transform: translate3d(0,-2px,0) scale(1.006); } }
+@keyframes cs-confirm { 0%,100% { transform: scale(1); filter: brightness(1); } 48% { transform: scale(1.014); filter: brightness(1.17) drop-shadow(0 0 16px #fff7c4); } }
+@keyframes cs-leave { to { opacity: 0; transform: scale(1.006); } }

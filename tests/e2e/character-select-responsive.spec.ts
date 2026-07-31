@@ -77,7 +77,11 @@ test("fighter select stays composed from small phones through ultrawide displays
 
     const playerRoster = await box(page, ".fighter-side-player .side-roster");
     const rivalRoster = await box(page, ".fighter-side-rival .side-roster");
-    expect(playerRoster.right, `${viewport.name} rosters collide`).toBeLessThanOrEqual(rivalRoster.x + 0.5);
+    if (viewport.width <= 900 && viewport.height > viewport.width) {
+      expect(playerRoster.bottom, `${viewport.name} vertically stacked rosters collide`).toBeLessThanOrEqual(rivalRoster.y + 0.5);
+    } else {
+      expect(playerRoster.right, `${viewport.name} rosters collide`).toBeLessThanOrEqual(rivalRoster.x + 0.5);
+    }
 
     for (const side of [".fighter-side-player", ".fighter-side-rival"] as const) {
       const cards = await page.locator(`${side} .roster-card, ${side} .rival-roster-card`).evaluateAll((elements) => elements.map((element) => {
@@ -110,7 +114,7 @@ test("fighter select stays composed from small phones through ultrawide displays
     await page.getByRole("radio", { name: "MAKI" }).hover();
     await expect(page.locator('[data-player-fighter="maki"].active')).toBeVisible();
     await expect.poll(() => page.locator('[data-player-fighter="maki"].active').evaluate((element) => getComputedStyle(element).animationName))
-      .toContain("ws-fighter-breathe");
+      .toContain("cs-breathe");
     await page.getByRole("radio", { name: "MAKI" }).click();
     await expect(page.getByTestId("confirm-character")).toBeEnabled();
     const layoutHeight = Math.max(viewport.height,

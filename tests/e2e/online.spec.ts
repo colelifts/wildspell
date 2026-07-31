@@ -29,10 +29,11 @@ async function deleteQueueIfCode(ruleset: Ruleset, code: string): Promise<void> 
   await fetch(url, { method: "DELETE", headers: { "if-match": etag } });
 }
 
-async function openOnline(page: Page, name: string): Promise<void> {
+async function openOnline(page: Page, name: string, mode: "final-draw" | "knockout" = "final-draw"): Promise<void> {
   await page.goto("/");
   await expect(page.locator("#loading-veil")).toBeHidden();
   await page.getByRole("button", { name: "ONLINE BETA" }).click();
+  await page.getByRole("button", { name: mode === "knockout" ? /KNOCKOUT ARENA/i : /FINAL DRAW/i }).click();
   await page.locator("#online-name").fill(name);
 }
 
@@ -221,5 +222,37 @@ test("Quick Match atomically pairs two simultaneous browsers", async ({ browser,
       await fetch(`${databaseRoot}/rooms/${code}.json`, { method: "DELETE" });
       await deleteQueueIfCode(ruleset, code);
     }
+  }
+});
+
+test("Knockout room synchronizes each player's selected fighter", async ({ browser, page }) => {
+  test.setTimeout(60_000);
+  const guestContext = await browser.newContext({ viewport: page.viewportSize() ?? { width: 1280, height: 720 } });
+  const guest = await guestContext.newPage();
+  let code = "";
+  try {
+    await Promise.all([openOnline(page, "Gojo", "knockout"), openOnline(guest, "Maki", "knockout")]);
+    await page.locator("#online-character").selectOption("gojo");
+    await guest.locator("#online-character").selectOption("maki");
+    await page.getByRole("button", { name: "CREATE ROOM" }).click();
+    await expect(page.locator("#online-lobby")).toBeVisible({ timeout: 15_000 });
+    code = await page.locator("#room-code").inputValue();
+    expect(code).toMatch(/^[A-Z2-9]{6}$/);
+    await guest.locator("#room-code").fill(code);
+    await guest.getByRole("button", { name: "JOIN PRIVATE DUEL" }).click();
+
+    const hostCanvas = page.locator("canvas");
+    const guestCanvas = guest.locator("canvas");
+    await expect(hostCanvas).toHaveAttribute("data-mode", "knockout", { timeout: 20_000 });
+    await expect(guestCanvas).toHaveAttribute("data-mode", "knockout", { timeout: 20_000 });
+    await expect(hostCanvas).toHaveAttribute("data-player-character", "gojo");
+    await expect(hostCanvas).toHaveAttribute("data-opponent-character", "maki");
+    await expect(guestCanvas).toHaveAttribute("data-player-character", "maki");
+    await expect(guestCanvas).toHaveAttribute("data-opponent-character", "gojo");
+    await expect.poll(async () => Number(await hostCanvas.getAttribute("data-online-tick")), { timeout: 15_000 }).toBeGreaterThan(0);
+    await expect.poll(async () => Number(await guestCanvas.getAttribute("data-online-tick")), { timeout: 15_000 }).toBeGreaterThan(0);
+  } finally {
+    await guestContext.close();
+    if (code) await fetch(`${databaseRoot}/rooms/${code}.json`, { method: "DELETE" });
   }
 });

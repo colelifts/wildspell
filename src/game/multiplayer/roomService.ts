@@ -3,6 +3,9 @@ import { advanceRound, createGame, reduceGame, resolveChallenge, restartMatch } 
 import type { GameCommand, GameState, Ruleset } from "../rules/types";
 import { getFirebaseServices } from "./firebase";
 import { PROTOCOL_VERSION, type RoomPlayer, type RoomRecord } from "./protocol";
+import type { CharacterId, WildSpellMode } from "../events";
+import type { KnockoutInput, KnockoutState } from "../knockout/types";
+import { createKnockoutState } from "../knockout/simulation";
 import { attachPresence } from "./presence";
 import { hydrateGameState } from "./perspective";
 
@@ -35,7 +38,7 @@ export interface RoomSession {
   stopPresence: () => void;
 }
 
-export async function createRoom(name: string, ruleset: Ruleset): Promise<RoomSession> {
+export async function createRoom(name: string, ruleset: Ruleset, characterId: CharacterId, gameMode: WildSpellMode = "final-draw"): Promise<RoomSession> {
   const services = await getFirebaseServices();
   if (!services) throw new Error("Firebase is unavailable.");
   const code = makeCode();
@@ -44,10 +47,11 @@ export async function createRoom(name: string, ruleset: Ruleset): Promise<RoomSe
     version: PROTOCOL_VERSION,
     hostUid: services.user.uid,
     ruleset,
+    gameMode,
     status: "waiting",
     createdAt: now,
     updatedAt: now,
-    players: { 0: { uid: services.user.uid, name, joinedAt: now } },
+    players: { 0: { uid: services.user.uid, name, characterId, joinedAt: now } },
     revision: 0
   };
   await set(ref(services.database, `rooms/${code}`), room);
@@ -55,7 +59,7 @@ export async function createRoom(name: string, ruleset: Ruleset): Promise<RoomSe
   return { code, slot: 0, uid: services.user.uid, stopPresence };
 }
 
-export async function joinRoom(codeInput: string, name: string): Promise<RoomSession> {
+export async function joinRoom(codeInput: string, name: string, characterId: CharacterId): Promise<RoomSession> {
   const services = await getFirebaseServices();
   if (!services) throw new Error("Firebase is unavailable.");
   const code = codeInput.trim().toUpperCase();
@@ -66,19 +70,27 @@ export async function joinRoom(codeInput: string, name: string): Promise<RoomSes
 
   let slot = playerSlot(initial, services.user.uid);
   if (slot == null) {
-    const player: RoomPlayer = { uid: services.user.uid, name, joinedAt: Date.now() };
+    const player: RoomPlayer = { uid: services.user.uid, name, characterId, joinedAt: Date.now() };
     const claim = await runTransaction(ref(services.database, `rooms/${code}/players/1`), (current: RoomPlayer | null) => current ?? player);
     const claimed = claim.snapshot.val() as RoomPlayer | null;
     if (!claim.committed || claimed?.uid !== services.user.uid) throw new Error("Room is already full.");
     slot = 1;
-  } else await update(ref(services.database, `rooms/${code}/players/${slot}`), { name });
+  } else await update(ref(services.database, `rooms/${code}/players/${slot}`), { name, characterId });
 
   const latest = (await get(roomRef)).val() as RoomRecord;
   const first = latest.players?.[0];
   const second = latest.players?.[1];
   if (!first || !second) throw new Error("The rival seat could not be claimed.");
-  const stateResult = await runTransaction(ref(services.database, `rooms/${code}/state`), (state: GameState | null) => state ?? createGame([first.name, second.name], latest.ruleset, "normal", roomSeed(code, latest.createdAt)));
-  if (!stateResult.committed) throw new Error("The online match could not start.");
+  if (latest.gameMode === "knockout") {
+    const knockoutResult = await runTransaction(ref(services.database, `rooms/${code}/knockout`), (current: RoomRecord["knockout"] | null) => current ?? {
+      state: createKnockoutState([first.characterId, second.characterId]),
+      inputs: {}
+    });
+    if (!knockoutResult.committed) throw new Error("The online knockout could not start.");
+  } else {
+    const stateResult = await runTransaction(ref(services.database, `rooms/${code}/state`), (state: GameState | null) => state ?? createGame([first.name, second.name], latest.ruleset, "normal", roomSeed(code, latest.createdAt)));
+    if (!stateResult.committed) throw new Error("The online match could not start.");
+  }
   await update(roomRef, { status: "playing", updatedAt: Date.now() });
   const stopPresence = await attachPresence(services.database, code, slot, services.user.uid);
   return { code, slot, uid: services.user.uid, stopPresence };
@@ -112,6 +124,23 @@ export async function commitRoomCommand(session: RoomSession, command: GameComma
     const id = `${committedState.roundNumber}-${committedState.turnNumber}-${committedState.challengeOwner}`;
     await set(ref(services.database, `rooms/${session.code}/challenge`), { id, type: challengeType(committedState.turnNumber), startedAt: Date.now(), scores: {} });
   } else await remove(ref(services.database, `rooms/${session.code}/challenge`));
+}
+
+export async function writeKnockoutInput(session: RoomSession, input: KnockoutInput): Promise<void> {
+  const services = await getFirebaseServices();
+  if (!services) throw new Error("Firebase is unavailable.");
+  await set(ref(services.database, `rooms/${session.code}/knockout/inputs/${session.slot}`), input);
+}
+
+export async function writeKnockoutSnapshot(session: RoomSession, state: KnockoutState): Promise<void> {
+  if (session.slot !== 0) return;
+  const services = await getFirebaseServices();
+  if (!services) throw new Error("Firebase is unavailable.");
+  await set(ref(services.database, `rooms/${session.code}/knockout/state`), state);
+  await update(ref(services.database, `rooms/${session.code}`), {
+    updatedAt: Date.now(),
+    status: state.phase === "round-over" ? "complete" : "playing"
+  });
 }
 
 export async function submitChallengeScore(session: RoomSession, score: number): Promise<void> {
@@ -196,7 +225,7 @@ export async function abandonWaitingRoom(session: RoomSession): Promise<void> {
   });
   if (!transaction.committed) return;
   session.stopPresence();
-  await runTransaction(ref(services.database, `matchmaking/${room.ruleset}`), (entry: { code?: string; uid?: string } | null) => {
+  await runTransaction(ref(services.database, `matchmaking/${room.gameMode ?? "final-draw"}-${room.ruleset}`), (entry: { code?: string; uid?: string } | null) => {
     if (entry?.code === session.code && entry.uid === session.uid) return null;
     return;
   });
